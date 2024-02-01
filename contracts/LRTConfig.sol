@@ -37,17 +37,17 @@ contract LRTConfig is ILRTConfig, AccessControlUpgradeable {
     /// @dev Initializes the contract
     /// @param admin Admin address
     /// @param stETH stETH address
-    /// @param ethX ETHX address
+    /// @param oeth OETH address
     /// @param prETH_ prETH address
-    function initialize(address admin, address stETH, address ethX, address prETH_) external initializer {
+    function initialize(address admin, address stETH, address oeth, address prETH_) external initializer {
         UtilLib.checkNonZeroAddress(admin);
         UtilLib.checkNonZeroAddress(prETH_);
 
         __AccessControl_init();
         _setToken(LRTConstants.ST_ETH_TOKEN, stETH);
-        _setToken(LRTConstants.ETHX_TOKEN, ethX);
+        _setToken(LRTConstants.OETH_TOKEN, oeth);
         _addNewSupportedAsset(stETH, 100_000 ether);
-        _addNewSupportedAsset(ethX, 100_000 ether);
+        _addNewSupportedAsset(oeth, 100_000 ether);
 
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
 

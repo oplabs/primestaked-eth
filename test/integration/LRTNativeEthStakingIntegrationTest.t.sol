@@ -10,7 +10,6 @@ import { OneETHPriceOracle } from "contracts/oracles/OneETHPriceOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
-import { getLSTs } from "script/foundry-scripts/DeployLRT.s.sol";
 
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -35,7 +34,6 @@ contract LRTNativeEthStakingIntegrationTest is Test {
         address proxyAddress = address(lrtConfig);
         address newImplementation = address(new LRTConfig());
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(proxyAddress), newImplementation);
-
         // upgrade lrtDepositPool
         proxyAddress = address(lrtDepositPool);
         newImplementation = address(new LRTDepositPool());

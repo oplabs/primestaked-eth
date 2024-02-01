@@ -3,6 +3,8 @@ pragma solidity 0.8.21;
 
 library LRTConstants {
     //tokens
+    //OETH token
+    bytes32 public constant OETH_TOKEN = keccak256("OETH_TOKEN");
     //rETH token
     bytes32 public constant R_ETH_TOKEN = keccak256("R_ETH_TOKEN");
     //stETH token

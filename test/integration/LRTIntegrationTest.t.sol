@@ -9,7 +9,6 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
-import { getLSTs } from "script/foundry-scripts/DeployLRT.s.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
