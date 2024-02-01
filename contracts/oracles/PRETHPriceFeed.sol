@@ -19,7 +19,7 @@ interface AggregatorV3Interface {
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 }
 
-interface IRSETHOracle {
+interface IPRETHOracle {
     function prETHPrice() external view returns (uint256);
 }
 
@@ -28,7 +28,7 @@ contract RSETHPriceFeed is AggregatorV3Interface {
     AggregatorV3Interface public immutable ETH_TO_USD;
 
     /// @notice prETH oracle contract
-    IRSETHOracle public immutable RS_ETH_ORACLE;
+    IPRETHOracle public immutable RS_ETH_ORACLE;
 
     string public description;
 
@@ -37,7 +37,7 @@ contract RSETHPriceFeed is AggregatorV3Interface {
     /// @param description_ priceFeed description (PrimeStakedETH / USD)
     constructor(address ethToUSDAggregatorAddress, address prETHOracle, string memory description_) {
         ETH_TO_USD = AggregatorV3Interface(ethToUSDAggregatorAddress);
-        RS_ETH_ORACLE = IRSETHOracle(prETHOracle);
+        RS_ETH_ORACLE = IPRETHOracle(prETHOracle);
 
         description = description_;
     }
