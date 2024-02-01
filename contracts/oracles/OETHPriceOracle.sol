@@ -5,4 +5,4 @@ import { OneETHPriceOracle } from "./OneETHPriceOracle.sol";
 
 /// @title OETHPrice Oralce Contract
 /// @notice contract that fetches the exchange rate of OETH/ETH
-contract OETHPriceOracle is OneETHPriceOracle {}
+contract OETHPriceOracle is OneETHPriceOracle { }
