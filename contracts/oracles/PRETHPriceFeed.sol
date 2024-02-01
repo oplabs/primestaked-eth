@@ -23,7 +23,7 @@ interface IPRETHOracle {
     function prETHPrice() external view returns (uint256);
 }
 
-contract RSETHPriceFeed is AggregatorV3Interface {
+contract PRETHPriceFeed is AggregatorV3Interface {
     /// @notice Price feed for (ETH / USD) pair
     AggregatorV3Interface public immutable ETH_TO_USD;
 

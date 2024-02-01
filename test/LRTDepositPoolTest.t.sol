@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 
 import { BaseTest } from "./BaseTest.t.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
-import { PrimeStakedETH, ILRTConfig, UtilLib, LRTConstants } from "./PrimeStakedETH.t.sol";
+import { PrimeStakedETHTest, ILRTConfig, UtilLib, LRTConstants } from "./PrimeStakedETHTest.t.sol";
 import { ILRTDepositPool } from "contracts/interfaces/ILRTDepositPool.sol";
 
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -51,7 +51,7 @@ contract MockNodeDelegator {
     }
 }
 
-contract LRTDepositPoolTest is BaseTest, PrimeStakedETH {
+contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     LRTDepositPool public lrtDepositPool;
 
     uint256 public minimunAmountOfPRETHToReceive;
@@ -59,7 +59,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETH {
 
     event ETHDeposit(address indexed depositor, uint256 depositAmount, uint256 prethMintAmount, string referralId);
 
-    function setUp() public virtual override(PrimeStakedETH, BaseTest) {
+    function setUp() public virtual override(PrimeStakedETHTest, BaseTest) {
         super.setUp();
 
         // deploy LRTDepositPool
@@ -70,7 +70,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETH {
 
         lrtDepositPool = LRTDepositPool(payable(contractProxy));
 
-        // initialize PrimeStakedETH. LRTCOnfig is already initialized in PrimeStakedETH
+        // initialize PrimeStakedETHTest. LRTCOnfig is already initialized in PrimeStakedETHTest
         preth.initialize(address(admin), address(lrtConfig));
         vm.startPrank(admin);
         // add prETH to LRT config

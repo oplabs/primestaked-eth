@@ -8,7 +8,7 @@ import { LRTConfigTest, ILRTConfig, UtilLib, LRTConstants } from "./LRTConfigTes
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-contract PrimeStakedETH is BaseTest, LRTConfigTest {
+contract PrimeStakedETHTest is BaseTest, LRTConfigTest {
     PrimeStakedETH public preth;
 
     event UpdatedLRTConfig(address indexed _lrtConfig);
@@ -28,7 +28,7 @@ contract PrimeStakedETH is BaseTest, LRTConfigTest {
     }
 }
 
-contract PRETHInitialize is PrimeStakedETH {
+contract PRETHInitialize is PrimeStakedETHTest {
     function test_RevertWhenAdminIsZeroAddress() external {
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
         preth.initialize(address(0), address(lrtConfig));
@@ -50,7 +50,7 @@ contract PRETHInitialize is PrimeStakedETH {
     }
 }
 
-contract PRETHMint is PrimeStakedETH {
+contract PRETHMint is PrimeStakedETHTest {
     address public minter = makeAddr("minter");
 
     function setUp() public override {
@@ -104,7 +104,7 @@ contract PRETHMint is PrimeStakedETH {
     }
 }
 
-contract PRETHBurnFrom is PrimeStakedETH {
+contract PRETHBurnFrom is PrimeStakedETHTest {
     address public burner = makeAddr("burner");
 
     function setUp() public override {
@@ -151,7 +151,7 @@ contract PRETHBurnFrom is PrimeStakedETH {
     }
 }
 
-contract PRETHPause is PrimeStakedETH {
+contract PRETHPause is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
         preth.initialize(address(admin), address(lrtConfig));
@@ -190,7 +190,7 @@ contract PRETHPause is PrimeStakedETH {
     }
 }
 
-contract PRETHUnpause is PrimeStakedETH {
+contract PRETHUnpause is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
         preth.initialize(address(admin), address(lrtConfig));
@@ -230,7 +230,7 @@ contract PRETHUnpause is PrimeStakedETH {
     }
 }
 
-contract PRETHUpdateLRTConfig is PrimeStakedETH {
+contract PRETHUpdateLRTConfig is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
         preth.initialize(address(admin), address(lrtConfig));
