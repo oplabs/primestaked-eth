@@ -23,7 +23,7 @@ contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable
         UtilLib.checkNonZeroAddress(admin);
         UtilLib.checkNonZeroAddress(lrtConfigAddr);
 
-        __ERC20_init("primeETH", "Prime Staked ETH");
+        __ERC20_init("Prime Staked ETH", "primeETH");
         __Pausable_init();
         lrtConfig = ILRTConfig(lrtConfigAddr);
         emit UpdatedLRTConfig(lrtConfigAddr);
