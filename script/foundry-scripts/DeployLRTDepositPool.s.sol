@@ -47,20 +47,28 @@ contract DeployLRTDepositPool is Script {
         lrtDepositPoolProxy.addNodeDelegatorContractToQueue(nodeDelegatorContracts);
     }
 
+    /* This deploy script is used to point the LRTDepositPool Proxy to the new implementation
+     * 
+     */
     function run() external {
         vm.startBroadcast();
         console.log("Deployment started...");
 
-        proxyFactory = ProxyFactory(0x4ae77FdfB3BBBe99598CAfaE4c369b604b6d9e02);
-        proxyAdmin = ProxyAdmin(0x503DCfd945dC6612FAa18823501C05410D7eB646);
+        // Proxy factory from DeployLRT
+        proxyFactory = ProxyFactory(0x39254033945AA2E4809Cc2977E7087BEE48bd7Ab);
+        // ProxyAdmin from DeployLRT
+        proxyAdmin = ProxyAdmin(0x60fF8354e9C0E78e032B7daeA8da2c3265287dBd);
         proxyAdminOwner = proxyAdmin.owner();
-        lrtConfigProxy = LRTConfig(0x99Abf439a4e9910934Dea47082286a04986820b5);
-        PRETHProxy = PrimeStakedETH(0xDa3FF613C5A44F743E5F46c43D1f6F897F425205);
-        nodeDelegatorProxy1 = NodeDelegator(payable(0x89cD79e873DEA08D1AfA173B9160c8D31e4Bc9f0));
-        nodeDelegatorProxy2 = NodeDelegator(payable(0x5c5720246d3210E90875015c8439230c027a104b));
-        nodeDelegatorProxy3 = NodeDelegator(payable(0x68FBD2a42e5d598dA91161f69a8346aFc9Ad9BA8));
-        nodeDelegatorProxy4 = NodeDelegator(payable(0x6E6a5770A3A9A8b8614600d5F0A9d6bDc695CF68));
-        nodeDelegatorProxy5 = NodeDelegator(payable(0x51975b2e6E29738B8aaaC8479f929a04c5E1D54c));
+        // LRTConfig proxy from DeployLRT
+        lrtConfigProxy = LRTConfig(0x5E598B1A8658a5a1434CEAA6988D43aeB028F430);
+        // PrimeStakedETH proxy proxy from DeployLRT
+        PRETHProxy = PrimeStakedETH(0xE8EC01e3546E2967C9a46b58E5e70608D313b650);
+        // NodeDelegator proxyies proxy proxy from DeployLRT
+        nodeDelegatorProxy1 = NodeDelegator(payable(0x275Df49898F7BBc8ca62A9487584aee3586ad775));
+        nodeDelegatorProxy2 = NodeDelegator(payable(0x136cE661972Ad469D5Abecff69712bAA9bF280Cc));
+        nodeDelegatorProxy3 = NodeDelegator(payable(0x743491173ee03f580aFd4Db4Ad32FCf0251bb8e4));
+        nodeDelegatorProxy4 = NodeDelegator(payable(0x3c85c49a81a5DC3CD3ef6C0BE46757FE703d745d));
+        nodeDelegatorProxy5 = NodeDelegator(payable(0xf97A629754fA65C34fc03cfe36328B6bD308eC8a));
 
         console.log("ProxyAdmin deployed at: ", address(proxyAdmin));
         console.log("Owner of ProxyAdmin: ", proxyAdminOwner);
