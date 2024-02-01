@@ -57,3 +57,10 @@ minimal-deploy-testnet :; forge script script/foundry-scripts/DeployMinimal.s.so
 minimal-deploy-mainnet :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 
 minimal-deploy-local-test :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+
+# upgrade prime staked eth token contract
+upgrade-token-testnet :; forge script script/foundry-scripts/UpgradePimeStakedToken.s.sol:UpgradePimeStakedToken --rpc-url goerli  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+
+upgrade-token-mainnet :; forge script script/foundry-scripts/UpgradePimeStakedToken.s.sol:UpgradePimeStakedToken --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+
+upgrade-token-local-test :; forge script script/foundry-scripts/UpgradePimeStakedToken.s.sol:UpgradePimeStakedToken --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
