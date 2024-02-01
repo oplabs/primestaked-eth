@@ -17,7 +17,7 @@ contract PrimeStakedETHTest is BaseTest, LRTConfigTest {
         super.setUp();
 
         // initialize LRTConfig
-        lrtConfig.initialize(admin, address(stETH), address(ethX), prethMock);
+        lrtConfig.initialize(admin, address(stETH), address(oeth), prethMock);
 
         ProxyAdmin proxyAdmin = new ProxyAdmin();
         PrimeStakedETH tokenImpl = new PrimeStakedETH();

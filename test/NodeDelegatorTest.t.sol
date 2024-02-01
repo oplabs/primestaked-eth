@@ -81,7 +81,7 @@ contract NodeDelegatorTest is LRTConfigTest {
     MockEigenStrategyManager public mockEigenStrategyManager;
 
     MockStrategy public stETHMockStrategy;
-    MockStrategy public ethXMockStrategy;
+    MockStrategy public oethMockStrategy;
     address public mockLRTDepositPool;
 
     MockEigenPodManager public mockEigenPodManager;
@@ -98,7 +98,7 @@ contract NodeDelegatorTest is LRTConfigTest {
         operator = makeAddr("operator");
 
         // initialize LRTConfig
-        lrtConfig.initialize(admin, address(stETH), address(ethX), prethMock);
+        lrtConfig.initialize(admin, address(stETH), address(oeth), prethMock);
 
         // add mockEigenStrategyManager to LRTConfig
         mockEigenStrategyManager = new MockEigenStrategyManager();
@@ -116,10 +116,10 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         // add mockStrategy to LRTConfig
         mockUserUnderlyingViewBalance = 10 ether;
-        ethXMockStrategy = new MockStrategy(address(ethX), mockUserUnderlyingViewBalance);
+        oethMockStrategy = new MockStrategy(address(oeth), mockUserUnderlyingViewBalance);
         stETHMockStrategy = new MockStrategy(address(stETH), mockUserUnderlyingViewBalance);
 
-        lrtConfig.updateAssetStrategy(address(ethX), address(ethXMockStrategy));
+        lrtConfig.updateAssetStrategy(address(oeth), address(oethMockStrategy));
         lrtConfig.updateAssetStrategy(address(stETH), address(stETHMockStrategy));
 
         // add mockLRTDepositPool to LRTConfig
@@ -197,7 +197,7 @@ contract NodeDelegatorMaxApproveToEigenStrategyManager is NodeDelegatorTest {
     function test_RevertWhenCallerIsNotLRTManager() external {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        nodeDel.maxApproveToEigenStrategyManager(address(ethX));
+        nodeDel.maxApproveToEigenStrategyManager(address(oeth));
         vm.stopPrank();
     }
 
@@ -211,11 +211,11 @@ contract NodeDelegatorMaxApproveToEigenStrategyManager is NodeDelegatorTest {
 
     function test_MaxApproveToEigenStrategyManager() external {
         vm.startPrank(manager);
-        nodeDel.maxApproveToEigenStrategyManager(address(ethX));
+        nodeDel.maxApproveToEigenStrategyManager(address(oeth));
         vm.stopPrank();
 
         // check that the nodeDelegator has max approved the eigen strategy manager
-        assertEq(ethX.allowance(address(nodeDel), address(mockEigenStrategyManager)), type(uint256).max);
+        assertEq(oeth.allowance(address(nodeDel), address(mockEigenStrategyManager)), type(uint256).max);
     }
 }
 
@@ -229,11 +229,11 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
         // sends token to nodeDelegator so it can deposit it into the strategy
         amountDeposited = 10 ether;
         vm.prank(bob);
-        ethX.transfer(address(nodeDel), amountDeposited);
+        oeth.transfer(address(nodeDel), amountDeposited);
 
         // max approve nodeDelegator to deposit into strategy
         vm.prank(manager);
-        nodeDel.maxApproveToEigenStrategyManager(address(ethX));
+        nodeDel.maxApproveToEigenStrategyManager(address(oeth));
     }
 
     function test_RevertWhenContractIsPaused() external {
@@ -241,7 +241,7 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
         nodeDel.pause();
 
         vm.expectRevert("Pausable: paused");
-        nodeDel.depositAssetIntoStrategy(address(ethX));
+        nodeDel.depositAssetIntoStrategy(address(oeth));
 
         vm.stopPrank();
     }
@@ -257,7 +257,7 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
     function test_RevertWhenCallerIsNotLRTManager() external {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        nodeDel.depositAssetIntoStrategy(address(ethX));
+        nodeDel.depositAssetIntoStrategy(address(oeth));
         vm.stopPrank();
     }
 
@@ -276,12 +276,12 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
     function test_DepositAssetIntoStrategy() external {
         vm.startPrank(manager);
         expectEmit();
-        emit AssetDepositIntoStrategy(address(ethX), address(ethXMockStrategy), amountDeposited);
-        nodeDel.depositAssetIntoStrategy(address(ethX));
+        emit AssetDepositIntoStrategy(address(oeth), address(oethMockStrategy), amountDeposited);
+        nodeDel.depositAssetIntoStrategy(address(oeth));
         vm.stopPrank();
 
         // check that strategy received LST via the eigen strategy manager
-        assertEq(ethX.balanceOf(address(ethXMockStrategy)), amountDeposited);
+        assertEq(oeth.balanceOf(address(oethMockStrategy)), amountDeposited);
     }
 }
 
@@ -292,9 +292,9 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
         lrtConfig.addNewSupportedAsset(LRTConstants.ETH_TOKEN, 100_000 ether);
         nodeDel.initialize(address(lrtConfig));
 
-        // transfer ethX to NodeDelegator
+        // transfer oeth to NodeDelegator
         vm.prank(bob);
-        ethX.transfer(address(nodeDel), 10 ether);
+        oeth.transfer(address(nodeDel), 10 ether);
     }
 
     function test_RevertWhenContractIsPaused() external {
@@ -302,7 +302,7 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
         nodeDel.pause();
 
         vm.expectRevert("Pausable: paused");
-        nodeDel.transferBackToLRTDepositPool(address(ethX), 10 ether);
+        nodeDel.transferBackToLRTDepositPool(address(oeth), 10 ether);
 
         vm.stopPrank();
     }
@@ -310,7 +310,7 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
     function test_RevertWhenCallerIsNotLRTManager() external {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        nodeDel.transferBackToLRTDepositPool(address(ethX), 10 ether);
+        nodeDel.transferBackToLRTDepositPool(address(oeth), 10 ether);
         vm.stopPrank();
     }
 
@@ -325,19 +325,19 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
     function test_TransferBackToLRTDepositPool() external {
         uint256 amountToDeposit = 3 ether;
 
-        uint256 nodeDelBalanceBefore = ethX.balanceOf(address(nodeDel));
+        uint256 nodeDelBalanceBefore = oeth.balanceOf(address(nodeDel));
 
         // transfer funds in NodeDelegator to to LRTDepositPool
         vm.startPrank(manager);
-        nodeDel.transferBackToLRTDepositPool(address(ethX), amountToDeposit);
+        nodeDel.transferBackToLRTDepositPool(address(oeth), amountToDeposit);
         vm.stopPrank();
 
-        uint256 nodeDelBalanceAfter = ethX.balanceOf(address(nodeDel));
+        uint256 nodeDelBalanceAfter = oeth.balanceOf(address(nodeDel));
 
         assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not increase");
         assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not increase");
 
-        assertEq(ethX.balanceOf(mockLRTDepositPool), amountToDeposit, "LRTDepositPool balance did not increase");
+        assertEq(oeth.balanceOf(mockLRTDepositPool), amountToDeposit, "LRTDepositPool balance did not increase");
     }
 
     function test_TransferETHBackToLRTDepositPool() external {
@@ -366,13 +366,13 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
 
         // sends token to nodeDelegator so it can deposit it into the strategy
         vm.startPrank(bob);
-        ethX.transfer(address(nodeDel), 10 ether);
+        oeth.transfer(address(nodeDel), 10 ether);
         stETH.transfer(address(nodeDel), 5 ether);
         vm.stopPrank();
 
         // max approve nodeDelegator to deposit into strategy
         vm.startPrank(manager);
-        nodeDel.maxApproveToEigenStrategyManager(address(ethX));
+        nodeDel.maxApproveToEigenStrategyManager(address(oeth));
         nodeDel.maxApproveToEigenStrategyManager(address(stETH));
         vm.stopPrank();
     }
@@ -380,7 +380,7 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
     function test_GetAssetBalances() external {
         // deposit NodeDelegator balance into strategy
         vm.startPrank(manager);
-        nodeDel.depositAssetIntoStrategy(address(ethX));
+        nodeDel.depositAssetIntoStrategy(address(oeth));
         nodeDel.depositAssetIntoStrategy(address(stETH));
         vm.stopPrank();
 
@@ -388,10 +388,10 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         (address[] memory assets, uint256[] memory assetBalances) = nodeDel.getAssetBalances();
 
         assertEq(assets.length, 2, "Incorrect number of assets");
-        assertEq(assets[0], address(ethX), "Incorrect asset");
+        assertEq(assets[0], address(oeth), "Incorrect asset");
         assertEq(assets[1], address(stETH), "Incorrect asset");
         assertEq(assetBalances.length, 2, "Incorrect number of asset balances");
-        assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
+        assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for oeth");
         assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
     }
 }
@@ -403,23 +403,23 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
 
         // sends token to nodeDelegator so it can deposit it into the strategy
         vm.prank(bob);
-        ethX.transfer(address(nodeDel), 6 ether);
+        oeth.transfer(address(nodeDel), 6 ether);
 
         // max approve nodeDelegator to deposit into strategy
         vm.prank(manager);
-        nodeDel.maxApproveToEigenStrategyManager(address(ethX));
+        nodeDel.maxApproveToEigenStrategyManager(address(oeth));
     }
 
     function test_GetAssetBalance() external {
         // deposit NodeDelegator balance into strategy
         vm.startPrank(manager);
-        nodeDel.depositAssetIntoStrategy(address(ethX));
+        nodeDel.depositAssetIntoStrategy(address(oeth));
         vm.stopPrank();
 
         // get asset balances in strategies
-        (uint256 ethXNodeDelBalance) = nodeDel.getAssetBalance(address(ethX));
+        (uint256 oethNodeDelBalance) = nodeDel.getAssetBalance(address(oeth));
 
-        assertEq(ethXNodeDelBalance, mockUserUnderlyingViewBalance, "Incorrect asset balance");
+        assertEq(oethNodeDelBalance, mockUserUnderlyingViewBalance, "Incorrect asset balance");
     }
 }
 

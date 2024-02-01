@@ -15,7 +15,7 @@ contract MockToken is ERC20 {
 
 contract BaseTest is Test {
     MockToken public stETH;
-    MockToken public ethX;
+    MockToken public oeth;
 
     MockToken public rETH;
     MockToken public cbETH;
@@ -30,13 +30,13 @@ contract BaseTest is Test {
 
     function setUp() public virtual {
         stETH = new MockToken("staked ETH", "stETH");
-        ethX = new MockToken("ETHX", "ethX");
+        oeth = new MockToken("OETH", "OETH");
         rETH = new MockToken("rETH", "rETH");
         cbETH = new MockToken("cbETH", "cbETH");
 
         // mint LST tokens to alice, bob and carol
         mintLSTTokensForUsers(stETH);
-        mintLSTTokensForUsers(ethX);
+        mintLSTTokensForUsers(oeth);
         mintLSTTokensForUsers(rETH);
         mintLSTTokensForUsers(cbETH);
 
