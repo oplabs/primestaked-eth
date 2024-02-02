@@ -640,7 +640,7 @@ contract LRTIntegrationTest is Test {
     }
 
     function test_PRETHIsAlreadyInitialized() public {
-        // Skipping as the admin has been removed from initialize but contract not yet redeployed to Goerli 
+        // Skipping as the admin has been removed from initialize but contract not yet redeployed to Goerli
         vm.skip(true);
         // attempt to initialize PrimeStakedETH again reverts
         vm.expectRevert("Initializable: contract is already initialized");
