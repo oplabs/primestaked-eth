@@ -84,8 +84,7 @@ contract DeployDelegatorPoolOracle is Script {
         lrtConfigProxy.setContract(LRTConstants.LRT_DEPOSIT_POOL, address(lrtDepositPoolProxy));
 
         // call updateAssetStrategy for each asset in LRTConfig
-        (address strategyManager, address stETHStrategy, address ethXStrategy, address oethStrategy) =
-            getAssetStrategies();
+        (address strategyManager, address stETHStrategy, address ethXStrategy,) = getAssetStrategies();
         lrtConfigProxy.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, strategyManager);
         lrtConfigProxy.updateAssetStrategy(stETH, stETHStrategy);
         lrtConfigProxy.updateAssetStrategy(ethx, ethXStrategy);
