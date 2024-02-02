@@ -12,15 +12,22 @@ import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
+import { LRTConfigRoleChecker } from "contracts/utils/LRTConfigRoleChecker.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 contract AddAssets is Script {
     ProxyFactory public proxyFactory;
     ProxyAdmin public proxyAdmin;
 
     LRTConfig public lrtConfig;
-    // LRTOracle public lrtOracle;
+    LRTOracle public lrtOracle;
+    address oethOracleProxy;
 
     function run() external {
+        // IMPORTNAT: Uncomment after delpoying LRTOracle
+        // or manually change if running on forked net
+        lrtOracle = LRTOracle(0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32);
+
         if (block.chainid != 1) {
             revert("Not Mainnet");
         }
@@ -37,10 +44,9 @@ contract AddAssets is Script {
 
         proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
         proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
-
         lrtConfig = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle = LRTOracle(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
+        // add manager role to the deployer
+        lrtConfig.grantRole(LRTConstants.MANAGER, msg.sender);
 
         addOETH();
         addStETH();
@@ -114,9 +120,9 @@ contract AddAssets is Script {
         address strategy = 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d;
         address assetOracleProxy = 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C;
         // NOTE: ETHx is already supported, only update the Oracle and strategy
-        lrtConfig.updateAssetStrategy(ethx, strategy);
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle.updatePriceOracleFor(ethx, assetOracleProxy);
+        // lrtConfig.updateAssetStrategy(ethx, strategy);
+
+        lrtOracle.updatePriceOracleFor(ethx, assetOracleProxy);
 
         console.log("Configured ETHx");
     }
@@ -139,8 +145,7 @@ contract AddAssets is Script {
         chainlinkOracleProxy.updatePriceFeedFor(asset, assetOracle);
         lrtConfig.updateAssetStrategy(asset, strategy);
 
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle.updatePriceOracleFor(asset, oracle);
+        lrtOracle.updatePriceOracleFor(asset, assetOracle);
     }
 
     function configureAsset(bytes32 tokenId, address asset, address strategy, address assetOracle) private {
@@ -149,7 +154,7 @@ contract AddAssets is Script {
         // TODO: Check Deposit limits
         lrtConfig.addNewSupportedAsset(asset, 100_000 ether);
         lrtConfig.updateAssetStrategy(asset, strategy);
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle.updatePriceOracleFor(asset, assetOracle);
+
+        lrtOracle.updatePriceOracleFor(asset, assetOracle);
     }
 }

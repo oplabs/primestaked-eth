@@ -130,10 +130,6 @@ contract DeployDelegatorPoolOracle is Script {
         proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
         lrtConfigProxy = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
 
-        console.log("Chain id", chainId);
-        console.log("IS_FORK", isFork);
-        console.log("ProxyOwner", proxyAdmin.owner());
-
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());
         address nodeDelegatorImplementation = address(new NodeDelegator());
