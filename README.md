@@ -202,10 +202,12 @@ $ npm test:coverage:report
 | PrimeStakedETH          | 0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2     |
 | LRTDepositPool          | 0x0000000000000000000000000000000000000000     |
 | LRTOracle               | 0x0000000000000000000000000000000000000000     |
-| ChainlinkPriceOracle    | 0x0000000000000000000000000000000000000000     |
-| EthXPriceOracle         | 0x0000000000000000000000000000000000000000     |
-| SfrxETHPriceOracle      | 0x0000000000000000000000000000000000000000     |
+| ChainlinkPriceOracle    | 0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5     |
+| OethPriceOracle         | 0xd91d3bEC19E921e911A487394B155da552953917     |
+| EthXPriceOracle         | 0xd101bd159968106595d48948677fee9e8a0450a9     |
+| SfrxETHPriceOracle      | 0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3     |
 | NodeDelegator           | 0x0000000000000000000000000000000000000000     |
+| MEthPriceOracle         | 0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8     |
 
 ### Proxy Addresses
 | Contract Name           | Proxy Address                                  |
@@ -214,9 +216,11 @@ $ npm test:coverage:report
 | PrimeStakedETH          | 0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615     |
 | LRTDepositPool          | 0x0000000000000000000000000000000000000000     |
 | LRTOracle               | 0x0000000000000000000000000000000000000000     |
-| ChainlinkPriceOracle    | 0x0000000000000000000000000000000000000000     |
-| SfrxETHPriceOracle      | 0x0000000000000000000000000000000000000000     |
-| EthXPriceOracle         | 0x0000000000000000000000000000000000000000     |
+| ChainlinkPriceOracle    | 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09     |
+| OethPriceOracle         | 0xc513bDfbC308bC999cccc852AF7C22aBDF44A995     |
+| SfrxETHPriceOracle      | 0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294     |
+| EthXPriceOracle         | 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C     |
+| MEthPriceOracle         | 0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369     |
 
 ### NodeDelegator Proxy Addresses
 - NodeDelegator proxy index 0: 0x0000000000000000000000000000000000000000
