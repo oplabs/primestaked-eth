@@ -25,7 +25,15 @@ contract AddAssets is Script {
             revert("Not Mainnet");
         }
 
-        console.log("Deployer: %s", msg.sender);
+        bool isFork = vm.envOr("IS_FORK", false);
+        if (isFork) {
+            address mainnetProxyOwner = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+            console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
+            vm.startPrank(mainnetProxyOwner);
+        } else {
+            console.log("Deploying on mainnet deployer: %s", msg.sender);
+            vm.startBroadcast();
+        }
 
         proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
         proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
@@ -40,6 +48,12 @@ contract AddAssets is Script {
         addSfrxETH();
         addMEth();
         // addRETH();
+
+        if (isFork) {
+            vm.stopPrank();
+        } else {
+            vm.stopBroadcast();
+        }
     }
 
     function addOETH() private {
@@ -99,13 +113,10 @@ contract AddAssets is Script {
         address ethx = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
         address strategy = 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d;
         address assetOracleProxy = 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C;
-
-        vm.startPrank(0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168);
         // NOTE: ETHx is already supported, only update the Oracle and strategy
         lrtConfig.updateAssetStrategy(ethx, strategy);
         // TODO: Uncomment after delpoying LRTOracle
         // lrtOracle.updatePriceOracleFor(ethx, assetOracleProxy);
-        vm.stopPrank();
 
         console.log("Configured ETHx");
     }
@@ -120,8 +131,6 @@ contract AddAssets is Script {
     {
         ChainlinkPriceOracle chainlinkOracleProxy = ChainlinkPriceOracle(0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09);
 
-        vm.startPrank(0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168);
-
         lrtConfig.setToken(tokenId, asset);
 
         // TODO: Check Deposit limits
@@ -132,13 +141,9 @@ contract AddAssets is Script {
 
         // TODO: Uncomment after delpoying LRTOracle
         // lrtOracle.updatePriceOracleFor(asset, oracle);
-
-        vm.stopPrank();
     }
 
     function configureAsset(bytes32 tokenId, address asset, address strategy, address assetOracle) private {
-        vm.startPrank(0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168);
-
         lrtConfig.setToken(tokenId, asset);
 
         // TODO: Check Deposit limits
@@ -146,7 +151,5 @@ contract AddAssets is Script {
         lrtConfig.updateAssetStrategy(asset, strategy);
         // TODO: Uncomment after delpoying LRTOracle
         // lrtOracle.updatePriceOracleFor(asset, assetOracle);
-
-        vm.stopPrank();
     }
 }

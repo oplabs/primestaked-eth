@@ -22,7 +22,15 @@ contract DeployOracles is Script {
             revert("Not Mainnet");
         }
 
-        vm.startBroadcast();
+        bool isFork = vm.envOr("IS_FORK", false);
+        if (isFork) {
+            address mainnetProxyOwner = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+            console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
+            vm.startPrank(mainnetProxyOwner);
+        } else {
+            console.log("Deploying on mainnet deployer: %s", msg.sender);
+            vm.startBroadcast();
+        }
 
         lrtConfig = 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF;
         proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
@@ -36,7 +44,11 @@ contract DeployOracles is Script {
         deployMEthPriceOracle();
         deploySfrxEthPriceOracle();
 
-        vm.stopBroadcast();
+        if (isFork) {
+            vm.stopPrank();
+        } else {
+            vm.stopBroadcast();
+        }
     }
 
     function deployChainlinkOracle() private {
