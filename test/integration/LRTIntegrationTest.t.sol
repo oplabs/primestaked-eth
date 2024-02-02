@@ -396,7 +396,6 @@ contract LRTIntegrationTest is Test {
         assertTrue(lrtConfig.isSupportedAsset(ethXAddress));
 
         assertEq(EIGEN_STETH_STRATEGY, lrtConfig.assetStrategy(stETHAddress), "Eigen stETH strategy");
-
         assertEq(EIGEN_ETHX_STRATEGY, lrtConfig.assetStrategy(ethXAddress), "Eigen ETHx strategy");
 
         assertEq(EIGEN_STRATEGY_MANAGER, lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
