@@ -196,7 +196,7 @@ contract DeployLRT is Script {
 
         PRETHProxy = PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
         // init PrimeStakedETH
-        PRETHProxy.initialize(deployerAddress, address(lrtConfigProxy));
+        PRETHProxy.initialize(address(lrtConfigProxy));
 
         lrtDepositPoolProxy = LRTDepositPool(
             payable(proxyFactory.create(address(lrtDepositPoolImplementation), address(proxyAdmin), salt))

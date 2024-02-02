@@ -12,7 +12,7 @@ contract TransferOwnership is Script {
     address public deployerAddress;
     ProxyAdmin public proxyAdmin;
     LRTConfig public lrtConfigProxy;
-   
+
     function run() external {
         vm.startBroadcast();
 

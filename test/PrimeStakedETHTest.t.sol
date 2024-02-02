@@ -29,18 +29,13 @@ contract PrimeStakedETHTest is BaseTest, LRTConfigTest {
 }
 
 contract PRETHInitialize is PrimeStakedETHTest {
-    function test_RevertWhenAdminIsZeroAddress() external {
-        vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
-        preth.initialize(address(0), address(lrtConfig));
-    }
-
     function test_RevertWhenLRTConfigIsZeroAddress() external {
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
-        preth.initialize(address(admin), address(0));
+        preth.initialize(address(0));
     }
 
     function test_InitializeContractsVariables() external {
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
 
         assertTrue(lrtConfig.hasRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin), "Admin address is not set");
         assertEq(address(lrtConfig), address(preth.lrtConfig()), "LRT config address is not set");
@@ -56,7 +51,7 @@ contract PRETHMint is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
 
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
 
         vm.startPrank(admin);
         lrtConfig.grantRole(LRTConstants.MANAGER, manager);
@@ -109,7 +104,7 @@ contract PRETHBurnFrom is PrimeStakedETHTest {
 
     function setUp() public override {
         super.setUp();
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
 
         vm.startPrank(admin);
         lrtConfig.grantRole(LRTConstants.MANAGER, manager);
@@ -154,7 +149,7 @@ contract PRETHBurnFrom is PrimeStakedETHTest {
 contract PRETHPause is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
 
         vm.startPrank(admin);
         lrtConfig.grantRole(LRTConstants.MANAGER, manager);
@@ -193,7 +188,7 @@ contract PRETHPause is PrimeStakedETHTest {
 contract PRETHUnpause is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
 
         vm.startPrank(admin);
         lrtConfig.grantRole(LRTConstants.MANAGER, admin);
@@ -233,7 +228,7 @@ contract PRETHUnpause is PrimeStakedETHTest {
 contract PRETHUpdateLRTConfig is PrimeStakedETHTest {
     function setUp() public override {
         super.setUp();
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
     }
 
     function test_RevertWhenCallerIsNotLRTAdmin() external {
