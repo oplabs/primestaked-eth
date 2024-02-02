@@ -144,13 +144,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         whenNotPaused
         nonReentrant
     {
-        // checks
-        uint256 primeEthAmountToMint = _beforeDeposit(LRTConstants.ETH_TOKEN, msg.value, minPrimeETHAmountExpected);
-
-        // interactions
-        _mint(primeEthAmountToMint);
-
-        emit ETHDeposit(msg.sender, msg.value, primeEthAmountToMint, referralId);
+        require(false, "unsupported");
     }
 
     /// @notice helps user stake LST to the protocol
