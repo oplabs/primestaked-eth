@@ -8,6 +8,8 @@ import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { OETHPriceOracle } from "contracts/oracles/OETHPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
+import { MEthPriceOracle } from "contracts/oracles/MEthPriceOracle.sol";
+import { SfrxETHPriceOracle } from "contracts/oracles/SfrxETHPriceOracle.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 
 contract DeployOracles is Script {
@@ -31,6 +33,8 @@ contract DeployOracles is Script {
         deployChainlinkOracle();
         deployOETHOracle();
         deployEthXPriceOracle();
+        deployMEthPriceOracle();
+        deploySfrxEthPriceOracle();
 
         vm.stopBroadcast();
     }
@@ -78,5 +82,33 @@ contract DeployOracles is Script {
         // Initialize the proxy
         EthXPriceOracle(proxy).initialize(staderStakingPoolManager);
         console.log("Initialized EthXPriceOracleProxy");
+    }
+
+    function deployMEthPriceOracle() private {
+        address mEth = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
+        address mEthStaking = 0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f;
+
+        // Deploy MEthPriceOracle
+        address implContract = address(new MEthPriceOracle(mEth, mEthStaking));
+        console.log("MEthPriceOracle deployed at: %s", implContract);
+
+        // Deploy MEthPriceOracle proxy
+        address proxy =
+            proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("MEthPriceOracleProxy")));
+        console.log("MEthPriceOracleProxy deployed at: %s", proxy);
+    }
+
+    function deploySfrxEthPriceOracle() private {
+        address fraxDualOracle = 0x584902BCe4282003E420Cf5b7ae5063D6C1c182a;
+        address sfrxETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
+
+        // Deploy SfrxETHPriceOracle
+        address implContract = address(new SfrxETHPriceOracle(sfrxETH, fraxDualOracle));
+        console.log("SfrxETHPriceOracle deployed at: %s", implContract);
+
+        // Deploy SfrxETHPriceOracle proxy
+        address proxy =
+            proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("SfrxETHPriceOracleProxy")));
+        console.log("SfrxETHPriceOracleProxy deployed at: %s", proxy);
     }
 }
