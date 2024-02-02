@@ -643,7 +643,7 @@ contract LRTIntegrationTest is Test {
     function test_PRETHIsAlreadyInitialized() public {
         // attempt to initialize PrimeStakedETH again reverts
         vm.expectRevert("Initializable: contract is already initialized");
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
     }
 
     function test_RevertWhenCallerIsNotLRTManager() external {
