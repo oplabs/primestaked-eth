@@ -41,7 +41,6 @@ contract TransferOwnership is Script {
         }
 
         lrtConfigProxy.grantRole(LRTConstants.MANAGER, manager);
-        lrtConfigProxy.revokeRole(LRTConstants.MANAGER, proxyAdminOwner);
         console.log("Manager permission granted to: ", manager);
 
         lrtConfigProxy.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin);
