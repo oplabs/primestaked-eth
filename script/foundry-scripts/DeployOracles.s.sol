@@ -7,6 +7,7 @@ import "forge-std/Script.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { OETHPriceOracle } from "contracts/oracles/OETHPriceOracle.sol";
+import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 
 contract DeployOracles is Script {
@@ -29,6 +30,7 @@ contract DeployOracles is Script {
 
         deployChainlinkOracle();
         deployOETHOracle();
+        deployEthXPriceOracle();
 
         vm.stopBroadcast();
     }
@@ -59,5 +61,22 @@ contract DeployOracles is Script {
         address proxy =
             proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("OETHPriceOracleProxy")));
         console.log("OETHPriceOracleProxy deployed at: %s", proxy);
+    }
+
+    function deployEthXPriceOracle() private {
+        address staderStakingPoolManager = 0xcf5EA1b38380f6aF39068375516Daf40Ed70D299;
+
+        // Deploy EthXPriceOracle
+        address implContract = address(new EthXPriceOracle());
+        console.log("EthXPriceOracle deployed at: %s", implContract);
+
+        // Deploy EthXPriceOracle proxy
+        address proxy =
+            proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("EthXPriceOracleProxy")));
+        console.log("EthXPriceOracleProxy deployed at: %s", proxy);
+
+        // Initialize the proxy
+        EthXPriceOracle(proxy).initialize(staderStakingPoolManager);
+        console.log("Initialized EthXPriceOracleProxy");
     }
 }
