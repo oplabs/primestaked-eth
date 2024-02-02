@@ -196,7 +196,7 @@ contract DeployLRT is Script {
 
         PRETHProxy = PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
         // init PrimeStakedETH
-        PRETHProxy.initialize(deployerAddress, address(lrtConfigProxy));
+        PRETHProxy.initialize(address(lrtConfigProxy));
 
         lrtDepositPoolProxy = LRTDepositPool(
             payable(proxyFactory.create(address(lrtDepositPoolImplementation), address(proxyAdmin), salt))
@@ -230,25 +230,25 @@ contract DeployLRT is Script {
 
         nodeDelegatorProxy1 =
             NodeDelegator(payable(proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), salt)));
-        bytes32 saltForNodeDelegator2 = keccak256(abi.encodePacked("LRT-Origin-nodeDelegator2"));
+        bytes32 saltForNodeDelegator2 = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator2"));
         nodeDelegatorProxy2 = NodeDelegator(
             payable(
                 proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), saltForNodeDelegator2)
             )
         );
-        bytes32 saltForNodeDelegator3 = keccak256(abi.encodePacked("LRT-Origin-nodeDelegator3"));
+        bytes32 saltForNodeDelegator3 = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator3"));
         nodeDelegatorProxy3 = NodeDelegator(
             payable(
                 proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), saltForNodeDelegator3)
             )
         );
-        bytes32 saltForNodeDelegator4 = keccak256(abi.encodePacked("LRT-Origin-nodeDelegator4"));
+        bytes32 saltForNodeDelegator4 = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator4"));
         nodeDelegatorProxy4 = NodeDelegator(
             payable(
                 proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), saltForNodeDelegator4)
             )
         );
-        bytes32 saltForNodeDelegator5 = keccak256(abi.encodePacked("LRT-Origin-nodeDelegator5"));
+        bytes32 saltForNodeDelegator5 = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator5"));
         nodeDelegatorProxy5 = NodeDelegator(
             payable(
                 proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), saltForNodeDelegator5)

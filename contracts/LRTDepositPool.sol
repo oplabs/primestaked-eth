@@ -119,15 +119,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @param asset Asset address
     /// @param amount Asset amount
     /// @return primeEthAmount Amount of primeETH to mint
-    function getMintAmount(
-        address asset,
-        uint256 amount
-    )
-        public
-        view
-        override
-        returns (uint256 primeEthAmount)
-    {
+    function getMintAmount(address asset, uint256 amount) public view override returns (uint256 primeEthAmount) {
         // setup oracle contract
         address lrtOracleAddress = lrtConfig.getContract(LRTConstants.LRT_ORACLE);
         ILRTOracle lrtOracle = ILRTOracle(lrtOracleAddress);
@@ -152,13 +144,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         whenNotPaused
         nonReentrant
     {
-        // checks
-        uint256 primeEthAmountToMint = _beforeDeposit(LRTConstants.ETH_TOKEN, msg.value, minPrimeETHAmountExpected);
-
-        // interactions
-        _mint(primeEthAmountToMint);
-
-        emit ETHDeposit(msg.sender, msg.value, primeEthAmountToMint, referralId);
+        require(false, "unsupported");
     }
 
     /// @notice helps user stake LST to the protocol
@@ -297,7 +283,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @notice remove many node delegator contracts from queue
     /// @dev calls internally removeNodeDelegatorContractFromQueue which is only callable by LRT admin
     /// @param nodeDelegatorContracts Array of NodeDelegator contract addresses
-    function removeManyNodeDelegatorContractsFromQueue(address[] calldata nodeDelegatorContracts) external {
+    function removeManyNodeDelegatorContractsFromQueue(address[] calldata nodeDelegatorContracts)
+        external
+        onlyLRTAdmin
+    {
         uint256 length = nodeDelegatorContracts.length;
 
         for (uint256 i; i < length;) {

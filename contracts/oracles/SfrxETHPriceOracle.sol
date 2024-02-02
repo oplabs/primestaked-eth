@@ -10,23 +10,22 @@ interface ISfrxETH {
     function pricePerShare() external view returns (uint256);
 }
 
+interface IDualOracle {
+    function getCurveEmaEthPerFrxEth() external view returns (uint256);
+}
+
 /// @title sfrxETHPriceOracle Contract
 /// @notice contract that fetches the exchange rate of sfrxETH/ETH
-contract SfrxETHPriceOracle is IPriceFetcher, Initializable {
-    address public sfrxETHContractAddress;
+contract SfrxETHPriceOracle is IPriceFetcher {
+    address public immutable sfrxETHContractAddress;
+    IDualOracle public immutable fraxDualOracle;
 
     error InvalidAsset();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    /// @dev Initializes the contract
-    /// @param sfrxETHContractAddress_ sfrxETH address
-    function initialize(address sfrxETHContractAddress_) external initializer {
-        UtilLib.checkNonZeroAddress(sfrxETHContractAddress_);
-        sfrxETHContractAddress = sfrxETHContractAddress_;
+    constructor(address _sfrxETHContractAddress, address _fraxDualOracle) {
+        sfrxETHContractAddress = _sfrxETHContractAddress;
+        fraxDualOracle = IDualOracle(_fraxDualOracle);
     }
 
     /// @notice Fetches Asset/ETH exchange rate
@@ -37,6 +36,6 @@ contract SfrxETHPriceOracle is IPriceFetcher, Initializable {
             revert InvalidAsset();
         }
 
-        return ISfrxETH(sfrxETHContractAddress).pricePerShare();
+        return (ISfrxETH(sfrxETHContractAddress).pricePerShare() * fraxDualOracle.getCurveEmaEthPerFrxEth()) / 1e18;
     }
 }
