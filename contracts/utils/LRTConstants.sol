@@ -15,6 +15,9 @@ library LRTConstants {
     // OETH token
     bytes32 public constant OETH_TOKEN = keccak256("OETH_TOKEN");
 
+    // mETH token
+    bytes32 public constant M_ETH_TOKEN = keccak256("M_ETH_TOKEN");
+
     //contracts
     bytes32 public constant LRT_ORACLE = keccak256("LRT_ORACLE");
     bytes32 public constant LRT_DEPOSIT_POOL = keccak256("LRT_DEPOSIT_POOL");
