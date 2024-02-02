@@ -48,13 +48,14 @@ contract LRTOracle is ILRTOracle, LRTConfigRoleChecker, Initializable {
 
     /// @notice updates PrimeStakedETH/ETH exchange rate
     /// @dev calculates based on stakedAsset value received from Eigen layer
-    function updatePrimeETHPrice() external {
+    function updatePrimeETHPrice() external returns (uint256 price_) {
         address primeETHAddress = lrtConfig.primeETH();
         uint256 primeSupply = IPrimeETH(primeETHAddress).totalSupply();
 
         if (primeSupply == 0) {
-            primeETHPrice = 1 ether;
-            return;
+            price_ = 1 ether;
+            primeETHPrice = price_;
+            return price_;
         }
 
         uint256 totalETHInPool;
@@ -75,7 +76,8 @@ contract LRTOracle is ILRTOracle, LRTConfigRoleChecker, Initializable {
             }
         }
 
-        primeETHPrice = totalETHInPool / primeSupply;
+        price_ = totalETHInPool / primeSupply;
+        primeETHPrice = price_;
     }
 
     /*//////////////////////////////////////////////////////////////
