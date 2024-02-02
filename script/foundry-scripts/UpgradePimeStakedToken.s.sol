@@ -10,7 +10,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 // e.g. import "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 
-contract UpgradePimeStakedToken is Script {
+contract UpgradePrimeStakedToken is Script {
     ProxyAdmin public proxyAdmin;
 
     address public primeStakedETHProxy;
@@ -21,18 +21,15 @@ contract UpgradePimeStakedToken is Script {
 
         uint256 chainId = block.chainid;
         if (chainId == 1) {
-            // mainnet
-            // delete once variables are set
-            revert("proxyAdmin & primeStakedETHProxy mainnet addresses not configured");
             // Set the address from Minimal token deployment
-            proxyAdmin = ProxyAdmin(address(0));
+            proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
             // Set the address from Minimal token deployment
-            primeStakedETHProxy = address(0);
+            primeStakedETHProxy = 0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615;
             newImplementation = address(new PrimeStakedETH());
         } else if (chainId == 5) {
             // goerli
-            proxyAdmin = ProxyAdmin(0x49109629aC1deB03F2e9b2fe2aC4a623E0e7dfDC);
-            primeStakedETHProxy = 0x9DCEE73a022615e78f380a58879D1C278ea38383; // example NodeDelegatorProxy1
+            proxyAdmin = ProxyAdmin(0x22b65a789d3778c0bA1A5bc7C01958e657703fA8);
+            primeStakedETHProxy = 0xA265e2387fc0da67CB43eA6376105F3Df834939a;
             newImplementation = address(new PrimeStakedETH());
         } else {
             revert("Unsupported network");
