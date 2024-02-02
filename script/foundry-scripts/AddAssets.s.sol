@@ -12,13 +12,17 @@ import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
+import { NodeDelegator } from "contracts/NodeDelegator.sol";
 
 contract AddAssets is Script {
+    uint256 maxDeposits = 100 ether;
+
     ProxyFactory public proxyFactory;
     ProxyAdmin public proxyAdmin;
 
     LRTConfig public lrtConfig;
-    // LRTOracle public lrtOracle;
+    LRTOracle public lrtOracle;
+    NodeDelegator public nodeDel;
 
     function run() external {
         if (block.chainid != 1) {
@@ -39,14 +43,18 @@ contract AddAssets is Script {
         proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
 
         lrtConfig = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle = LRTOracle(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
+        lrtOracle = LRTOracle(0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32);
+        nodeDel = NodeDelegator(payable(0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2));
+
+        // add manager role to the deployer
+        lrtConfig.grantRole(LRTConstants.MANAGER, msg.sender);
 
         addOETH();
         addStETH();
         addETHx();
         addSfrxETH();
         addMEth();
+
         // addRETH();
 
         if (isFork) {
@@ -90,11 +98,13 @@ contract AddAssets is Script {
     }
 
     function addStETH() private {
-        address stETH = 0x86392dC19c0b719886221c78AB11eb8Cf5c52812;
-        address strategy = 0x93c4b944D05dfe6df7645A86cd2206016c51564D;
+        address stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
         address assetOracle = 0x86392dC19c0b719886221c78AB11eb8Cf5c52812;
 
-        addAssetWithChainlinkOracle(LRTConstants.ST_ETH_TOKEN, stETH, strategy, assetOracle);
+        // NOTE: stETH is already supported so just need to add Oracle
+        ChainlinkPriceOracle chainlinkOracleProxy = ChainlinkPriceOracle(0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09);
+        chainlinkOracleProxy.updatePriceFeedFor(stETH, assetOracle);
+        lrtOracle.updatePriceOracleFor(stETH, assetOracle);
 
         console.log("Configured stETH");
     }
@@ -111,12 +121,10 @@ contract AddAssets is Script {
 
     function addETHx() private {
         address ethx = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
-        address strategy = 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d;
         address assetOracleProxy = 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C;
-        // NOTE: ETHx is already supported, only update the Oracle and strategy
-        lrtConfig.updateAssetStrategy(ethx, strategy);
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle.updatePriceOracleFor(ethx, assetOracleProxy);
+
+        // NOTE: ETHx is already supported so just need to add Oracle
+        lrtOracle.updatePriceOracleFor(ethx, assetOracleProxy);
 
         console.log("Configured ETHx");
     }
@@ -133,23 +141,24 @@ contract AddAssets is Script {
 
         lrtConfig.setToken(tokenId, asset);
 
-        // TODO: Check Deposit limits
-        lrtConfig.addNewSupportedAsset(asset, 100_000 ether);
+        lrtConfig.addNewSupportedAsset(asset, maxDeposits);
 
         chainlinkOracleProxy.updatePriceFeedFor(asset, assetOracle);
         lrtConfig.updateAssetStrategy(asset, strategy);
 
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle.updatePriceOracleFor(asset, oracle);
+        lrtOracle.updatePriceOracleFor(asset, assetOracle);
+
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(asset);
     }
 
     function configureAsset(bytes32 tokenId, address asset, address strategy, address assetOracle) private {
         lrtConfig.setToken(tokenId, asset);
 
-        // TODO: Check Deposit limits
-        lrtConfig.addNewSupportedAsset(asset, 100_000 ether);
+        lrtConfig.addNewSupportedAsset(asset, maxDeposits);
         lrtConfig.updateAssetStrategy(asset, strategy);
-        // TODO: Uncomment after delpoying LRTOracle
-        // lrtOracle.updatePriceOracleFor(asset, assetOracle);
+
+        lrtOracle.updatePriceOracleFor(asset, assetOracle);
+
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(asset);
     }
 }
