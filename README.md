@@ -52,6 +52,24 @@ $ forge coverage
 make deploy-lrt-testnet
 ```
 
+## For tests (mainnet) using Anvil:
+
+In one terminal run the Anvil node forking the mainnet
+```bash
+make node-fork
+```
+
+In another terminal apply the deploys that are not yet on mainnet.
+```bash
+make pool-deleg-oracle-fork
+```
+
+Run the fork tests
+```bash
+make test-fork
+```
+
+
 ## Deploy to Anvil:
 
 ```bash

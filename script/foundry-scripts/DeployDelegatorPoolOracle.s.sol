@@ -32,7 +32,6 @@ function getLSTs() view returns (address stETH, address ethx) {
 }
 
 contract DeployDelegatorPoolOracle is Script {
-    address public deployerAddress;
     ProxyAdmin public proxyAdmin;
     ProxyFactory public proxyFactory;
     LRTConfig public lrtConfigProxy;
@@ -108,23 +107,25 @@ contract DeployDelegatorPoolOracle is Script {
     }
 
     function run() external {
-        vm.startBroadcast();
+        bool isFork = vm.envOr("IS_FORK", false);
+        if (isFork) {
+            address mainnetProxyOwner = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+            vm.startPrank(mainnetProxyOwner);
+        } else {
+            vm.startBroadcast();
+        }
+
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
         uint256 chainId = block.chainid;
 
-        if (chainId == 1) {
-            // mainnet
-            proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
-            proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
-            lrtConfigProxy = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
-        } else if (chainId == 5) {
-            // goerli
-            proxyAdmin = ProxyAdmin(0x49109629aC1deB03F2e9b2fe2aC4a623E0e7dfDC);
-            proxyFactory = ProxyFactory(0x0cc8Ab94CF47525fF80b18C583E8d53d839cB0Ad);
-            lrtConfigProxy = LRTConfig(0x85a8F2D002A772BCBCEd169308892369b8BA3a9B);
-        } else {
-            revert("Unsupported network");
-        }
+        // mainnet
+        proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
+        proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
+        lrtConfigProxy = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
+
+        console.log("Chain id", chainId);
+        console.log("IS_FORK", isFork);
+        console.log("ProxyOwner", proxyAdmin.owner());
 
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());
@@ -170,7 +171,10 @@ contract DeployDelegatorPoolOracle is Script {
         // update prETHPrice
         // can not update primeETHPrice of not all oracles configured
         // lrtOracleProxy.updatePrimeETHPrice();
-
-        vm.stopBroadcast();
+        if (isFork) {
+            vm.stopPrank();
+        } else {
+            vm.stopBroadcast();
+        }
     }
 }
