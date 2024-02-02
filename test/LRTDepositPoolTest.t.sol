@@ -15,7 +15,7 @@ contract LRTOracleMock {
         return 1e18;
     }
 
-    function prETHPrice() external pure returns (uint256) {
+    function primeETHPrice() external pure returns (uint256) {
         return 1e18;
     }
 }
