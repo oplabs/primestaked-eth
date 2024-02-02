@@ -36,10 +36,10 @@ contract AddAssets is Script {
 
         addOETH();
         addStETH();
-        addRETH();
         addETHx();
-        // addSfrxETH();
-        // addMETH();
+        addSfrxETH();
+        addMEth();
+        // addRETH();
     }
 
     function addOETH() private {
@@ -57,22 +57,18 @@ contract AddAssets is Script {
         address sfrxETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
         address strategy = 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6;
 
-        // TODO: Update oracle after deployment
-        revert("Update oracle proxy");
-        address assetOracleProxy = 0xc513bDfbC308bC999cccc852AF7C22aBDF44A995;
+        address assetOracleProxy = 0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294;
 
         configureAsset(LRTConstants.SFRXETH_TOKEN, sfrxETH, strategy, assetOracleProxy);
 
         console.log("Configured sfrxETH");
     }
 
-    function addMETH() private {
-        address mETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
+    function addMEth() private {
+        address mETH = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
         address strategy = 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6;
 
-        // TODO: Update oracle after deployment
-        revert("Update oracle proxy");
-        address assetOracleProxy = 0xc513bDfbC308bC999cccc852AF7C22aBDF44A995;
+        address assetOracleProxy = 0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369;
 
         configureAsset(LRTConstants.M_ETH_TOKEN, mETH, strategy, assetOracleProxy);
 
