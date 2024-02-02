@@ -135,6 +135,12 @@ Run the tests:
 $ forge test
 ```
 
+Run just the unit tests
+
+```sh
+$ forge test --no-match-contract "(Skip|IntegrationTest)"
+```
+
 Generate test coverage and output result to the terminal:
 
 ```sh
