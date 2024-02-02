@@ -83,7 +83,8 @@ contract DeployDelegatorPoolOracle is Script {
         lrtConfigProxy.setContract(LRTConstants.LRT_DEPOSIT_POOL, address(lrtDepositPoolProxy));
 
         // call updateAssetStrategy for each asset in LRTConfig
-        (address strategyManager, address stETHStrategy, address ethXStrategy, address oethStrategy) = getAssetStrategies();
+        (address strategyManager, address stETHStrategy, address ethXStrategy, address oethStrategy) =
+            getAssetStrategies();
         lrtConfigProxy.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, strategyManager);
         lrtConfigProxy.updateAssetStrategy(stETH, stETHStrategy);
         lrtConfigProxy.updateAssetStrategy(ethx, ethXStrategy);
@@ -140,7 +141,6 @@ contract DeployDelegatorPoolOracle is Script {
         //console.log("EthXPriceOracle implementation deployed at: ", ethxPriceOracleImplementation);
         console.log("NodeDelegator implementation deployed at: ", nodeDelegatorImplementation);
         console.log("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-
 
         lrtDepositPoolProxy = LRTDepositPool(
             payable(proxyFactory.create(address(lrtDepositPoolImplementation), address(proxyAdmin), salt))

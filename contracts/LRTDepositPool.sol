@@ -119,15 +119,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @param asset Asset address
     /// @param amount Asset amount
     /// @return primeEthAmount Amount of primeETH to mint
-    function getMintAmount(
-        address asset,
-        uint256 amount
-    )
-        public
-        view
-        override
-        returns (uint256 primeEthAmount)
-    {
+    function getMintAmount(address asset, uint256 amount) public view override returns (uint256 primeEthAmount) {
         // setup oracle contract
         address lrtOracleAddress = lrtConfig.getContract(LRTConstants.LRT_ORACLE);
         ILRTOracle lrtOracle = ILRTOracle(lrtOracleAddress);

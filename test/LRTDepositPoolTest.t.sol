@@ -71,7 +71,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
         lrtDepositPool = LRTDepositPool(payable(contractProxy));
 
         // initialize PrimeStakedETHTest. LRTCOnfig is already initialized in PrimeStakedETHTest
-        preth.initialize(address(admin), address(lrtConfig));
+        preth.initialize(address(lrtConfig));
         vm.startPrank(admin);
         // add prETH to LRT config
         lrtConfig.setPrimeETH(address(preth));

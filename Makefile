@@ -70,6 +70,8 @@ pool-deleg-oracle-testnet :; forge script script/foundry-scripts/DeployDelegator
 
 pool-deleg-oracle-mainnet :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 
+pool-deleg-oracle-local-test :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+
 pool-deleg-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
 
 # utils
