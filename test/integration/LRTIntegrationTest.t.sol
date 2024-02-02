@@ -39,7 +39,7 @@ contract LRTIntegrationTest is Test {
     address public EIGEN_STETH_STRATEGY;
     address public EIGEN_ETHX_STRATEGY;
 
-    uint256 public minAmountOfPRETHToReceive;
+    uint256 public minPrimeAmount;
     string public referralId = "0";
 
     uint256 amountToTransfer;
@@ -50,8 +50,8 @@ contract LRTIntegrationTest is Test {
         string memory goerliRPC = vm.envString("PROVIDER_URL_TESTNET");
         fork = vm.createSelectFork(goerliRPC);
 
-        admin = 0xA65E2f72930219C4ce846FB245Ae18700296C328;
-        manager = 0xFc015a866aA06dDcaD27Fe425bdd362a8927544D;
+        admin = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
+        manager = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
 
         stWhale = 0xD5d883B90030311530620E0ABEe93189c8aAe032;
         ethXWhale = 0xF6349eEe20aEcD62C9891159fB714a1b5adE93Cd;
@@ -63,11 +63,11 @@ contract LRTIntegrationTest is Test {
         EIGEN_STETH_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
         EIGEN_ETHX_STRATEGY = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
 
-        lrtDepositPool = LRTDepositPool(payable(0xd51d846ba5032b9284b12850373ae2f053f977b3));
-        lrtConfig = LRTConfig(0x6d7888Bc794C1104C64c28F4e849B7AE68231b6d);
-        preth = PrimeStakedETH(0xb4EA9175e99232560ac5dC2Bcbe4d7C833a15D56);
-        lrtOracle = LRTOracle(0xE92Ca437CA55AAbED0CBFFe398e384B997D4CCe9);
-        nodeDelegator1 = NodeDelegator(payable(0x560B95A0Ba942A7E15645F655731244680fA030B));
+        lrtDepositPool = LRTDepositPool(payable(0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19));
+        lrtConfig = LRTConfig(0x4BF4cc0e5970Cee11D67f5d716fF1241fA593ca4);
+        preth = PrimeStakedETH(0xA265e2387fc0da67CB43eA6376105F3Df834939a);
+        lrtOracle = LRTOracle(0xDE2336F1a4Ed7749F08F994785f61b5995FcD560);
+        nodeDelegator1 = NodeDelegator(payable(0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd));
 
         stETHAddress = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
         ethXAddress = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
@@ -76,7 +76,7 @@ contract LRTIntegrationTest is Test {
 
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(stETHAddress, amountToTransfer, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(stETHAddress, amountToTransfer, minPrimeAmount, referralId);
         vm.stopPrank();
 
         address[] memory nodeDelegatorArray = lrtDepositPool.getNodeDelegatorQueue();
@@ -105,14 +105,14 @@ contract LRTIntegrationTest is Test {
     function test_RevertWhenDepositAmountIsZeroForDepositAsset() external {
         vm.expectRevert(ILRTDepositPool.InvalidAmountToDeposit.selector);
 
-        lrtDepositPool.depositAsset(ethXAddress, 0, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(ethXAddress, 0, minPrimeAmount, referralId);
     }
 
     function test_RevertWhenAssetIsNotSupportedForDepositAsset() external {
         address randomAsset = makeAddr("randomAsset");
 
         vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
-        lrtDepositPool.depositAsset(randomAsset, 1 ether, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(randomAsset, 1 ether, minPrimeAmount, referralId);
     }
 
     function test_DepositAssetSTETHWorksWhenUsingTheCorrectConditions() external {
@@ -134,7 +134,7 @@ contract LRTIntegrationTest is Test {
         uint256 whaleStETHBalBefore = ERC20(stETHAddress).balanceOf(address(stWhale));
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), amountToDeposit);
-        lrtDepositPool.depositAsset(stETHAddress, amountToDeposit, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(stETHAddress, amountToDeposit, minPrimeAmount, referralId);
         vm.stopPrank();
         uint256 whaleStETHBalAfter = ERC20(stETHAddress).balanceOf(address(stWhale));
 
@@ -171,7 +171,7 @@ contract LRTIntegrationTest is Test {
         uint256 whaleethXBalBefore = ERC20(ethXAddress).balanceOf(address(ethXWhale));
         vm.startPrank(ethXWhale);
         ERC20(ethXAddress).approve(address(lrtDepositPool), amountToDeposit);
-        lrtDepositPool.depositAsset(ethXAddress, amountToDeposit, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(ethXAddress, amountToDeposit, minPrimeAmount, referralId);
         vm.stopPrank();
         uint256 whaleethXBalAfter = ERC20(ethXAddress).balanceOf(address(ethXWhale));
 
@@ -206,7 +206,7 @@ contract LRTIntegrationTest is Test {
 
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), depositAmount);
-        lrtDepositPool.depositAsset(stETHAddress, depositAmount, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(stETHAddress, depositAmount, minPrimeAmount, referralId);
         vm.stopPrank();
 
         uint256 stETHDepositLimitAfter = lrtDepositPool.getAssetCurrentLimit(stETHAddress);
@@ -264,7 +264,7 @@ contract LRTIntegrationTest is Test {
 
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(stETHAddress, amountToTransfer, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(stETHAddress, amountToTransfer, minPrimeAmount, referralId);
         vm.stopPrank();
 
         assertApproxEqAbs(
@@ -304,7 +304,7 @@ contract LRTIntegrationTest is Test {
 
         vm.startPrank(ethXWhale);
         ERC20(ethXAddress).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(ethXAddress, amountToTransfer, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(ethXAddress, amountToTransfer, minPrimeAmount, referralId);
         vm.stopPrank();
 
         assertEq(
@@ -383,21 +383,21 @@ contract LRTIntegrationTest is Test {
     }
 
     function test_LRTConfigSetup() public {
-        // priviledged roles
-        assertTrue(lrtConfig.hasRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin));
-        assertTrue(lrtConfig.hasRole(LRTConstants.MANAGER, manager));
+        // privileged roles
+        assertTrue(lrtConfig.hasRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin), "admin role");
+        assertTrue(lrtConfig.hasRole(LRTConstants.MANAGER, manager), "manager role");
 
         // tokens
-        assertEq(stETHAddress, lrtConfig.getLSTToken(LRTConstants.ST_ETH_TOKEN));
-        assertEq(ethXAddress, lrtConfig.getLSTToken(LRTConstants.ETHX_TOKEN));
-        assertEq(address(preth), lrtConfig.primeETH());
+        assertEq(stETHAddress, lrtConfig.getLSTToken(LRTConstants.ST_ETH_TOKEN), "stETH token");
+        assertEq(ethXAddress, lrtConfig.getLSTToken(LRTConstants.ETHX_TOKEN), "ETHx token");
+        assertEq(address(preth), lrtConfig.primeETH(), "primeETH token");
 
         assertTrue(lrtConfig.isSupportedAsset(stETHAddress));
         assertTrue(lrtConfig.isSupportedAsset(ethXAddress));
 
-        assertEq(EIGEN_STETH_STRATEGY, lrtConfig.assetStrategy(stETHAddress));
+        assertEq(EIGEN_STETH_STRATEGY, lrtConfig.assetStrategy(stETHAddress), "Eigen stETH strategy");
 
-        assertEq(EIGEN_ETHX_STRATEGY, lrtConfig.assetStrategy(ethXAddress));
+        assertEq(EIGEN_ETHX_STRATEGY, lrtConfig.assetStrategy(ethXAddress), "Eigen ETHx strategy");
 
         assertEq(EIGEN_STRATEGY_MANAGER, lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
         assertEq(address(lrtDepositPool), lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL));
@@ -523,11 +523,11 @@ contract LRTIntegrationTest is Test {
     }
 
     function test_SetPrimeETH() external {
-        address newPRETH = makeAddr("newPRETH");
+        address newPrimeETH = makeAddr("newPrimeETH");
         vm.prank(admin);
-        lrtConfig.setPrimeETH(newPRETH);
+        lrtConfig.setPrimeETH(newPrimeETH);
 
-        assertEq(lrtConfig.primeETH(), newPRETH);
+        assertEq(lrtConfig.primeETH(), newPrimeETH);
     }
 
     function test_RevertSetTokenIfNotAdmin() external {

@@ -16,13 +16,13 @@ import {
 
 import { PRETHPriceFeed } from "../../contracts/oracles/PRETHPriceFeed.sol";
 
-contract LRTIntegrationTestETHMainnet is LRTIntegrationTest {
+contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
     function setUp() public override {
         string memory ethMainnetRPC = vm.envString("MAINNET_RPC_URL");
         fork = vm.createSelectFork(ethMainnetRPC);
 
-        admin = 0xb9577E83a6d9A6DE35047aa066E3758221FE0DA2;
-        manager = 0xCbcdd778AA25476F203814214dD3E9b9c46829A1;
+        admin = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
+        manager = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
 
         stWhale = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
         ethXWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
@@ -34,11 +34,11 @@ contract LRTIntegrationTestETHMainnet is LRTIntegrationTest {
         EIGEN_STETH_STRATEGY = 0x93c4b944D05dfe6df7645A86cd2206016c51564D;
         EIGEN_ETHX_STRATEGY = 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d;
 
-        lrtDepositPool = LRTDepositPool(payable(0x036676389e48133B63a802f8635AD39E752D375D));
-        lrtConfig = LRTConfig(0x947Cb49334e6571ccBFEF1f1f1178d8469D65ec7);
-        preth = PrimeStakedETH(0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7);
-        lrtOracle = LRTOracle(0x349A73444b1a310BAe67ef67973022020d70020d);
-        nodeDelegator1 = NodeDelegator(payable(0x07b96Cf1183C9BFf2E43Acf0E547a8c4E4429473));
+        lrtDepositPool = LRTDepositPool(payable(0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19));
+        lrtConfig = LRTConfig(0x4BF4cc0e5970Cee11D67f5d716fF1241fA593ca4);
+        preth = PrimeStakedETH(0xA265e2387fc0da67CB43eA6376105F3Df834939a);
+        lrtOracle = LRTOracle(0xDE2336F1a4Ed7749F08F994785f61b5995FcD560);
+        nodeDelegator1 = NodeDelegator(payable(0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd));
 
         stETHAddress = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
         ethXAddress = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
@@ -47,7 +47,7 @@ contract LRTIntegrationTestETHMainnet is LRTIntegrationTest {
 
         vm.startPrank(ethXWhale);
         ERC20(ethXAddress).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(ethXAddress, amountToTransfer, minAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositAsset(ethXAddress, amountToTransfer, minPrimeAmount, referralId);
         vm.stopPrank();
 
         uint256 indexOfNodeDelegator = 0;

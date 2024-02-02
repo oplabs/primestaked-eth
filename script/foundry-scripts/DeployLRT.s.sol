@@ -76,8 +76,7 @@ contract DeployLRT is Script {
             // testnet
             strategyManager = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
             stETHStrategy = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
-            // TODO: NEED TO HAVE ETHX STRATEGY
-            ethXStrategy = 0x0000000000000000000000000000000000000000;
+            ethXStrategy = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
         }
     }
 
@@ -281,7 +280,7 @@ contract DeployLRT is Script {
         // update prETHPrice
         lrtOracleProxy.updatePrimeETHPrice();
 
-        // We will transfer the ownership once all of the deploys are done
+        // // We will transfer the ownership once all of the deploys are done
         // uint256 chainId = block.chainid;
         // address manager;
         // address admin;
