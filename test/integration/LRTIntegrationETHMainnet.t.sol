@@ -21,24 +21,26 @@ contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
         string memory ethMainnetRPC = vm.envString("MAINNET_RPC_URL");
         fork = vm.createSelectFork(ethMainnetRPC);
 
-        admin = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
-        manager = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
+        admin = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+        manager = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
 
         stWhale = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
         ethXWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
 
-        stEthOracle = 0x46E6D75E5784200F21e4cCB7d8b2ff8e20996f52;
-        ethxPriceOracle = 0x4df5Cea2954CEafbF079c2d23a9271681D15cf67;
+        lrtConfig = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
+        preth = PrimeStakedETH(0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615);
+
+        // TODO update below addresses with deployed versions
+        lrtDepositPool = LRTDepositPool(payable(0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19));
+        lrtOracle = LRTOracle(0xDE2336F1a4Ed7749F08F994785f61b5995FcD560);
+        nodeDelegator1 = NodeDelegator(payable(0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd));
+
+        //stEthOracle = 0x46E6D75E5784200F21e4cCB7d8b2ff8e20996f52;
+        //ethxPriceOracle = 0x4df5Cea2954CEafbF079c2d23a9271681D15cf67;
 
         EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
         EIGEN_STETH_STRATEGY = 0x93c4b944D05dfe6df7645A86cd2206016c51564D;
         EIGEN_ETHX_STRATEGY = 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d;
-
-        lrtDepositPool = LRTDepositPool(payable(0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19));
-        lrtConfig = LRTConfig(0x4BF4cc0e5970Cee11D67f5d716fF1241fA593ca4);
-        preth = PrimeStakedETH(0xA265e2387fc0da67CB43eA6376105F3Df834939a);
-        lrtOracle = LRTOracle(0xDE2336F1a4Ed7749F08F994785f61b5995FcD560);
-        nodeDelegator1 = NodeDelegator(payable(0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd));
 
         stETHAddress = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
         ethXAddress = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
