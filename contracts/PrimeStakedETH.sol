@@ -7,7 +7,7 @@ import { LRTConfigRoleChecker, ILRTConfig, LRTConstants } from "./utils/LRTConfi
 import { ERC20Upgradeable, Initializable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-/// @title PrimeStakedETH Token Contract
+/// @title Prime Staked ETH Token Contract
 /// @author Origin Protocol
 /// @notice The ERC20 contract for the primeETH token
 contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable, PausableUpgradeable {

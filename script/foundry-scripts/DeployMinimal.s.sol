@@ -36,7 +36,6 @@ contract DeployMinimal is Script {
     PrimeStakedETH public PRETHProxy;
 
     function setUpByAdmin() private {
-        (address stETH, address ethx) = getLSTs();
         // ----------- callable by admin ----------------
 
         // add oracle to LRT config
