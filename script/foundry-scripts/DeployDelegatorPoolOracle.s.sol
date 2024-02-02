@@ -42,7 +42,8 @@ contract DeployDelegatorPoolOracle is Script {
     NodeDelegator public nodeDelegatorProxy1;
     address[] public nodeDelegatorContracts;
 
-    uint256 public minAmountToDeposit;
+    // deposit limit for all assets
+    uint256 public minAmountToDeposit = 10 ether;
 
     function maxApproveToEigenStrategyManager(address nodeDel) private {
         (address stETH, address ethx) = getLSTs();
@@ -97,7 +98,6 @@ contract DeployDelegatorPoolOracle is Script {
         lrtDepositPoolProxy.addNodeDelegatorContractToQueue(nodeDelegatorContracts);
 
         // add min amount to deposit in LRTDepositPool
-        minAmountToDeposit = 0.0001 ether;
         lrtDepositPoolProxy.setMinAmountToDeposit(minAmountToDeposit);
     }
 
