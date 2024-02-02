@@ -66,13 +66,16 @@ upgrade-token-mainnet :; forge script script/foundry-scripts/UpgradePimeStakedTo
 upgrade-token-fork :; IS_FORK=true forge script script/foundry-scripts/UpgradePimeStakedToken.s.sol:UpgradePimeStakedToken --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
 
 # deploy the Deposit pool, node delegator and LRTOracle
-pool-deleg-oracle-testnet :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url goerli  --private-key ${GOERLI_DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-
 pool-deleg-oracle-mainnet :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-
-pool-deleg-oracle-local-test :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
-
 pool-deleg-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+
+# deploy the Assets
+add-assets-mainnet :; forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+
+# deploy Oracles
+oracles-mainnet :; forge script script/foundry-scripts/DeployOracles.s.sol:DeployOracles --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+oracles-fork :; IS_FORK=true forge script script/foundry-scripts/DeployOracles.s.sol:DeployOracles --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
 
 # utils
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL}

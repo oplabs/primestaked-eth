@@ -108,11 +108,17 @@ contract DeployDelegatorPoolOracle is Script {
     }
 
     function run() external {
+        if (block.chainid != 1) {
+            revert("Not Mainnet");
+        }
+        
         bool isFork = vm.envOr("IS_FORK", false);
         if (isFork) {
             address mainnetProxyOwner = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+            console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
             vm.startPrank(mainnetProxyOwner);
         } else {
+            console.log("Deploying on mainnet deployer: %s", msg.sender);
             vm.startBroadcast();
         }
 
