@@ -56,8 +56,8 @@ contract LRTIntegrationTest is Test {
         stWhale = 0xD5d883B90030311530620E0ABEe93189c8aAe032;
         ethXWhale = 0xF6349eEe20aEcD62C9891159fB714a1b5adE93Cd;
 
-        stEthOracle = 0x750604fAbF4828d1CaA19022238bc8C0DD6C50D5;
-        ethxPriceOracle = 0x6DA0235202D9443674abe6d0355AdD147B6396A2;
+        stEthOracle = 0x46E6D75E5784200F21e4cCB7d8b2ff8e20996f52;
+        ethxPriceOracle = 0x4df5Cea2954CEafbF079c2d23a9271681D15cf67;
 
         EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
         EIGEN_STETH_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
@@ -605,8 +605,8 @@ contract LRTIntegrationTest is Test {
         assertLt(lrtOracle.getAssetPrice(stETHAddress), 1.2 ether);
         assertGt(lrtOracle.getAssetPrice(stETHAddress), 0.9 ether);
 
-        assertEq(lrtOracle.assetPriceOracle(stETHAddress), stEthOracle);
-        assertEq(lrtOracle.assetPriceOracle(ethXAddress), ethxPriceOracle);
+        assertEq(lrtOracle.assetPriceOracle(stETHAddress), stEthOracle, "stETH Oracle address");
+        assertEq(lrtOracle.assetPriceOracle(ethXAddress), ethxPriceOracle, "ETHx Oracle address");
     }
 
     function test_LRTOracleIsAlreadyInitialized() public {
