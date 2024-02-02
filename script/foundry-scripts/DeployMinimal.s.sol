@@ -39,8 +39,6 @@ contract DeployMinimal is Script {
         (address stETH, address ethx) = getLSTs();
         // ----------- callable by admin ----------------
 
-        // add prETH to LRT config
-        lrtConfigProxy.setPRETH(address(PRETHProxy));
         // add oracle to LRT config
         lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
     }

@@ -20,7 +20,7 @@ contract LRTConfig is ILRTConfig, AccessControlUpgradeable {
 
     address[] public supportedAssetList;
 
-    address public prETH;
+    address public primeETH;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -38,10 +38,10 @@ contract LRTConfig is ILRTConfig, AccessControlUpgradeable {
     /// @param admin Admin address
     /// @param stETH stETH address
     /// @param ethX ETHX address
-    /// @param prETH_ prETH address
-    function initialize(address admin, address stETH, address ethX, address prETH_) external initializer {
+    /// @param primeETH_ primeETH address
+    function initialize(address admin, address stETH, address ethX, address primeETH_) external initializer {
         UtilLib.checkNonZeroAddress(admin);
-        UtilLib.checkNonZeroAddress(prETH_);
+        UtilLib.checkNonZeroAddress(primeETH_);
 
         __AccessControl_init();
         _setToken(LRTConstants.ST_ETH_TOKEN, stETH);
@@ -51,7 +51,8 @@ contract LRTConfig is ILRTConfig, AccessControlUpgradeable {
 
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
 
-        prETH = prETH_;
+        primeETH = primeETH_;
+        emit SetPrimeETH(primeETH_);
     }
 
     /// @dev Adds a new supported asset
@@ -146,12 +147,12 @@ contract LRTConfig is ILRTConfig, AccessControlUpgradeable {
     /*//////////////////////////////////////////////////////////////
                             SETTERS
     //////////////////////////////////////////////////////////////*/
-    /// @dev Sets the prETH contract address. Only callable by the admin
-    /// @param prETH_ prETH contract address
-    function setPRETH(address prETH_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        UtilLib.checkNonZeroAddress(prETH_);
-        prETH = prETH_;
-        emit SetPRETH(prETH_);
+    /// @dev Sets the primeETH contract address. Only callable by the admin
+    /// @param primeETH_ primeETH contract address
+    function setPrimeETH(address primeETH_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        UtilLib.checkNonZeroAddress(primeETH_);
+        primeETH = primeETH_;
+        emit SetPrimeETH(primeETH_);
     }
 
     function setToken(bytes32 tokenKey, address assetAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {

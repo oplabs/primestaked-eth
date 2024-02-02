@@ -15,16 +15,16 @@ interface ILRTDepositPool {
 
     //events
     event MaxNodeDelegatorLimitUpdated(uint256 maxNodeDelegatorLimit);
-    event NodeDelegatorAddedinQueue(address[] nodeDelegatorContracts);
+    event NodeDelegatorAddedInQueue(address[] nodeDelegatorContracts);
     event NodeDelegatorRemovedFromQueue(address nodeDelegatorContracts);
     event AssetDeposit(
         address indexed depositor,
         address indexed asset,
         uint256 depositAmount,
-        uint256 prethMintAmount,
+        uint256 primeEthMintAmount,
         string referralId
     );
-    event ETHDeposit(address indexed depositor, uint256 depositAmount, uint256 prethMintAmount, string referralId);
+    event ETHDeposit(address indexed depositor, uint256 depositAmount, uint256 primeEthMintAmount, string referralId);
     event MinAmountToDepositUpdated(uint256 minAmountToDeposit);
     event AssetSwapped(
         address indexed fromAsset, address indexed toAsset, uint256 fromAssetAmount, uint256 toAssetAmount
@@ -33,7 +33,7 @@ interface ILRTDepositPool {
     function depositAsset(
         address asset,
         uint256 depositAmount,
-        uint256 minPRETHAmountExpected,
+        uint256 minPrimeETHAmount,
         string calldata referralId
     )
         external;
@@ -42,7 +42,7 @@ interface ILRTDepositPool {
 
     function getAssetCurrentLimit(address asset) external view returns (uint256);
 
-    function getRsETHAmountToMint(address asset, uint256 depositAmount) external view returns (uint256);
+    function getMintAmount(address asset, uint256 depositAmount) external view returns (uint256);
 
     function addNodeDelegatorContractToQueue(address[] calldata nodeDelegatorContract) external;
 

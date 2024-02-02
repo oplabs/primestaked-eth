@@ -5,7 +5,7 @@ import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
 
-import { IPRETH } from "./interfaces/IPRETH.sol";
+import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { IPriceFetcher } from "./interfaces/IPriceFetcher.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
@@ -18,7 +18,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 /// @notice oracle contract that calculates the exchange rate of assets
 contract LRTOracle is ILRTOracle, LRTConfigRoleChecker, Initializable {
     mapping(address asset => address priceOracle) public override assetPriceOracle;
-    uint256 public override prETHPrice;
+    uint256 public override primeETHPrice;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -47,13 +47,13 @@ contract LRTOracle is ILRTOracle, LRTConfigRoleChecker, Initializable {
     }
 
     /// @notice updates PrimeStakedETH/ETH exchange rate
-    /// @dev calculates based on stakedAsset value received from eigen layer
-    function updatePRETHPrice() external {
-        address prETHTokenAddress = lrtConfig.prETH();
-        uint256 rsEthSupply = IPRETH(prETHTokenAddress).totalSupply();
+    /// @dev calculates based on stakedAsset value received from Eigen layer
+    function updatePrimeETHPrice() external {
+        address primeETHAddress = lrtConfig.primeETH();
+        uint256 primeSupply = IPrimeETH(primeETHAddress).totalSupply();
 
-        if (rsEthSupply == 0) {
-            prETHPrice = 1 ether;
+        if (primeSupply == 0) {
+            primeETHPrice = 1 ether;
             return;
         }
 
@@ -75,7 +75,7 @@ contract LRTOracle is ILRTOracle, LRTConfigRoleChecker, Initializable {
             }
         }
 
-        prETHPrice = totalETHInPool / rsEthSupply;
+        primeETHPrice = totalETHInPool / primeSupply;
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
-interface IPRETH is IERC20 {
+interface IPrimeETH is IERC20 {
     function mint(address account, uint256 amount) external;
 
     function burnFrom(address account, uint256 amount) external;

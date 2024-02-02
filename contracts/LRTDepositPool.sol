@@ -5,7 +5,7 @@ import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
 
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
-import { IPRETH } from "./interfaces/IPRETH.sol";
+import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
@@ -115,25 +115,25 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         }
     }
 
-    /// @notice View amount of prETH to mint for given asset amount
+    /// @notice View amount of primeETH to mint for given asset amount
     /// @param asset Asset address
     /// @param amount Asset amount
-    /// @return prethAmountToMint Amount of preth to mint
-    function getRsETHAmountToMint(
+    /// @return primeEthAmount Amount of primeETH to mint
+    function getMintAmount(
         address asset,
         uint256 amount
     )
         public
         view
         override
-        returns (uint256 prethAmountToMint)
+        returns (uint256 primeEthAmount)
     {
         // setup oracle contract
         address lrtOracleAddress = lrtConfig.getContract(LRTConstants.LRT_ORACLE);
         ILRTOracle lrtOracle = ILRTOracle(lrtOracleAddress);
 
-        // calculate preth amount to mint based on asset amount and asset exchange rate
-        prethAmountToMint = (amount * lrtOracle.getAssetPrice(asset)) / lrtOracle.prETHPrice();
+        // calculate primeETH amount to mint based on asset amount and asset exchange rate
+        primeEthAmount = (amount * lrtOracle.getAssetPrice(asset)) / lrtOracle.primeETHPrice();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -141,10 +141,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Allows user to deposit ETH to the protocol
-    /// @param minPRETHAmountExpected Minimum amount of preth to receive
+    /// @param minPrimeETHAmountExpected Minimum amount of primeETH to receive
     /// @param referralId referral id
     function depositETH(
-        uint256 minPRETHAmountExpected,
+        uint256 minPrimeETHAmountExpected,
         string calldata referralId
     )
         external
@@ -153,22 +153,22 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         nonReentrant
     {
         // checks
-        uint256 prethAmountToMint = _beforeDeposit(LRTConstants.ETH_TOKEN, msg.value, minPRETHAmountExpected);
+        uint256 primeEthAmountToMint = _beforeDeposit(LRTConstants.ETH_TOKEN, msg.value, minPrimeETHAmountExpected);
 
         // interactions
-        _mintRsETH(prethAmountToMint);
+        _mint(primeEthAmountToMint);
 
-        emit ETHDeposit(msg.sender, msg.value, prethAmountToMint, referralId);
+        emit ETHDeposit(msg.sender, msg.value, primeEthAmountToMint, referralId);
     }
 
     /// @notice helps user stake LST to the protocol
     /// @param asset LST asset address to stake
     /// @param depositAmount LST asset amount to stake
-    /// @param minPRETHAmountExpected Minimum amount of preth to receive
+    /// @param minPrimeETH Minimum amount of primeETH to receive
     function depositAsset(
         address asset,
         uint256 depositAmount,
-        uint256 minPRETHAmountExpected,
+        uint256 minPrimeETH,
         string calldata referralId
     )
         external
@@ -177,25 +177,25 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         onlySupportedAsset(asset)
     {
         // checks
-        uint256 prethAmountToMint = _beforeDeposit(asset, depositAmount, minPRETHAmountExpected);
+        uint256 primeETHAmount = _beforeDeposit(asset, depositAmount, minPrimeETH);
 
         // interactions
         if (!IERC20(asset).transferFrom(msg.sender, address(this), depositAmount)) {
             revert TokenTransferFailed();
         }
-        _mintRsETH(prethAmountToMint);
+        _mint(primeETHAmount);
 
-        emit AssetDeposit(msg.sender, asset, depositAmount, prethAmountToMint, referralId);
+        emit AssetDeposit(msg.sender, asset, depositAmount, primeETHAmount, referralId);
     }
 
     function _beforeDeposit(
         address asset,
         uint256 depositAmount,
-        uint256 minPRETHAmountExpected
+        uint256 minPrimeETH
     )
         private
         view
-        returns (uint256 prethAmountToMint)
+        returns (uint256 primeETHAmount)
     {
         if (depositAmount == 0 || depositAmount < minAmountToDeposit) {
             revert InvalidAmountToDeposit();
@@ -204,19 +204,19 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         if (depositAmount > getAssetCurrentLimit(asset)) {
             revert MaximumDepositLimitReached();
         }
-        prethAmountToMint = getRsETHAmountToMint(asset, depositAmount);
+        primeETHAmount = getMintAmount(asset, depositAmount);
 
-        if (prethAmountToMint < minPRETHAmountExpected) {
+        if (primeETHAmount < minPrimeETH) {
             revert MinimumAmountToReceiveNotMet();
         }
     }
 
-    /// @dev private function to mint preth
-    /// @param prethAmountToMint Amount of preth minted
-    function _mintRsETH(uint256 prethAmountToMint) private {
-        address prethToken = lrtConfig.prETH();
-        // mint preth for user
-        IPRETH(prethToken).mint(msg.sender, prethAmountToMint);
+    /// @dev private function to mint primeETH
+    /// @param primeEthAmount Amount of primeETH minted
+    function _mint(uint256 primeEthAmount) private {
+        address primeETH = lrtConfig.primeETH();
+        // mint primeETH for user
+        IPrimeETH(primeETH).mint(msg.sender, primeEthAmount);
     }
 
     /// @notice add new node delegator contract addresses
@@ -243,7 +243,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
             }
         }
 
-        emit NodeDelegatorAddedinQueue(nodeDelegatorContracts);
+        emit NodeDelegatorAddedInQueue(nodeDelegatorContracts);
     }
 
     /// @notice remove node delegator contract address from queue

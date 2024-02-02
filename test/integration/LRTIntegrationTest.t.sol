@@ -390,7 +390,7 @@ contract LRTIntegrationTest is Test {
         // tokens
         assertEq(stETHAddress, lrtConfig.getLSTToken(LRTConstants.ST_ETH_TOKEN));
         assertEq(ethXAddress, lrtConfig.getLSTToken(LRTConstants.ETHX_TOKEN));
-        assertEq(address(preth), lrtConfig.prETH());
+        assertEq(address(preth), lrtConfig.primeETH());
 
         assertTrue(lrtConfig.isSupportedAsset(stETHAddress));
         assertTrue(lrtConfig.isSupportedAsset(ethXAddress));
@@ -506,28 +506,28 @@ contract LRTIntegrationTest is Test {
         assertEq(lrtConfig.assetStrategy(stETHAddress), strategy);
     }
 
-    function test_RevertSetPRETHIfNotAdmin() external {
+    function test_RevertSetPrimeETHIfNotAdmin() external {
         address newPRETH = makeAddr("newPRETH");
 
         vm.expectRevert(
             "AccessControl: account 0x7fa9385be102ac3eac297483dd6233d62b3e1496 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000"
         );
-        lrtConfig.setPRETH(newPRETH);
+        lrtConfig.setPrimeETH(newPRETH);
     }
 
-    function test_RevertSetPRETHIfPRETHAddressIsZero() external {
+    function test_RevertSetPrimeETHIfPRETHAddressIsZero() external {
         vm.startPrank(admin);
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
-        lrtConfig.setPRETH(address(0));
+        lrtConfig.setPrimeETH(address(0));
         vm.stopPrank();
     }
 
-    function test_SetPRETH() external {
+    function test_SetPrimeETH() external {
         address newPRETH = makeAddr("newPRETH");
         vm.prank(admin);
-        lrtConfig.setPRETH(newPRETH);
+        lrtConfig.setPrimeETH(newPRETH);
 
-        assertEq(lrtConfig.prETH(), newPRETH);
+        assertEq(lrtConfig.primeETH(), newPRETH);
     }
 
     function test_RevertSetTokenIfNotAdmin() external {

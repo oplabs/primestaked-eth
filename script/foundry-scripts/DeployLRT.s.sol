@@ -99,8 +99,8 @@ contract DeployLRT is Script {
         (address stETH, address ethx) = getLSTs();
         // ----------- callable by admin ----------------
 
-        // add prETH to LRT config
-        lrtConfigProxy.setPRETH(address(PRETHProxy));
+        // add primeETH to LRT config
+        lrtConfigProxy.setPrimeETH(address(PRETHProxy));
         // add oracle to LRT config
         lrtConfigProxy.setContract(LRTConstants.LRT_ORACLE, address(lrtOracleProxy));
         // add deposit pool to LRT config
@@ -114,7 +114,7 @@ contract DeployLRT is Script {
 
         // grant MANAGER_ROLE to an address in LRTConfig
         lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
-        // add minter role to lrtDepositPool so it mints prETH
+        // add minter role to lrtDepositPool so it mints primeETH
         lrtConfigProxy.grantRole(LRTConstants.MINTER_ROLE, address(lrtDepositPoolProxy));
 
         // add nodeDelegators to LRTDepositPool queue
@@ -279,7 +279,7 @@ contract DeployLRT is Script {
         setUpByManager();
 
         // update prETHPrice
-        lrtOracleProxy.updatePRETHPrice();
+        lrtOracleProxy.updatePrimeETHPrice();
 
         // We will transfer the ownership once all of the deploys are done
         // uint256 chainId = block.chainid;

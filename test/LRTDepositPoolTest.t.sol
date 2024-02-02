@@ -74,7 +74,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
         preth.initialize(address(admin), address(lrtConfig));
         vm.startPrank(admin);
         // add prETH to LRT config
-        lrtConfig.setPRETH(address(preth));
+        lrtConfig.setPrimeETH(address(preth));
         // add oracle to LRT config
         lrtConfig.setContract(LRTConstants.LRT_ORACLE, address(new LRTOracleMock()));
 
@@ -151,7 +151,7 @@ contract LRTDepositPoolDepositETH is LRTDepositPoolTest {
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
-        minimunAmountOfPRETHToReceive = lrtDepositPool.getRsETHAmountToMint(LRTConstants.ETH_TOKEN, 1 ether);
+        minimunAmountOfPRETHToReceive = lrtDepositPool.getMintAmount(LRTConstants.ETH_TOKEN, 1 ether);
 
         expectEmit();
         emit ETHDeposit(alice, 1 ether, minimunAmountOfPRETHToReceive, referralId);
@@ -227,7 +227,7 @@ contract LRTDepositPoolDepositAsset is LRTDepositPoolTest {
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
-        minimunAmountOfPRETHToReceive = lrtDepositPool.getRsETHAmountToMint(ethXAddress, 2 ether);
+        minimunAmountOfPRETHToReceive = lrtDepositPool.getMintAmount(ethXAddress, 2 ether);
 
         ethX.approve(address(lrtDepositPool), 2 ether);
         lrtDepositPool.depositAsset(ethXAddress, 2 ether, minimunAmountOfPRETHToReceive, referralId);
@@ -279,9 +279,7 @@ contract LRTDepositPoolGetRsETHAmountToMint is LRTDepositPoolTest {
         vm.stopPrank();
 
         assertEq(
-            lrtDepositPool.getRsETHAmountToMint(ethXAddress, amountToDeposit),
-            1 ether,
-            "RsETH amount to mint is incorrect"
+            lrtDepositPool.getMintAmount(ethXAddress, amountToDeposit), 1 ether, "RsETH amount to mint is incorrect"
         );
     }
 
@@ -289,9 +287,7 @@ contract LRTDepositPoolGetRsETHAmountToMint is LRTDepositPoolTest {
         uint256 amountToDeposit = 1 ether;
 
         assertEq(
-            lrtDepositPool.getRsETHAmountToMint(address(0), amountToDeposit),
-            1 ether,
-            "RsETH amount to mint is incorrect"
+            lrtDepositPool.getMintAmount(address(0), amountToDeposit), 1 ether, "RsETH amount to mint is incorrect"
         );
     }
 }

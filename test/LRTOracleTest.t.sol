@@ -40,7 +40,7 @@ contract LRTOracleTest is LRTConfigTest {
     function setUp() public virtual override {
         super.setUp();
 
-        prETHMock = new MockToken("prETH", "prETH");
+        prETHMock = new MockToken("primeETH", "primeETH");
 
         // initialize LRTConfig
         lrtConfig.initialize(admin, address(stETH), address(ethX), address(prETHMock));
@@ -174,15 +174,15 @@ contract LRTOracleFetchPRETHPrice is LRTOracleTest {
     }
 
     function test_FetchPRETHPriceWhenPRETHSupplyIsZero() external {
-        lrtOracle.updatePRETHPrice();
+        lrtOracle.updatePrimeETHPrice();
         assertEq(prETHMock.totalSupply(), 0);
-        assertEq(lrtOracle.prETHPrice(), 1 ether);
+        assertEq(lrtOracle.primeETHPrice(), 1 ether);
     }
 
     function test_FetchPRETHPrice() external {
         vm.mockCall(address(prETHMock), abi.encodeWithSelector(ERC20.totalSupply.selector), abi.encode(4 ether));
-        lrtOracle.updatePRETHPrice();
+        lrtOracle.updatePrimeETHPrice();
         assertEq(prETHMock.totalSupply(), 4 ether);
-        assertEq(lrtOracle.prETHPrice(), 1 ether);
+        assertEq(lrtOracle.primeETHPrice(), 1 ether);
     }
 }

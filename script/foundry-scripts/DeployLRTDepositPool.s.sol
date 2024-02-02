@@ -33,7 +33,7 @@ contract DeployLRTDepositPool is Script {
         // add deposit pool to LRT config
         lrtConfigProxy.setContract(LRTConstants.LRT_DEPOSIT_POOL, address(lrtDepositPoolProxy));
 
-        // add minter role to lrtDepositPool so it mint prETH
+        // add minter role to lrtDepositPool so it mint primeETH
         lrtConfigProxy.grantRole(LRTConstants.MINTER_ROLE, address(lrtDepositPoolProxy));
         address oldDepositPoolProxy = 0x55052ba1a135c43a17cf6CeE58a59c782CeF1Bcf;
         lrtConfigProxy.revokeRole(LRTConstants.MINTER_ROLE, oldDepositPoolProxy);
