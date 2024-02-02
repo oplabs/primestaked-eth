@@ -18,13 +18,13 @@ interface ILRTConfig {
     event RemovedSupportedAsset(address indexed asset);
     event AssetDepositLimitUpdate(address indexed asset, uint256 depositLimit);
     event AssetStrategyUpdate(address indexed asset, address indexed strategy);
-    event SetPRETH(address indexed prETH);
+    event SetPrimeETH(address indexed primeETH);
 
     error CannotUpdateStrategyAsItHasFundsNDCFunds(address ndc, uint256 amount);
 
     // methods
 
-    function prETH() external view returns (address);
+    function primeETH() external view returns (address);
 
     function assetStrategy(address asset) external view returns (address);
 

@@ -33,7 +33,7 @@ function getLSTs() view returns (address stETH, address ethx) {
 }
 
 contract DeployLRT is Script {
-    address public proxyAdminOwner;
+    address public deployerAddress;
     ProxyAdmin public proxyAdmin;
 
     ProxyFactory public proxyFactory;
@@ -76,8 +76,7 @@ contract DeployLRT is Script {
             // testnet
             strategyManager = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
             stETHStrategy = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
-            // TODO: NEED TO HAVE ETHX STRATEGY
-            ethXStrategy = 0x0000000000000000000000000000000000000000;
+            ethXStrategy = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
         }
     }
 
@@ -99,8 +98,8 @@ contract DeployLRT is Script {
         (address stETH, address ethx) = getLSTs();
         // ----------- callable by admin ----------------
 
-        // add prETH to LRT config
-        lrtConfigProxy.setPRETH(address(PRETHProxy));
+        // add primeETH to LRT config
+        lrtConfigProxy.setPrimeETH(address(PRETHProxy));
         // add oracle to LRT config
         lrtConfigProxy.setContract(LRTConstants.LRT_ORACLE, address(lrtOracleProxy));
         // add deposit pool to LRT config
@@ -113,8 +112,8 @@ contract DeployLRT is Script {
         // lrtConfigProxy.updateAssetStrategy(ethx, ethXStrategy);
 
         // grant MANAGER_ROLE to an address in LRTConfig
-        lrtConfigProxy.grantRole(LRTConstants.MANAGER, proxyAdminOwner);
-        // add minter role to lrtDepositPool so it mints prETH
+        lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
+        // add minter role to lrtDepositPool so it mints primeETH
         lrtConfigProxy.grantRole(LRTConstants.MINTER_ROLE, address(lrtDepositPoolProxy));
 
         // add nodeDelegators to LRTDepositPool queue
@@ -153,19 +152,20 @@ contract DeployLRT is Script {
     function run() external {
         vm.startBroadcast();
 
-        bytes32 salt = keccak256(abi.encodePacked("LRT-Origin"));
+        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
         proxyFactory = new ProxyFactory();
         proxyAdmin = new ProxyAdmin(); // msg.sender becomes the owner of ProxyAdmin
 
-        proxyAdminOwner = proxyAdmin.owner();
+        deployerAddress = proxyAdmin.owner();
         minAmountToDeposit = 0.0001 ether;
 
         console.log("ProxyAdmin deployed at: ", address(proxyAdmin));
-        console.log("Owner of ProxyAdmin: ", proxyAdminOwner);
+        console.log("Proxy factory deployed at: ", address(proxyFactory));
+        console.log("Tentative owner of ProxyAdmin: ", deployerAddress);
 
         // deploy implementation contracts
         address lrtConfigImplementation = address(new LRTConfig());
-        address PRETHImplementation = address(new PrimeStakedETH());
+        address primeETHImplementation = address(new PrimeStakedETH());
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());
         address chainlinkPriceOracleImplementation = address(new ChainlinkPriceOracle());
@@ -174,7 +174,7 @@ contract DeployLRT is Script {
 
         console.log("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
         console.log("LRTConfig implementation deployed at: ", lrtConfigImplementation);
-        console.log("PrimeStakedETH implementation deployed at: ", PRETHImplementation);
+        console.log("PrimeStakedETH implementation deployed at: ", primeETHImplementation);
         console.log("LRTDepositPool implementation deployed at: ", lrtDepositPoolImplementation);
         console.log("LRTOracle implementation deployed at: ", lrtOracleImplementation);
         console.log("ChainlinkPriceOracle implementation deployed at: ", chainlinkPriceOracleImplementation);
@@ -187,14 +187,16 @@ contract DeployLRT is Script {
 
         // set up LRTConfig init params
         (address stETH, address ethx) = getLSTs();
-        address predictedPRETHAddress = proxyFactory.computeAddress(PRETHImplementation, address(proxyAdmin), salt);
+        address predictedPRETHAddress = proxyFactory.computeAddress(primeETHImplementation, address(proxyAdmin), salt);
         console.log("predictedPRETHAddress: ", predictedPRETHAddress);
         // init LRTConfig
-        lrtConfigProxy.initialize(proxyAdminOwner, stETH, ethx, predictedPRETHAddress);
+        // TODO: the initialize config supports only 2 LSTs. we need to alter this to
+        // the number of LSTS we are planning to launch with
+        lrtConfigProxy.initialize(deployerAddress, stETH, ethx, predictedPRETHAddress);
 
-        PRETHProxy = PrimeStakedETH(proxyFactory.create(address(PRETHImplementation), address(proxyAdmin), salt));
+        PRETHProxy = PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
         // init PrimeStakedETH
-        PRETHProxy.initialize(proxyAdminOwner, address(lrtConfigProxy));
+        PRETHProxy.initialize(deployerAddress, address(lrtConfigProxy));
 
         lrtDepositPoolProxy = LRTDepositPool(
             payable(proxyFactory.create(address(lrtDepositPoolImplementation), address(proxyAdmin), salt))
@@ -276,16 +278,34 @@ contract DeployLRT is Script {
         setUpByManager();
 
         // update prETHPrice
-        lrtOracleProxy.updatePRETHPrice();
+        lrtOracleProxy.updatePrimeETHPrice();
 
-        // TODO: Check for the correct multisig addresses
-        address manager = 0xFc015a866aA06dDcaD27Fe425bdd362a8927544D;
-        lrtConfigProxy.grantRole(LRTConstants.MANAGER, manager);
-        lrtConfigProxy.revokeRole(LRTConstants.MANAGER, proxyAdminOwner);
-        address admin = 0xA65E2f72930219C4ce846FB245Ae18700296C328;
-        lrtConfigProxy.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin);
-        lrtConfigProxy.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, proxyAdminOwner);
-        proxyAdmin.transferOwnership(admin);
+        // // We will transfer the ownership once all of the deploys are done
+        // uint256 chainId = block.chainid;
+        // address manager;
+        // address admin;
+
+        // if (chainId == 1) {
+        //     // mainnet
+        //     manager = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
+        //     admin = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
+        // } else if (chainId == 5) {
+        //     // goerli
+        //     manager = deployerAddress;
+        //     admin = deployerAddress;
+        // } else {
+        //     revert("Unsupported network");
+        // }
+
+        // lrtConfigProxy.grantRole(LRTConstants.MANAGER, manager);
+        // lrtConfigProxy.revokeRole(LRTConstants.MANAGER, deployerAddress);
+        // console.log("Manager permission granted to: ", manager);
+
+        // lrtConfigProxy.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin);
+        // lrtConfigProxy.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, deployerAddress);
+        // proxyAdmin.transferOwnership(admin);
+
+        // console.log("ProxyAdmin ownership transferred to: ", admin);
 
         vm.stopBroadcast();
     }

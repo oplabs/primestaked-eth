@@ -7,9 +7,9 @@ import { LRTConfigRoleChecker, ILRTConfig, LRTConstants } from "./utils/LRTConfi
 import { ERC20Upgradeable, Initializable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-/// @title PrimeStakedETH Token Contract
+/// @title Prime Staked ETH Token Contract
 /// @author Origin Protocol
-/// @notice The ERC20 contract for the prETH token
+/// @notice The ERC20 contract for the primeETH token
 contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable, PausableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -23,22 +23,22 @@ contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable
         UtilLib.checkNonZeroAddress(admin);
         UtilLib.checkNonZeroAddress(lrtConfigAddr);
 
-        __ERC20_init("prETH", "prETH");
+        __ERC20_init("Prime Staked ETH", "primeETH");
         __Pausable_init();
         lrtConfig = ILRTConfig(lrtConfigAddr);
         emit UpdatedLRTConfig(lrtConfigAddr);
     }
 
-    /// @notice Mints prETH when called by an authorized caller
+    /// @notice Mints primeETH when called by an authorized caller
     /// @param to the account to mint to
-    /// @param amount the amount of prETH to mint
+    /// @param amount the amount of primeETH to mint
     function mint(address to, uint256 amount) external onlyRole(LRTConstants.MINTER_ROLE) whenNotPaused {
         _mint(to, amount);
     }
 
-    /// @notice Burns prETH when called by an authorized caller
+    /// @notice Burns primeETH when called by an authorized caller
     /// @param account the account to burn from
-    /// @param amount the amount of prETH to burn
+    /// @param amount the amount of primeETH to burn
     function burnFrom(address account, uint256 amount) external onlyRole(LRTConstants.BURNER_ROLE) whenNotPaused {
         _burn(account, amount);
     }
@@ -50,13 +50,13 @@ contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable
     }
 
     /// @notice Returns to normal state.
-    /// @dev Only callable by the prETH admin. Contract must be paused
+    /// @dev Only callable by the primeETH admin. Contract must be paused
     function unpause() external onlyLRTAdmin {
         _unpause();
     }
 
     /// @notice Updates the LRT config contract
-    /// @dev only callable by the prETH admin
+    /// @dev only callable by the primeETH admin
     /// @param _lrtConfig the new LRT config contract
     function updateLRTConfig(address _lrtConfig) external override onlyLRTAdmin {
         UtilLib.checkNonZeroAddress(_lrtConfig);

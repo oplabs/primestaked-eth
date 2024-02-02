@@ -351,23 +351,23 @@ contract LRTConfigSettersTest is LRTConfigTest {
         vm.expectRevert(
             "AccessControl: account 0x328809bc894f92807417d2dad6b7c998c1afdac6 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000"
         );
-        lrtConfig.setPRETH(newPRETH);
+        lrtConfig.setPrimeETH(newPRETH);
         vm.stopPrank();
     }
 
     function test_RevertSetPRETHIfPRETHAddressIsZero() external {
         vm.startPrank(admin);
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
-        lrtConfig.setPRETH(address(0));
+        lrtConfig.setPrimeETH(address(0));
         vm.stopPrank();
     }
 
     function test_SetPRETH() external {
         vm.startPrank(admin);
-        lrtConfig.setPRETH(newPRETH);
+        lrtConfig.setPrimeETH(newPRETH);
         vm.stopPrank();
 
-        assertEq(lrtConfig.prETH(), newPRETH);
+        assertEq(lrtConfig.primeETH(), newPRETH);
     }
 
     function test_RevertSetTokenIfNotAdmin() external {

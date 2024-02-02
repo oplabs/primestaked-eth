@@ -45,8 +45,8 @@ contract PRETHInitialize is PrimeStakedETHTest {
         assertTrue(lrtConfig.hasRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin), "Admin address is not set");
         assertEq(address(lrtConfig), address(preth.lrtConfig()), "LRT config address is not set");
 
-        assertEq(preth.name(), "prETH", "Name is not set");
-        assertEq(preth.symbol(), "prETH", "Symbol is not set");
+        assertEq(preth.name(), "Prime Staked ETH", "Name is not set");
+        assertEq(preth.symbol(), "primeETH", "Symbol is not set");
     }
 }
 

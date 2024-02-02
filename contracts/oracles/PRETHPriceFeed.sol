@@ -20,7 +20,7 @@ interface AggregatorV3Interface {
 }
 
 interface IPRETHOracle {
-    function prETHPrice() external view returns (uint256);
+    function primeETHPrice() external view returns (uint256);
 }
 
 contract PRETHPriceFeed is AggregatorV3Interface {
@@ -57,7 +57,7 @@ contract PRETHPriceFeed is AggregatorV3Interface {
     {
         (roundId, answer, startedAt, updatedAt, answeredInRound) = ETH_TO_USD.getRoundData(_roundId);
 
-        answer = int256(RS_ETH_ORACLE.prETHPrice()) * answer / 1e18;
+        answer = int256(RS_ETH_ORACLE.primeETHPrice()) * answer / 1e18;
     }
 
     function latestRoundData()
@@ -66,6 +66,6 @@ contract PRETHPriceFeed is AggregatorV3Interface {
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         (roundId, answer, startedAt, updatedAt, answeredInRound) = ETH_TO_USD.latestRoundData();
-        answer = int256(RS_ETH_ORACLE.prETHPrice()) * answer / 1e18;
+        answer = int256(RS_ETH_ORACLE.primeETHPrice()) * answer / 1e18;
     }
 }
