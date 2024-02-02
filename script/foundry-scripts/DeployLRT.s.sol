@@ -33,7 +33,6 @@ function getLSTs() view returns (address stETH, address ethx) {
 }
 
 contract DeployLRT is Script {
-
     address public deployerAddress;
     ProxyAdmin public proxyAdmin;
 
@@ -154,7 +153,7 @@ contract DeployLRT is Script {
     function run() external {
         vm.startBroadcast();
 
-        bytes32 salt = keccak256(abi.encodePacked("LRT-Origin"));
+        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
         proxyFactory = new ProxyFactory();
         proxyAdmin = new ProxyAdmin(); // msg.sender becomes the owner of ProxyAdmin
 
@@ -167,7 +166,7 @@ contract DeployLRT is Script {
 
         // deploy implementation contracts
         address lrtConfigImplementation = address(new LRTConfig());
-        address PRETHImplementation = address(new PrimeStakedETH());
+        address primeETHImplementation = address(new PrimeStakedETH());
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());
         address chainlinkPriceOracleImplementation = address(new ChainlinkPriceOracle());
@@ -176,7 +175,7 @@ contract DeployLRT is Script {
 
         console.log("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
         console.log("LRTConfig implementation deployed at: ", lrtConfigImplementation);
-        console.log("PrimeStakedETH implementation deployed at: ", PRETHImplementation);
+        console.log("PrimeStakedETH implementation deployed at: ", primeETHImplementation);
         console.log("LRTDepositPool implementation deployed at: ", lrtDepositPoolImplementation);
         console.log("LRTOracle implementation deployed at: ", lrtOracleImplementation);
         console.log("ChainlinkPriceOracle implementation deployed at: ", chainlinkPriceOracleImplementation);
@@ -189,14 +188,14 @@ contract DeployLRT is Script {
 
         // set up LRTConfig init params
         (address stETH, address ethx) = getLSTs();
-        address predictedPRETHAddress = proxyFactory.computeAddress(PRETHImplementation, address(proxyAdmin), salt);
+        address predictedPRETHAddress = proxyFactory.computeAddress(primeETHImplementation, address(proxyAdmin), salt);
         console.log("predictedPRETHAddress: ", predictedPRETHAddress);
         // init LRTConfig
-        // TODO: the initialize config supports only 2 LSTs. we need to alter this to 
+        // TODO: the initialize config supports only 2 LSTs. we need to alter this to
         // the number of LSTS we are planning to launch with
         lrtConfigProxy.initialize(deployerAddress, stETH, ethx, predictedPRETHAddress);
 
-        PRETHProxy = PrimeStakedETH(proxyFactory.create(address(PRETHImplementation), address(proxyAdmin), salt));
+        PRETHProxy = PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
         // init PrimeStakedETH
         PRETHProxy.initialize(deployerAddress, address(lrtConfigProxy));
 
