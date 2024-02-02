@@ -17,10 +17,8 @@ contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable
     }
 
     /// @dev Initializes the contract
-    /// @param admin Admin address
     /// @param lrtConfigAddr LRT config address
-    function initialize(address admin, address lrtConfigAddr) external initializer {
-        UtilLib.checkNonZeroAddress(admin);
+    function initialize(address lrtConfigAddr) external initializer {
         UtilLib.checkNonZeroAddress(lrtConfigAddr);
 
         __ERC20_init("Prime Staked ETH", "primeETH");
@@ -53,14 +51,5 @@ contract PrimeStakedETH is Initializable, LRTConfigRoleChecker, ERC20Upgradeable
     /// @dev Only callable by the primeETH admin. Contract must be paused
     function unpause() external onlyLRTAdmin {
         _unpause();
-    }
-
-    /// @notice Updates the LRT config contract
-    /// @dev only callable by the primeETH admin
-    /// @param _lrtConfig the new LRT config contract
-    function updateLRTConfig(address _lrtConfig) external override onlyLRTAdmin {
-        UtilLib.checkNonZeroAddress(_lrtConfig);
-        lrtConfig = ILRTConfig(_lrtConfig);
-        emit UpdatedLRTConfig(_lrtConfig);
     }
 }

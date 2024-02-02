@@ -77,7 +77,7 @@ contract DeployMinimal is Script {
 
         PRETHProxy = PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
         // init PrimeStakedETH
-        PRETHProxy.initialize(deployerAddress, address(lrtConfigProxy));
+        PRETHProxy.initialize(address(lrtConfigProxy));
 
         console.log("LRTConfig proxy deployed at: ", address(lrtConfigProxy));
         console.log("PrimeStakedETH proxy deployed at: ", address(PRETHProxy));
