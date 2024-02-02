@@ -19,6 +19,8 @@ contract DeployOracles is Script {
             revert("Not Mainnet");
         }
 
+        vm.startBroadcast();
+
         lrtConfig = 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF;
         proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
         proxyAdmin = 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758;
@@ -27,6 +29,8 @@ contract DeployOracles is Script {
 
         deployChainlinkOracle();
         deployOETHOracle();
+
+        vm.stopBroadcast();
     }
 
     function deployChainlinkOracle() private {
