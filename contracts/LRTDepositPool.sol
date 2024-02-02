@@ -289,7 +289,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @notice remove many node delegator contracts from queue
     /// @dev calls internally removeNodeDelegatorContractFromQueue which is only callable by LRT admin
     /// @param nodeDelegatorContracts Array of NodeDelegator contract addresses
-    function removeManyNodeDelegatorContractsFromQueue(address[] calldata nodeDelegatorContracts) external {
+    function removeManyNodeDelegatorContractsFromQueue(address[] calldata nodeDelegatorContracts)
+        external
+        onlyLRTAdmin
+    {
         uint256 length = nodeDelegatorContracts.length;
 
         for (uint256 i; i < length;) {
