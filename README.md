@@ -204,9 +204,9 @@ $ npm test:coverage:report
 ### Contract Implementations
 | Contract Name           | Implementation Address                         |
 |-------------------------|------------------------------------------------|
-| LRTConfig               | 0xcdfD989e689872506E2897316b10e29c84AB087F     |
 | PrimeStakedETH          | 0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2     |
 | LRTDepositPool          | 0x51ADD57dC33A3CB5FFf28Fe149198BD38753975D     |
+| LRTConfig               | 0xcdfD989e689872506E2897316b10e29c84AB087F     |
 | NodeDelegator           | 0xEBd48593C5463efa51a9971ce6bdB8A8761F0676     |
 | LRTOracle               | 0xeF8c39489A83467B1c994B8E4c62cBE26DEB69ce     |
 | ChainlinkPriceOracle    | 0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5     |
@@ -218,9 +218,9 @@ $ npm test:coverage:report
 ### Proxy Addresses
 | Contract Name           | Proxy Address                                  |
 |-------------------------|------------------------------------------------|
-| LRTConfig               | 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF     |
 | PrimeStakedETH          | 0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615     |
 | LRTDepositPool          | 0xA479582c8b64533102F6F528774C536e354B8d32     |
+| LRTConfig               | 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF     |
 | NodeDelegator           | 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2     |
 | LRTOracle               | 0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32     |
 | ChainlinkPriceOracle    | 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09     |
