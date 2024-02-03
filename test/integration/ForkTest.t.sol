@@ -5,10 +5,12 @@ pragma solidity 0.8.21;
 import "forge-std/Test.sol";
 import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
 import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
+import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
+import { Addresses } from "contracts/utils/Addresses.sol";
 import { getLSTs } from "script/foundry-scripts/DeployLRT.s.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -26,17 +28,13 @@ contract ForkTest is Test {
     address public admin;
     address public manager;
 
-    address public stETHAddress;
-    address public ethXAddress;
-    address public oethAddress;
-    address public methAddress;
-    address public sfrxEthAddress;
-
     address public stWhale;
     address public xWhale;
     address public oWhale;
     address public mWhale;
     address public frxWhale;
+    address public rethWhale;
+    address public swethWhale;
 
     string public referralId = "1234";
 
@@ -46,69 +44,74 @@ contract ForkTest is Test {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
-        admin = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
-        manager = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+        admin = Addresses.PROXY_OWNER;
+        manager = Addresses.PROXY_OWNER;
 
         stWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
         xWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
         oWhale = 0xEADB3840596cabF312F2bC88A4Bb0b93A4E1FF5F;
         mWhale = 0xf89d7b9c864f589bbF53a82105107622B35EaA40;
         frxWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
+        rethWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
+        swethWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
 
-        lrtDepositPool = LRTDepositPool(payable(0xA479582c8b64533102F6F528774C536e354B8d32));
-        lrtOracle = LRTOracle(0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32);
-        nodeDelegator1 = NodeDelegator(payable(0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2));
-
-        stETHAddress = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-        ethXAddress = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
-        oethAddress = 0x856c4Efb76C1D1AE02e20CEB03A2A6a08b0b8dC3;
-        methAddress = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
-        sfrxEthAddress = 0xac3E018457B222d93114458476f3E3416Abbe38F;
+        lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
+        lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
+        lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
+        nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
     }
 
     function test_deposit_stETH() public {
-        deposit(stETHAddress, stWhale, 0.1 ether);
+        deposit(Addresses.STETH_TOKEN, stWhale, 0.1 ether);
     }
 
     function test_deposit_OETH() public {
-        deposit(oethAddress, oWhale, 1 ether);
+        deposit(Addresses.OETH_TOKEN, oWhale, 1 ether);
     }
 
     function test_deposit_ETHx() public {
-        deposit(ethXAddress, xWhale, 2 ether);
+        deposit(Addresses.ETHX_TOKEN, xWhale, 2 ether);
     }
 
     function test_deposit_mETH() public {
-        deposit(methAddress, mWhale, 8 ether);
+        deposit(Addresses.METH_TOKEN, mWhale, 8 ether);
     }
 
     function test_deposit_sfrxETH() public {
-        deposit(sfrxEthAddress, frxWhale, 10 ether);
+        deposit(Addresses.SFRXETH_TOKEN, frxWhale, 10 ether);
     }
 
+    // function test_deposit_rETH() public {
+    //     deposit(Addresses.RETH_TOKEN, rethWhale, 10 ether);
+    // }
+
+    // function test_deposit_swETH() public {
+    //     deposit(Addresses.SWETH_TOKEN, swethWhale, 10 ether);
+    // }
+
     function test_transfer_del_node_stETH() public {
-        deposit(stETHAddress, stWhale, 1 ether);
-        transfer_DelegatorNode(stETHAddress, 0.8 ether);
+        deposit(Addresses.STETH_TOKEN, stWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.STETH_TOKEN, 0.8 ether);
     }
 
     function test_transfer_del_node_OETH() public {
-        deposit(oethAddress, oWhale, 1 ether);
-        transfer_DelegatorNode(oethAddress, 0.1 ether);
+        deposit(Addresses.OETH_TOKEN, oWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.OETH_TOKEN, 0.1 ether);
     }
 
     function test_transfer_del_node_ETHx() public {
-        deposit(ethXAddress, xWhale, 2 ether);
-        transfer_DelegatorNode(ethXAddress, 1.2 ether);
+        deposit(Addresses.ETHX_TOKEN, xWhale, 2 ether);
+        transfer_DelegatorNode(Addresses.ETHX_TOKEN, 1.2 ether);
     }
 
     function test_transfer_del_node_mETH() public {
-        deposit(methAddress, mWhale, 5 ether);
-        transfer_DelegatorNode(methAddress, 5 ether);
+        deposit(Addresses.METH_TOKEN, mWhale, 5 ether);
+        transfer_DelegatorNode(Addresses.METH_TOKEN, 5 ether);
     }
 
     function test_transfer_del_node_sfrxETH() public {
-        deposit(sfrxEthAddress, frxWhale, 2 ether);
-        transfer_DelegatorNode(sfrxEthAddress, 1.2 ether);
+        deposit(Addresses.SFRXETH_TOKEN, frxWhale, 2 ether);
+        transfer_DelegatorNode(Addresses.SFRXETH_TOKEN, 1.2 ether);
     }
 
     function test_update_primeETH_price() public {
@@ -116,11 +119,12 @@ contract ForkTest is Test {
         lrtOracle.updatePrimeETHPrice();
     }
 
-    function test_transfer_eigen_OETH() public {
-        vm.skip(true);
-        deposit(ethXAddress, xWhale, 1 ether);
-        transfer_DelegatorNode(ethXAddress, 1 ether);
-        transfer_Eigen(ethXAddress);
+    function test_transfer_eigen_ETHX() public {
+        unpauseStrategy(Addresses.ETHX_EIGEN_STRATEGY);
+
+        deposit(Addresses.ETHX_TOKEN, xWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.ETHX_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.ETHX_TOKEN);
     }
 
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
@@ -148,5 +152,18 @@ contract ForkTest is Test {
         nodeDelegator1.depositAssetIntoStrategy(asset);
 
         // TODO check asset was transferred from nodeDelegator to Eigen asset strategy
+    }
+
+    function unpauseStrategy(address strategyAddress) private {
+        vm.startPrank(Addresses.EIGEN_UNPAUSER);
+
+        IStrategy eigenStrategy = IStrategy(strategyAddress);
+        IStrategy eigenStrategyManager = IStrategy(Addresses.EIGEN_STRATEGY_MANAGER);
+
+        // Unpause deposits and withdrawals
+        eigenStrategyManager.unpause(0);
+        eigenStrategy.unpause(0);
+
+        vm.stopPrank();
     }
 }
