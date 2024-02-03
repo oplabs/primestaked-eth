@@ -7,48 +7,61 @@ import "forge-std/Script.sol";
 import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
+import { Addresses } from "contracts/utils/Addresses.sol";
+
 contract TransferOwnership is Script {
-    address public proxyAdminOwner;
-    address public deployerAddress;
-    ProxyAdmin public proxyAdmin;
-    LRTConfig public lrtConfigProxy;
-
     function run() external {
-        vm.startBroadcast();
-
-        // IMPORTANT: Update config variables
-        proxyAdmin = ProxyAdmin(0x60fF8354e9C0E78e032B7daeA8da2c3265287dBd);
-        lrtConfigProxy = LRTConfig(0x5E598B1A8658a5a1434CEAA6988D43aeB028F430);
-        // End of Config variables
-
-        proxyAdminOwner = proxyAdmin.owner();
-        console.log("Current owner of ProxyAdmin: ", proxyAdminOwner);
-
-        uint256 chainId = block.chainid;
-        address manager;
-        address admin;
-
-        if (chainId == 1) {
-            // mainnet
-            manager = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
-            admin = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
-        } else if (chainId == 5) {
-            // goerli
-            manager = proxyAdminOwner;
-            admin = proxyAdminOwner;
-        } else {
-            revert("Unsupported network");
+        if (block.chainid != 1) {
+            revert("Not Mainnet");
         }
 
-        lrtConfigProxy.grantRole(LRTConstants.MANAGER, manager);
-        console.log("Manager permission granted to: ", manager);
+        bool isFork = vm.envOr("IS_FORK", false);
+        if (isFork) {
+            address mainnetProxyOwner = Addresses.PROXY_OWNER;
+            console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
+            vm.startPrank(mainnetProxyOwner);
+        } else {
+            console.log("Deploying on mainnet deployer: %s", msg.sender);
+            vm.startBroadcast();
+        }
 
-        lrtConfigProxy.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin);
-        lrtConfigProxy.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, proxyAdminOwner);
-        proxyAdmin.transferOwnership(admin);
+        // Contracts that need to be transferred
+        ProxyAdmin proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
+        LRTConfig lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
 
-        console.log("ProxyAdmin ownership transferred to: ", admin);
+        address currentProxyOwner = proxyAdmin.owner();
+        console.log("Current owner of ProxyAdmin: ", currentProxyOwner);
 
-        vm.stopBroadcast();
+        // Manager is gonna same as admin for now
+        address multisig = Addresses.ADMIN_MULTISIG;
+
+        /**
+         * ################# Grant Permissions to Multi-sig
+         */
+        // LRTConfig
+        lrtConfig.grantRole(LRTConstants.MANAGER, multisig);
+        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, multisig);
+        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, multisig);
+        console.log("[LRTConfig] Manager, Operator & Admin permission granted to: ", multisig);
+
+        /**
+         * ################# Revoke Permissions for existing owner
+         */
+        lrtConfig.revokeRole(LRTConstants.MANAGER, currentProxyOwner);
+        lrtConfig.revokeRole(LRTConstants.OPERATOR_ROLE, currentProxyOwner);
+        lrtConfig.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, currentProxyOwner);
+        console.log("[LRTConfig] Revoked roles from current owner");
+
+        /**
+         * ################# Transfer Ownership to multisig
+         */
+        proxyAdmin.transferOwnership(multisig);
+        console.log("ProxyAdmin ownership transferred to: ", multisig);
+
+        if (isFork) {
+            vm.stopPrank();
+        } else {
+            vm.stopBroadcast();
+        }
     }
 }
