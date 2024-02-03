@@ -40,8 +40,6 @@ contract ForkTest is Test {
 
     string public referralId = "0";
 
-    uint256 amountToTransfer;
-
     uint256 indexOfNodeDelegator;
 
     function setUp() public virtual {
@@ -71,19 +69,44 @@ contract ForkTest is Test {
     }
 
     function test_deposit_OETH() public {
-        deposit(oethAddress, oWhale, 0.1 ether);
+        deposit(oethAddress, oWhale, 1 ether);
     }
 
     function test_deposit_ETHx() public {
-        deposit(ethXAddress, xWhale, 0.1 ether);
+        deposit(ethXAddress, xWhale, 2 ether);
     }
 
     function test_deposit_mETH() public {
-        deposit(methAddress, mWhale, 0.1 ether);
+        deposit(methAddress, mWhale, 8 ether);
     }
 
     function test_deposit_sfrxETH() public {
-        deposit(sfrxEthAddress, frxWhale, 0.1 ether);
+        deposit(sfrxEthAddress, frxWhale, 10 ether);
+    }
+
+    function test_transfer_stETH_Eigen() public {
+        deposit(stETHAddress, stWhale, 1 ether);
+        transfer_Eigen(stETHAddress, 0.8 ether);
+    }
+
+    function test_transfer_OETH_Eigen() public {
+        deposit(oethAddress, oWhale, 1 ether);
+        transfer_Eigen(oethAddress, 0.1 ether);
+    }
+
+    function test_transfer_ETHx_Eigen() public {
+        deposit(ethXAddress, xWhale, 2 ether);
+        transfer_Eigen(ethXAddress, 1.2 ether);
+    }
+
+    function test_transfer_mETH_Eigen() public {
+        deposit(methAddress, mWhale, 5 ether);
+        transfer_Eigen(methAddress, 5 ether);
+    }
+
+    function test_transfer_sfrxETH_Eigen() public {
+        deposit(sfrxEthAddress, frxWhale, 2 ether);
+        transfer_Eigen(sfrxEthAddress, 1.2 ether);
     }
 
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
@@ -93,19 +116,8 @@ contract ForkTest is Test {
         vm.stopPrank();
     }
 
-    function test_transfer_OETH_Eigen() public {
-        deposit(oethAddress, oWhale, 1 ether);
-
+    function transfer_Eigen(address asset, uint256 amountToTransfer) public {
         vm.prank(manager);
-        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, oethAddress, 0.8 ether);
-    }
-
-    function test_transfer_stETH_Eigen() public {
-        vm.skip(true);
-
-        deposit(ethXAddress, xWhale, 1 ether);
-
-        vm.prank(manager);
-        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, stETHAddress, amountToTransfer);
+        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
     }
 }
