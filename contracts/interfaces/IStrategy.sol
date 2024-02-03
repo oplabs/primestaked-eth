@@ -89,4 +89,8 @@ interface IStrategy {
     /// @notice Returns either a brief string explaining the strategy's goal & purpose, or a link to metadata that
     /// explains in more detail.
     function explanation() external view returns (string memory);
+
+    function paused() external view returns (uint256);
+    function paused(uint8) external view returns (bool);
+    function unpause(uint256) external;
 }

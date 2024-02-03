@@ -95,7 +95,7 @@ contract DeployLRT is Script {
     }
 
     function setUpByAdmin() private {
-        (address stETH, address ethx) = getLSTs();
+        (address stETH,) = getLSTs();
         // ----------- callable by admin ----------------
 
         // add primeETH to LRT config
@@ -105,7 +105,7 @@ contract DeployLRT is Script {
         // add deposit pool to LRT config
         lrtConfigProxy.setContract(LRTConstants.LRT_DEPOSIT_POOL, address(lrtDepositPoolProxy));
         // call updateAssetStrategy for each asset in LRTConfig
-        (address strategyManager, address stETHStrategy, address ethXStrategy) = getAssetStrategies();
+        (address strategyManager, address stETHStrategy,) = getAssetStrategies();
         lrtConfigProxy.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, strategyManager);
         lrtConfigProxy.updateAssetStrategy(stETH, stETHStrategy);
         // TODO: NEED TO HAVE ETHX STRATEGY

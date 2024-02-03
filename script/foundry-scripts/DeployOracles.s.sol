@@ -11,6 +11,7 @@ import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { MEthPriceOracle } from "contracts/oracles/MEthPriceOracle.sol";
 import { SfrxETHPriceOracle } from "contracts/oracles/SfrxETHPriceOracle.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
+import { Addresses } from "contracts/utils/Addresses.sol";
 
 contract DeployOracles is Script {
     ProxyFactory public proxyFactory;
@@ -32,9 +33,9 @@ contract DeployOracles is Script {
             vm.startBroadcast();
         }
 
-        lrtConfig = 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF;
-        proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
-        proxyAdmin = 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758;
+        lrtConfig = Addresses.LRT_CONFIG;
+        proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
+        proxyAdmin = Addresses.PROXY_ADMIN;
 
         console.log("Deployer: %s", msg.sender);
 
@@ -80,7 +81,7 @@ contract DeployOracles is Script {
     }
 
     function deployEthXPriceOracle() private {
-        address staderStakingPoolManager = 0xcf5EA1b38380f6aF39068375516Daf40Ed70D299;
+        address staderStakingPoolManager = Addresses.STADER_STAKING_POOL_MANAGER;
 
         // Deploy EthXPriceOracle
         address implContract = address(new EthXPriceOracle());
@@ -97,7 +98,7 @@ contract DeployOracles is Script {
     }
 
     function deployMEthPriceOracle() private {
-        address mEth = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
+        address mEth = Addresses.METH_TOKEN;
         address mEthStaking = 0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f;
 
         // Deploy MEthPriceOracle
@@ -111,8 +112,8 @@ contract DeployOracles is Script {
     }
 
     function deploySfrxEthPriceOracle() private {
-        address fraxDualOracle = 0x584902BCe4282003E420Cf5b7ae5063D6C1c182a;
-        address sfrxETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
+        address fraxDualOracle = Addresses.FRAX_DUAL_ORACLE;
+        address sfrxETH = Addresses.SFRXETH_TOKEN;
 
         // Deploy SfrxETHPriceOracle
         address implContract = address(new SfrxETHPriceOracle(sfrxETH, fraxDualOracle));
