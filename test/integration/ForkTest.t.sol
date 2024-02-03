@@ -86,34 +86,41 @@ contract ForkTest is Test {
         deposit(sfrxEthAddress, frxWhale, 10 ether);
     }
 
-    function test_transfer_stETH_Eigen() public {
+    function test_transfer_del_node_stETH() public {
         deposit(stETHAddress, stWhale, 1 ether);
-        transfer_Eigen(stETHAddress, 0.8 ether);
+        transfer_DelegatorNode(stETHAddress, 0.8 ether);
     }
 
-    function test_transfer_OETH_Eigen() public {
+    function test_transfer_del_node_OETH() public {
         deposit(oethAddress, oWhale, 1 ether);
-        transfer_Eigen(oethAddress, 0.1 ether);
+        transfer_DelegatorNode(oethAddress, 0.1 ether);
     }
 
-    function test_transfer_ETHx_Eigen() public {
+    function test_transfer_del_node_ETHx() public {
         deposit(ethXAddress, xWhale, 2 ether);
-        transfer_Eigen(ethXAddress, 1.2 ether);
+        transfer_DelegatorNode(ethXAddress, 1.2 ether);
     }
 
-    function test_transfer_mETH_Eigen() public {
+    function test_transfer_del_node_mETH() public {
         deposit(methAddress, mWhale, 5 ether);
-        transfer_Eigen(methAddress, 5 ether);
+        transfer_DelegatorNode(methAddress, 5 ether);
     }
 
-    function test_transfer_sfrxETH_Eigen() public {
+    function test_transfer_del_node_sfrxETH() public {
         deposit(sfrxEthAddress, frxWhale, 2 ether);
-        transfer_Eigen(sfrxEthAddress, 1.2 ether);
+        transfer_DelegatorNode(sfrxEthAddress, 1.2 ether);
     }
 
     function test_update_primeETH_price() public {
         // anyone can call
         lrtOracle.updatePrimeETHPrice();
+    }
+
+    function test_transfer_eigen_OETH() public {
+        vm.skip(true);
+        deposit(ethXAddress, xWhale, 1 ether);
+        transfer_DelegatorNode(ethXAddress, 1 ether);
+        transfer_Eigen(ethXAddress);
     }
 
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
@@ -129,9 +136,16 @@ contract ForkTest is Test {
         vm.stopPrank();
     }
 
-    function transfer_Eigen(address asset, uint256 amountToTransfer) public {
+    function transfer_DelegatorNode(address asset, uint256 amountToTransfer) public {
         vm.prank(manager);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
+
+        // TODO check asset was transferred from DepositPool to Delegator Node
+    }
+
+    function transfer_Eigen(address asset) public {
+        vm.prank(manager);
+        nodeDelegator1.depositAssetIntoStrategy(asset);
 
         // TODO check asset was transferred from nodeDelegator to Eigen asset strategy
     }
