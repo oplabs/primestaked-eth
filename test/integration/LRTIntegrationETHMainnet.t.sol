@@ -14,8 +14,6 @@ import {
     LRTDepositPool
 } from "./LRTIntegrationTest.t.sol";
 
-import { PRETHPriceFeed } from "../../contracts/oracles/PRETHPriceFeed.sol";
-
 contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
     function setUp() public override {
         string memory ethMainnetRPC = vm.envString("MAINNET_RPC_URL");
@@ -56,24 +54,5 @@ contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
 
         vm.prank(manager);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, ethXAddress, amountToTransfer);
-    }
-
-    function test_morphoPriceFeed() public {
-        address ethToUSDAggregatorAddress = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
-        address prETHOracle = 0x349A73444b1a310BAe67ef67973022020d70020d;
-        PRETHPriceFeed priceFeed = new PRETHPriceFeed(ethToUSDAggregatorAddress, prETHOracle, "PrimeStakedETH / USD");
-
-        console.log("desc", priceFeed.description());
-        console.log("decimals", priceFeed.decimals());
-        console.log("version", priceFeed.version());
-        // fetch answer from latestRound
-        (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
-            priceFeed.latestRoundData();
-
-        console.log("roundId", roundId);
-        console.log("answer", uint256(answer));
-        console.log("startedAt", startedAt);
-        console.log("updatedAt", updatedAt);
-        console.log("answeredInRound", answeredInRound);
     }
 }
