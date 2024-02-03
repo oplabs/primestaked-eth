@@ -60,4 +60,5 @@ add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.
 
 # utils
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
-test-fork:; MAINNET_RPC_URL=localhost forge test --match-contract "IntegrationTest" --no-match-contract "Skip"
+int-test:; MAINNET_RPC_URL=localhost forge test --match-contract "IntegrationTest" --no-match-contract "Skip"
+test-fork:; forge test --match-contract "ForkTest"

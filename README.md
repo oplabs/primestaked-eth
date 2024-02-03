@@ -65,11 +65,15 @@ make pool-deleg-oracle-fork
 make add-assets-fork
 ```
 
-Run the fork tests
+Run the integration tests against Goerli
 ```bash
-make test-fork
+make int-test
 ```
 
+Run the fork tests against mainnet
+```bash
+make fork-test
+```
 
 ## Deploy to Anvil:
 
