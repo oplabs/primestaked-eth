@@ -104,7 +104,7 @@ contract AddAssets is Script {
         // NOTE: stETH is already supported so just need to add Oracle
         ChainlinkPriceOracle chainlinkOracleProxy = ChainlinkPriceOracle(0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09);
         chainlinkOracleProxy.updatePriceFeedFor(stETH, assetOracle);
-        lrtOracle.updatePriceOracleFor(stETH, assetOracle);
+        lrtOracle.updatePriceOracleFor(stETH, address(chainlinkOracleProxy));
 
         console.log("Configured stETH");
     }
@@ -146,7 +146,7 @@ contract AddAssets is Script {
         chainlinkOracleProxy.updatePriceFeedFor(asset, assetOracle);
         lrtConfig.updateAssetStrategy(asset, strategy);
 
-        lrtOracle.updatePriceOracleFor(asset, assetOracle);
+        lrtOracle.updatePriceOracleFor(asset, address(chainlinkOracleProxy));
 
         NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(asset);
     }
