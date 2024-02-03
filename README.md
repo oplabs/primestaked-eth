@@ -1,4 +1,4 @@
-# LRT-ETH
+# Prime Staked Eth
 
 ## Setup
 
@@ -163,6 +163,10 @@ simply copy paste the path):
 $ npm test:coverage:report
 ```
 
+### Credits
+
+Originaly forked from Kelp. Futher development by Origin Protocol beginning January 2024.
+
 # Deployed Contracts
 
 ## Mainnet
@@ -190,29 +194,3 @@ $ npm test:coverage:report
 | ProxyFactory            | 0x279b272E8266D2fd87e64739A8ecD4A5c94F953D     |
 | ProxyAdmin              | 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758     |
 | ProxyAdmin Owner        | 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168     |
-
-## Goerli testnet
-
-### Proxied contracts
-
-| Contract Name           | Proxy Address                                  | Implementation Address                         |
-|-------------------------|------------------------------------------------|------------------------------------------------|
-| PrimeStakedETH          | 0xA265e2387fc0da67CB43eA6376105F3Df834939a     | 0x6C7Ec5Fd2a69F32b77e32AE308c182f305856f4c     |
-| LRTConfig               | 0x4BF4cc0e5970Cee11D67f5d716fF1241fA593ca4     | 0x266e084412E0DeF3Cc49Bc75534F93f4Ba9DC0c8     |
-| LRTDepositPool          | 0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19     | 0x74210d38A0a904816BbC5C1312ed6F4E9DD6Bdd8     |
-| LRTOracle               | 0xDE2336F1a4Ed7749F08F994785f61b5995FcD560     | 0xA51Ffe145664cb2a14DFd9c72Df7c971525311B6     |
-| ChainlinkPriceOracle    | 0x46E6D75E5784200F21e4cCB7d8b2ff8e20996f52     | 0x0Aea9eaFa79925cd43F19Fb2E591E5f9e40B25F1     |
-| EthXPriceOracle         | 0x4df5Cea2954CEafbF079c2d23a9271681D15cf67     | 0xF63aC2e26868453b8527491707803B46FC163Ea6     |
-| NodeDelegator index 0   | 0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd     | 0x91b3792fF160BbeE2D2f6500e01EA335aaEb27B5     |
-| NodeDelegator index 1   | 0x75ed72715efD40BA7920d8a19f6b10C7e63c7710     | 0x91b3792fF160BbeE2D2f6500e01EA335aaEb27B5     |
-| NodeDelegator index 2   | 0xD0B5758FB00AFd5731fB9FB78882967bD93Ae740     | 0x91b3792fF160BbeE2D2f6500e01EA335aaEb27B5     |
-| NodeDelegator index 3   | 0x1ae9fCD7b7b165F6CDb192446CB42260497eA0D2     | 0x91b3792fF160BbeE2D2f6500e01EA335aaEb27B5     |
-| NodeDelegator index 4   | 0xf7867381f562e47F0b3243FCC51552bcf6757A63     | 0x91b3792fF160BbeE2D2f6500e01EA335aaEb27B5     |
-
-### Immutable Contracts
-
-| Contract Name           | Address                                       |
-|-------------------------|------------------------------------------------|
-| ProxyFactory            | 0x71626BD4f31Cb6B10D581E5715a76eeacAd01fa4     |
-| ProxyAdmin              | 0x22b65a789d3778c0bA1A5bc7C01958e657703fA8     |
-| ProxyAdmin Owner        | 0xb3d125BCab278bD478CA251ae6b34334ad89175f     |
