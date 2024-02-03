@@ -156,6 +156,61 @@ $ npm test:coverage:report
 
 ## Deployed Contracts
 
+### ETH Mainnet
+
+| Contract Name           |  Address                                       |
+|-------------------------|------------------------------------------------|
+| ProxyFactory            | 0x279b272E8266D2fd87e64739A8ecD4A5c94F953D     |
+| ProxyAdmin              | 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758     |
+| ProxyAdmin Owner        | 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168    |
+
+### Contract Implementations
+| Contract Name           | Implementation Address                         |
+|-------------------------|------------------------------------------------|
+| PrimeStakedETH          | 0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2     |
+| LRTDepositPool          | 0x51ADD57dC33A3CB5FFf28Fe149198BD38753975D     |
+| LRTConfig               | 0xcdfD989e689872506E2897316b10e29c84AB087F     |
+| NodeDelegator           | 0xEBd48593C5463efa51a9971ce6bdB8A8761F0676     |
+| LRTOracle               | 0xeF8c39489A83467B1c994B8E4c62cBE26DEB69ce     |
+| ChainlinkPriceOracle    | 0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5     |
+| OethPriceOracle         | 0xd91d3bEC19E921e911A487394B155da552953917     |
+| EthXPriceOracle         | 0xd101bd159968106595d48948677fee9e8a0450a9     |
+| SfrxETHPriceOracle      | 0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3     |
+| MEthPriceOracle         | 0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8     |
+
+### Proxy Addresses
+| Contract Name           | Proxy Address                                  |
+|-------------------------|------------------------------------------------|
+| PrimeStakedETH          | 0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615     |
+| LRTDepositPool          | 0xA479582c8b64533102F6F528774C536e354B8d32     |
+| LRTConfig               | 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF     |
+| LRTOracle               | 0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32     |
+| ChainlinkPriceOracle    | 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09     |
+| OethPriceOracle         | 0xc513bDfbC308bC999cccc852AF7C22aBDF44A995     |
+| SfrxETHPriceOracle      | 0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294     |
+| EthXPriceOracle         | 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C     |
+| MEthPriceOracle         | 0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369     |
+
+### NodeDelegator Proxy Addresses
+- NodeDelegator proxy index 0: 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2
+- NodeDelegator proxy index 1: 0x0000000000000000000000000000000000000000
+- NodeDelegator proxy index 2: 0x0000000000000000000000000000000000000000
+- NodeDelegator proxy index 3: 0x0000000000000000000000000000000000000000
+- NodeDelegator proxy index 4: 0x0000000000000000000000000000000000000000
+
+### Immutable Contracts
+#### ETH Mainnet
+| Contract Name           | Proxy Address                                  |
+|-------------------------|------------------------------------------------|
+| PrimeStakedETHRateProvider       | 0x0000000000000000000000000000000000000000     |
+| OneETHPriceOracle       | 0x0000000000000000000000000000000000000000     |
+| PRETHPriceFeed (Morph)  | 0x0000000000000000000000000000000000000000     |
+
+#### Polygon ZKEVM
+| Contract Name           | Proxy Address                                  |
+|-------------------------|------------------------------------------------|
+| PrimeStakedETHRateReceiver       |  0x0000000000000000000000000000000000000000    |
+
 ### Goerli testnet
 
 | Contract Name           | Address                                       |
@@ -191,62 +246,3 @@ $ npm test:coverage:report
 - NodeDelegator proxy 3: 0xD0B5758FB00AFd5731fB9FB78882967bD93Ae740
 - NodeDelegator proxy 4: 0x1ae9fCD7b7b165F6CDb192446CB42260497eA0D2
 - NodeDelegator proxy 5: 0xf7867381f562e47F0b3243FCC51552bcf6757A63
-
-
-### ETH Mainnet
-
-| Contract Name           |  Address                                       |
-|-------------------------|------------------------------------------------|
-| ProxyFactory            | 0x279b272E8266D2fd87e64739A8ecD4A5c94F953D     |
-| ProxyAdmin              | 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758     |
-| ProxyAdmin Owner        | 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168    |
-
-### Contract Implementations
-| Contract Name           | Implementation Address                         |
-|-------------------------|------------------------------------------------|
-| PrimeStakedETH          | 0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2     |
-| LRTDepositPool          | 0x51ADD57dC33A3CB5FFf28Fe149198BD38753975D     |
-| LRTConfig               | 0xcdfD989e689872506E2897316b10e29c84AB087F     |
-| NodeDelegator           | 0xEBd48593C5463efa51a9971ce6bdB8A8761F0676     |
-| LRTOracle               | 0xeF8c39489A83467B1c994B8E4c62cBE26DEB69ce     |
-| ChainlinkPriceOracle    | 0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5     |
-| OethPriceOracle         | 0xd91d3bEC19E921e911A487394B155da552953917     |
-| EthXPriceOracle         | 0xd101bd159968106595d48948677fee9e8a0450a9     |
-| SfrxETHPriceOracle      | 0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3     |
-| MEthPriceOracle         | 0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8     |
-
-### Proxy Addresses
-| Contract Name           | Proxy Address                                  |
-|-------------------------|------------------------------------------------|
-| PrimeStakedETH          | 0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615     |
-| LRTDepositPool          | 0xA479582c8b64533102F6F528774C536e354B8d32     |
-| LRTConfig               | 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF     |
-| NodeDelegator           | 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2     |
-| LRTOracle               | 0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32     |
-| ChainlinkPriceOracle    | 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09     |
-| OethPriceOracle         | 0xc513bDfbC308bC999cccc852AF7C22aBDF44A995     |
-| SfrxETHPriceOracle      | 0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294     |
-| EthXPriceOracle         | 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C     |
-| MEthPriceOracle         | 0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369     |
-
-### NodeDelegator Proxy Addresses
-- NodeDelegator proxy index 0: 0x0000000000000000000000000000000000000000
-- NodeDelegator proxy index 1: 0x0000000000000000000000000000000000000000
-- NodeDelegator proxy index 2: 0x0000000000000000000000000000000000000000
-- NodeDelegator proxy index 3: 0x0000000000000000000000000000000000000000
-- NodeDelegator proxy index 4: 0x0000000000000000000000000000000000000000
-
-
-### Immutable Contracts
-#### ETH Mainnet
-| Contract Name           | Proxy Address                                  |
-|-------------------------|------------------------------------------------|
-| PrimeStakedETHRateProvider       | 0x0000000000000000000000000000000000000000     |
-| OneETHPriceOracle       | 0x0000000000000000000000000000000000000000     |
-| PRETHPriceFeed (Morph)  | 0x0000000000000000000000000000000000000000     |
-
-#### Polygon ZKEVM
-| Contract Name           | Proxy Address                                  |
-|-------------------------|------------------------------------------------|
-| PrimeStakedETHRateReceiver       |  0x0000000000000000000000000000000000000000    |
-
