@@ -14,8 +14,6 @@ import {
     LRTDepositPool
 } from "./LRTIntegrationTest.t.sol";
 
-import { PRETHPriceFeed } from "../../contracts/oracles/PRETHPriceFeed.sol";
-
 contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
     function setUp() public override {
         string memory ethMainnetRPC = vm.envString("MAINNET_RPC_URL");
@@ -57,5 +55,4 @@ contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
         vm.prank(manager);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, ethXAddress, amountToTransfer);
     }
-
 }
