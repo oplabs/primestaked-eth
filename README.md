@@ -75,7 +75,8 @@ Run the integration tests against Goerli
 make int-test
 ```
 
-Run the fork tests against mainnet
+Run the fork tests against mainnet or a local.
+The `FORK_RPC_URL` env var controls whether the fork tests run against mainnet or a local forked node.
 ```bash
 make fork-test
 ```
