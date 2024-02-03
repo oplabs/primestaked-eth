@@ -172,7 +172,7 @@ contract DeployDelegatorPoolOracle is Script {
         // update prETHPrice
         // can not update primeETHPrice of not all oracles configured
         // lrtOracleProxy.updatePrimeETHPrice();
-        
+
         vm.stopBroadcast();
     }
 }
