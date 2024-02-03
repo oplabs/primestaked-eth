@@ -64,4 +64,5 @@ node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
 # test commands
 unit-test:; forge test --no-match-contract "(Skip|IntegrationTest|ForkTest)"
 int-test:; MAINNET_RPC_URL=localhost forge test --match-contract "IntegrationTest" --no-match-contract "Skip"
-fork-test:; forge test --match-contract "ForkTest" --no-match-contract "Skip"
+fork-test:; forge test --match-contract "ForkTest" --no-match-contract "Skip" -vvv
+fork-test-ci:; forge test --match-contract "ForkTest" --no-match-contract "Skip"
