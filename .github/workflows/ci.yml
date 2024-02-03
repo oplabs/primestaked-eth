@@ -86,6 +86,7 @@ jobs:
 
       - name: "Run fork tests"
         run: |
+          export FORK_RPC_URL=${{ secrets.MAINNET_RPC_URL }}
           make fork-test
 
       - name: "Run Integration tests"

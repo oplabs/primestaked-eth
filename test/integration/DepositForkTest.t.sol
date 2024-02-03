@@ -45,7 +45,7 @@ contract ForkTest is Test {
     uint256 indexOfNodeDelegator;
 
     function setUp() public virtual {
-        string memory url = vm.envString("MAINNET_RPC_URL");
+        string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
         admin = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
