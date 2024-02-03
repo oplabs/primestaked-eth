@@ -65,6 +65,11 @@ make pool-deleg-oracle-fork
 make add-assets-fork
 ```
 
+Run the unit tests
+```bash
+make unit-test
+```
+
 Run the integration tests against Goerli
 ```bash
 make int-test
