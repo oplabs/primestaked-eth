@@ -67,8 +67,6 @@ contract ForkTest is Test {
     }
 
     function test_deposit_stETH() public {
-        vm.skip(true);
-
         deposit(stETHAddress, stWhale, 0.1 ether);
     }
 
