@@ -80,9 +80,13 @@ jobs:
             echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
           )" >> $GITHUB_ENV
 
-      - name: "Run the tests"
+      - name: "Run unit tests"
         run: |
-          forge test --no-match-contract "(Skip|IntegrationTest)"
+          make unit-test
+
+      - name: "Run fork tests"
+        run: |
+          make fork-test
 
       - name: "Run Integration tests"
         run: |
