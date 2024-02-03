@@ -115,7 +115,7 @@ contract DeployDelegatorPoolOracle is Script {
         if (isFork) {
             address mainnetProxyOwner = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
             console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
-            vm.startPrank(mainnetProxyOwner);
+            vm.startBroadcast(mainnetProxyOwner);
         } else {
             console.log("Deploying on mainnet deployer: %s", msg.sender);
             vm.startBroadcast();
@@ -128,10 +128,6 @@ contract DeployDelegatorPoolOracle is Script {
         proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
         proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
         lrtConfigProxy = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
-
-        console.log("Chain id", chainId);
-        console.log("IS_FORK", isFork);
-        console.log("ProxyOwner", proxyAdmin.owner());
 
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());
@@ -176,10 +172,7 @@ contract DeployDelegatorPoolOracle is Script {
         // update prETHPrice
         // can not update primeETHPrice of not all oracles configured
         // lrtOracleProxy.updatePrimeETHPrice();
-        if (isFork) {
-            vm.stopPrank();
-        } else {
-            vm.stopBroadcast();
-        }
+        
+        vm.stopBroadcast();
     }
 }

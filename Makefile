@@ -52,16 +52,12 @@ upgrade-token-fork :; IS_FORK=true forge script script/foundry-scripts/UpgradePr
 
 # deploy the Deposit pool, node delegator and LRTOracle
 pool-deleg-oracle-mainnet :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-pool-deleg-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+pool-deleg-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast -vvv
 
 # deploy the Assets
 add-assets-mainnet :; forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast -vvv
-add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
-
-# deploy Oracles
-oracles-mainnet :; forge script script/foundry-scripts/DeployOracles.s.sol:DeployOracles --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-oracles-fork :; IS_FORK=true forge script script/foundry-scripts/DeployOracles.s.sol:DeployOracles --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast -vvv
 
 # utils
-node-fork:; anvil --fork-url ${MAINNET_RPC_URL}
+node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
 test-fork:; MAINNET_RPC_URL=localhost forge test --match-contract "IntegrationTest" --no-match-contract "Skip"

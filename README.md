@@ -63,7 +63,6 @@ In another terminal apply the deploys that are not yet on mainnet.
 ```bash
 make pool-deleg-oracle-fork
 make add-assets-fork
-make oracles-fork
 ```
 
 Run the fork tests

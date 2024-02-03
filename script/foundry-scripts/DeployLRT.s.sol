@@ -298,7 +298,6 @@ contract DeployLRT is Script {
         // }
 
         // lrtConfigProxy.grantRole(LRTConstants.MANAGER, manager);
-        // lrtConfigProxy.revokeRole(LRTConstants.MANAGER, deployerAddress);
         // console.log("Manager permission granted to: ", manager);
 
         // lrtConfigProxy.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, admin);
