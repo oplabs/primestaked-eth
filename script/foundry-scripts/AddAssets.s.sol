@@ -46,16 +46,14 @@ contract AddAssets is Script {
         lrtOracle = LRTOracle(0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32);
         nodeDel = NodeDelegator(payable(0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2));
 
-        // // add manager role to the deployer
-        // lrtConfig.grantRole(LRTConstants.MANAGER, msg.sender);
+        // add manager role to the deployer
+        lrtConfig.grantRole(LRTConstants.MANAGER, msg.sender);
 
-        // addOETH();
-        // addStETH();
-        // addETHx();
-        // addSfrxETH();
-        // addMEth();
-
-        fixStETHOracles();
+        addOETH();
+        addStETH();
+        addETHx();
+        addSfrxETH();
+        addMEth();
 
         // addRETH();
 
@@ -109,15 +107,6 @@ contract AddAssets is Script {
         lrtOracle.updatePriceOracleFor(stETH, address(chainlinkOracleProxy));
 
         console.log("Configured stETH");
-    }
-
-    function fixStETHOracles() private {
-        address stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-        address assetOracle = 0x86392dC19c0b719886221c78AB11eb8Cf5c52812;
-
-        ChainlinkPriceOracle chainlinkOracleProxy = ChainlinkPriceOracle(0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09);
-        chainlinkOracleProxy.updatePriceFeedFor(stETH, assetOracle);
-        lrtOracle.updatePriceOracleFor(stETH, address(chainlinkOracleProxy));
     }
 
     function addRETH() private {
