@@ -58,6 +58,10 @@ pool-deleg-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/Deplo
 add-assets-mainnet :; forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast -vvv
 add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast -vvv
 
+# set max depsoits
+deposit-limits-mainnet :; forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast
+deposit-limits-fork :; IS_FORK=true forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast
+
 # utils
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
 
