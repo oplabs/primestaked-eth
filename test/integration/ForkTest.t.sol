@@ -38,7 +38,7 @@ contract ForkTest is Test {
     address public mWhale;
     address public frxWhale;
 
-    string public referralId = "0";
+    string public referralId = "1234";
 
     uint256 indexOfNodeDelegator;
 
@@ -56,6 +56,8 @@ contract ForkTest is Test {
         frxWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
 
         lrtDepositPool = LRTDepositPool(payable(0xA479582c8b64533102F6F528774C536e354B8d32));
+        lrtOracle = LRTOracle(0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32);
+        nodeDelegator1 = NodeDelegator(payable(0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2));
 
         stETHAddress = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
         ethXAddress = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
@@ -109,15 +111,28 @@ contract ForkTest is Test {
         transfer_Eigen(sfrxEthAddress, 1.2 ether);
     }
 
+    function test_update_primeETH_price() public {
+        // anyone can call
+        lrtOracle.updatePrimeETHPrice();
+    }
+
+    // TODO basic primeETH token tests. eg transfer, approve, transferFrom
+
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         vm.startPrank(whale);
         ERC20(asset).approve(address(lrtDepositPool), amountToTransfer);
         lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
+
+        // TODO check primeETH was minted
+        // TODO check deposit pool balance increased
+
         vm.stopPrank();
     }
 
     function transfer_Eigen(address asset, uint256 amountToTransfer) public {
         vm.prank(manager);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
+
+        // TODO check asset was transferred from nodeDelegator to Eigen asset strategy
     }
 }
