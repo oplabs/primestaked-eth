@@ -59,8 +59,10 @@ contract AddAssets is Script {
             addMEth();
         }
 
-        addRETH();
-        addSwETH();
+        if (block.number < 19_150_615) {
+            addRETH();
+            addSwETH();
+        }
 
         if (isFork) {
             vm.stopPrank();

@@ -165,7 +165,7 @@ $ npm test:coverage:report
 
 ### Credits
 
-Originaly forked from Kelp. Futher development by Origin Protocol beginning January 2024.
+Originally forked from Kelp. Further development by Origin Protocol beginning January 2024.
 
 # Deployed Contracts
 
