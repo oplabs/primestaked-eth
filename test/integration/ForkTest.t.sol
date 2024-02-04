@@ -140,6 +140,32 @@ contract ForkTest is Test {
         lrtOracle.updatePrimeETHPrice();
     }
 
+    function test_bulk_transfer_del_node() public {
+        // TODO remove this once the Deposit Pool contract is upgraded
+        // Need to upgrade the deposit pool contract first
+        upgradeDepositPool();
+
+        // // Should transfer `asset` from DepositPool to the Delegator node
+        // vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        // emit Transfer(address(lrtDepositPool), address(nodeDelegator1), amountToTransfer);
+
+        address[] memory assets = new address[](7);
+        assets[0] = Addresses.STETH_TOKEN;
+        assets[1] = Addresses.OETH_TOKEN;
+        assets[2] = Addresses.ETHX_TOKEN;
+        assets[3] = Addresses.METH_TOKEN;
+        assets[4] = Addresses.SFRXETH_TOKEN;
+        assets[5] = Addresses.RETH_TOKEN;
+        assets[6] = Addresses.SWETH_TOKEN;
+
+        vm.startPrank(manager);
+        lrtDepositPool.transferAssetsToNodeDelegator(indexOfNodeDelegator, assets);
+
+        // Run again with no assets
+        lrtDepositPool.transferAssetsToNodeDelegator(indexOfNodeDelegator, assets);
+        vm.stopPrank();
+    }
+
     function test_transfer_eigen_OETH() public {
         unpauseStrategy(Addresses.OETH_EIGEN_STRATEGY);
 
@@ -197,14 +223,8 @@ contract ForkTest is Test {
     }
 
     function test_DepositPool_optIn_OETH() public {
-        LRTDepositPool newLrtDepositPool = new LRTDepositPool();
-
         // TODO remove this once the Deposit Pool contract is upgraded
-        // Need to upgrade the deposit pool contract first
-        vm.prank(proxyAdminOwner);
-        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
-            ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), address(newLrtDepositPool)
-        );
+        upgradeDepositPool();
 
         // Admin can now opt in for rebase of OETH for the DepositPool contract
         vm.prank(admin);
@@ -212,14 +232,8 @@ contract ForkTest is Test {
     }
 
     function test_NodeDelegator_optIn_OETH() public {
-        NodeDelegator newNodeDelegator = new NodeDelegator();
-
         // TODO remove this once the NodeDelegator contract is upgraded
-        // Need to upgrade the NodeDelegator contract first
-        vm.prank(proxyAdminOwner);
-        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
-            ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), address(newNodeDelegator)
-        );
+        upgradeNodeDelegator();
 
         // Admin can now opt in for rebase of OETH for the NodeDelegator contract
         vm.prank(admin);
@@ -251,7 +265,7 @@ contract ForkTest is Test {
         vm.stopPrank();
     }
 
-    function transfer_DelegatorNode(address asset, uint256 amountToTransfer) public {
+    function transfer_DelegatorNode(address asset, uint256 amountToTransfer) internal {
         vm.prank(manager);
 
         // Should transfer `asset` from DepositPool to the Delegator node
@@ -261,7 +275,7 @@ contract ForkTest is Test {
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
     }
 
-    function transfer_Eigen(address asset, address strategy) public {
+    function transfer_Eigen(address asset, address strategy) internal {
         vm.prank(manager);
 
         // Should transfer `asset` from nodeDelegator to Eigen asset strategy
@@ -271,7 +285,7 @@ contract ForkTest is Test {
         nodeDelegator1.depositAssetIntoStrategy(asset);
     }
 
-    function unpauseStrategy(address strategyAddress) private {
+    function unpauseStrategy(address strategyAddress) internal {
         vm.startPrank(Addresses.EIGEN_UNPAUSER);
 
         IStrategy eigenStrategy = IStrategy(strategyAddress);
@@ -282,5 +296,23 @@ contract ForkTest is Test {
         eigenStrategy.unpause(0);
 
         vm.stopPrank();
+    }
+
+    function upgradeDepositPool() internal {
+        LRTDepositPool newLrtDepositPool = new LRTDepositPool();
+
+        vm.prank(proxyAdminOwner);
+        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
+            ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), address(newLrtDepositPool)
+        );
+    }
+    
+    function upgradeNodeDelegator() internal {
+         NodeDelegator newNodeDelegator = new NodeDelegator();
+
+        vm.prank(proxyAdminOwner);
+        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
+            ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), address(newNodeDelegator)
+        );
     }
 }
