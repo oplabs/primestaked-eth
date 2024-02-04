@@ -1,0 +1,141 @@
+{
+  "0xf879c7859b6de6fadafb74224ff05b16871646bf": {
+    "protocolName": "Prime Staked",
+    "contractName": "LRTConfig"
+  },
+  "0xA479582c8b64533102F6F528774C536e354B8d32": {
+    "protocolName": "Prime Staked",
+    "contractName": "LRTDepositPool"
+  },
+  "0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2": {
+    "protocolName": "Prime Staked",
+    "contractName": "NodeDelegator"
+  },
+  "0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32": {
+    "protocolName": "Prime Staked",
+    "contractName": "LRTOracle"
+  },
+  "0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09": {
+    "protocolName": "Prime Staked",
+    "contractName": "ChainlinkPriceOracle"
+  },
+  "0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294": {
+    "protocolName": "Prime Staked",
+    "contractName": "SfrxETHPriceOracle"
+  },
+  "0xc513bDfbC308bC999cccc852AF7C22aBDF44A995": {
+    "protocolName": "Prime Staked",
+    "contractName": "OETHPriceOracle"
+  },
+  "0x584902BCe4282003E420Cf5b7ae5063D6C1c182a": {
+    "protocolName": "Frax",
+    "contractName": "SfrxEthWethDualOracle"
+  },
+  "0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369": {
+    "protocolName": "Prime Staked",
+    "contractName": "MEthPriceOracle"
+  },
+  "0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C": {
+    "protocolName": "Prime Staked",
+    "contractName": "EthXPriceOracle"
+  },
+  "0x061bB36F8b67bB922937C102092498dcF4619F86": {
+    "protocolName": "Redstone",
+    "contractName": "PriceFeedSwellSwetheth"
+  },
+  "0x68ba9602b2aee30847412109d2ee89063bf08ec2": {
+    "protocolName": "Redstone",
+    "contractName": "PriceFeedsAdapterSwellWithRoundsV4"
+  },
+  "0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615": {
+    "protocolName": "Prime Staked",
+    "contractName": "PrimeStakedETH"
+  },
+  "0x856c4Efb76C1D1AE02e20CEB03A2A6a08b0b8dC3": {
+    "protocolName": "Origin",
+    "contractName": "OETH"
+  },
+  "0xac3E018457B222d93114458476f3E3416Abbe38F": {
+    "protocolName": "Frax",
+    "contractName": "sfrxETH"
+  },
+  "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84": {
+    "protocolName": "Lido",
+    "contractName": "Lido"
+  },
+  "0xA35b1B31Ce002FBF2058D22F30f95D405200A15b": {
+    "protocolName": "Stader",
+    "contractName": "ETHx"
+  },
+  "0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa": {
+    "protocolName": "Mantle",
+    "contractName": "METH"
+  },
+  "0xf951E335afb289353dc249e82926178EaC7DEd78": {
+    "protocolName": "Swell",
+    "contractName": "swETH"
+  },
+  "0xa4C637e0F704745D182e4D38cAb7E7485321d059": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "OETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "sfrxETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x298aFB19A105D59E74658C4C334Ff360BadE6dd2": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "mETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x93c4b944d05dfe6df7645a86cd2206016c51564d": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "stETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x1bee69b7dfffa4e2d53c2a2df135c388ad25dcd2": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "rETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x0fe4f44bee93503346a3ac9ee5a26b130a5796d6": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "swETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x9d7ed45ee2e8fc5482fa2428f15c971e6369011d": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "ETHx",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x858646372cc42e1a627fce94aa7a7033e7cf075a": {
+    "protocolName": "EigenLayer",
+    "contractName": "StrategyManager"
+  },
+  "0xcf5EA1b38380f6aF39068375516Daf40Ed70D299": {
+    "protocolName": "Stader",
+    "contractName": "StaderStakePoolsManager"
+  },
+  "0x4abef2263d5a5ed582fc9a9789a41d85b68d69db": {
+    "protocolName": "Stader",
+    "contractName": "StaderConfig"
+  },
+  "0xf64bae65f6f2a5277571143a24faafdfc0c2a737": {
+    "protocolName": "Stader",
+    "contractName": "StaderOracle"
+  },
+  "0x38fdf7b489316e03ed8754ad339cb5c4483fdcf9": {
+    "protocolName": "Mantle",
+    "contractName": "UnstakeRequestsManager"
+  },
+  "0x8735049f496727f824cc0f2b174d826f5c408192": {
+    "protocolName": "Mantle",
+    "contractName": "Oracle"
+  },
+  "0xe3cbd06d7dadb3f4e6557bab7edd924cd1489e8f": {
+    "protocolName": "Mantle",
+    "contractName": "Staking"
+  }
+}

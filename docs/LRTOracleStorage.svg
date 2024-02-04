@@ -14,7 +14,7 @@
 <title>1</title>
 <polygon fill="#f2f2f2" stroke="black" points="0,-0.5 0,-141.3 1264.59,-141.3 1264.59,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="632.3" y="-124.7" font-family="Courier New" font-size="14.00">LRTOracle &lt;&lt;Contract&gt;&gt;</text>
-<text text-anchor="middle" x="632.3" y="-107.9" font-family="Courier New" font-size="14.00">0xf1bed40dbee8fc0f324fa06322f2bbd62d11c97d</text>
+<text text-anchor="middle" x="632.3" y="-107.9" font-family="Courier New" font-size="14.00">0xeF8c39489A83467B1c994B8E4c62cBE26DEB69ce</text>
 <polyline fill="none" stroke="black" points="0,-99.7 1264.59,-99.7 "/>
 <text text-anchor="middle" x="24.8" y="-83.1" font-family="Courier New" font-size="14.00">slot</text>
 <polyline fill="none" stroke="black" points="0,-74.9 49.61,-74.9 "/>
@@ -36,7 +36,7 @@
 <polyline fill="none" stroke="black" points="49.61,-50.1 1264.59,-50.1 "/>
 <text text-anchor="middle" x="656.74" y="-33.5" font-family="Courier New" font-size="14.00">mapping(address=&gt;address): assetPriceOracle (32)</text>
 <polyline fill="none" stroke="black" points="49.61,-25.3 1264.59,-25.3 "/>
-<text text-anchor="middle" x="656.92" y="-8.7" font-family="Courier New" font-size="14.00">uint256: rsETHPrice (32)</text>
+<text text-anchor="middle" x="657.02" y="-8.7" font-family="Courier New" font-size="14.00">uint256: primeETHPrice (32)</text>
 </g>
 </g>
 </svg>

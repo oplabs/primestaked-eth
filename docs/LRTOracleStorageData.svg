@@ -14,7 +14,7 @@
 <title>1</title>
 <polygon fill="#f2f2f2" stroke="black" points="0,-0.5 0,-191.7 1835.08,-191.7 1835.08,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="917.54" y="-175.1" font-family="Courier New" font-size="14.00">LRTOracle &lt;&lt;Contract&gt;&gt;</text>
-<text text-anchor="middle" x="917.54" y="-158.3" font-family="Courier New" font-size="14.00">0xf1bed40dbee8fc0f324fa06322f2bbd62d11c97d</text>
+<text text-anchor="middle" x="917.54" y="-158.3" font-family="Courier New" font-size="14.00">0xeF8c39489A83467B1c994B8E4c62cBE26DEB69ce</text>
 <polyline fill="none" stroke="black" points="0,-150.1 1835.08,-150.1 "/>
 <text text-anchor="middle" x="24.8" y="-133.5" font-family="Courier New" font-size="14.00">slot</text>
 <text text-anchor="middle" x="24.8" y="-116.7" font-family="Courier New" font-size="14.00"> &#160;</text>
@@ -30,12 +30,12 @@
 <text text-anchor="middle" x="334.85" y="-133.5" font-family="Courier New" font-size="14.00">value</text>
 <text text-anchor="middle" x="334.85" y="-116.7" font-family="Courier New" font-size="14.00"> &#160;</text>
 <polyline fill="none" stroke="black" points="49.61,-108.5 620.1,-108.5 "/>
-<text text-anchor="middle" x="334.85" y="-91.9" font-family="Courier New" font-size="14.00">0x000000000000000000000001947CB49334E6571CCBFEF1F1F1178D8469D65EC7</text>
+<text text-anchor="middle" x="334.85" y="-91.9" font-family="Courier New" font-size="14.00">0x000000000000000000000001F879C7859B6DE6FADAFB74224FF05B16871646BF</text>
 <text text-anchor="middle" x="334.85" y="-75.1" font-family="Courier New" font-size="14.00"> &#160;</text>
 <polyline fill="none" stroke="black" points="49.61,-66.9 620.1,-66.9 "/>
 <text text-anchor="middle" x="334.85" y="-50.3" font-family="Courier New" font-size="14.00"> </text>
 <polyline fill="none" stroke="black" points="49.61,-42.1 620.1,-42.1 "/>
-<text text-anchor="middle" x="334.85" y="-25.5" font-family="Courier New" font-size="14.00">0x0000000000000000000000000000000000000000000000000DF235E555337315</text>
+<text text-anchor="middle" x="334.85" y="-25.5" font-family="Courier New" font-size="14.00">0x0000000000000000000000000000000000000000000000000DE0B6B3A7640000</text>
 <text text-anchor="middle" x="334.85" y="-8.7" font-family="Courier New" font-size="14.00"> </text>
 <polyline fill="none" stroke="black" points="620.1,-0.5 620.1,-150.1 "/>
 <text text-anchor="middle" x="1227.59" y="-133.5" font-family="Courier New" font-size="14.00">type: &lt;inherited contract&gt;.variable (bytes)</text>
@@ -50,12 +50,12 @@
 <text text-anchor="middle" x="1260.79" y="-75.1" font-family="Courier New" font-size="14.00"> 1 &#160;</text>
 <polyline fill="none" stroke="black" points="1424.22,-66.9 1424.22,-108.5 "/>
 <text text-anchor="middle" x="1629.65" y="-91.9" font-family="Courier New" font-size="14.00">ILRTConfig: LRTConfigRoleChecker.lrtConfig (20)</text>
-<text text-anchor="middle" x="1629.65" y="-75.1" font-family="Courier New" font-size="14.00"> 0x947Cb49334e6571ccBFEF1f1f1178d8469D65ec7 </text>
+<text text-anchor="middle" x="1629.65" y="-75.1" font-family="Courier New" font-size="14.00"> 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF </text>
 <polyline fill="none" stroke="black" points="620.1,-66.9 1835.08,-66.9 "/>
 <text text-anchor="middle" x="1227.23" y="-50.3" font-family="Courier New" font-size="14.00">mapping(address=&gt;address): assetPriceOracle (32)</text>
 <polyline fill="none" stroke="black" points="620.1,-42.1 1835.08,-42.1 "/>
-<text text-anchor="middle" x="1227.51" y="-25.5" font-family="Courier New" font-size="14.00">uint256: rsETHPrice (32)</text>
-<text text-anchor="middle" x="1227.51" y="-8.7" font-family="Courier New" font-size="14.00"> 1,004,924,925,950,259,989 </text>
+<text text-anchor="middle" x="1227.51" y="-25.5" font-family="Courier New" font-size="14.00">uint256: primeETHPrice (32)</text>
+<text text-anchor="middle" x="1227.51" y="-8.7" font-family="Courier New" font-size="14.00"> 1,000,000,000,000,000,000 </text>
 </g>
 </g>
 </svg>
