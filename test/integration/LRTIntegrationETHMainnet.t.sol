@@ -20,8 +20,8 @@ contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
         string memory ethMainnetRPC = vm.envString("MAINNET_RPC_URL");
         fork = vm.createSelectFork(ethMainnetRPC);
 
-        admin = Addresses.ADMIN_MULTISIG;
-        manager = Addresses.ADMIN_MULTISIG;
+        admin = Addresses.ADMIN_ROLE;
+        manager = Addresses.MANAGER_ROLE;
 
         stWhale = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
         ethXWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
