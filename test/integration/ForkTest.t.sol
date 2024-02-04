@@ -33,8 +33,8 @@ contract ForkTest is Test {
     address public oWhale;
     address public mWhale;
     address public frxWhale;
-    address public rethWhale;
-    address public swethWhale;
+    address public rWhale;
+    address public swWhale;
 
     string public referralId = "1234";
 
@@ -54,8 +54,8 @@ contract ForkTest is Test {
         oWhale = 0xEADB3840596cabF312F2bC88A4Bb0b93A4E1FF5F;
         mWhale = 0xf89d7b9c864f589bbF53a82105107622B35EaA40;
         frxWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
-        rethWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
-        swethWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
+        rWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
+        swWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
 
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
@@ -85,12 +85,12 @@ contract ForkTest is Test {
 
     function test_deposit_rETH() public {
         vm.skip(true);
-        deposit(Addresses.RETH_TOKEN, rethWhale, 10 ether);
+        deposit(Addresses.RETH_TOKEN, rWhale, 10 ether);
     }
 
     function test_deposit_swETH() public {
         vm.skip(true);
-        deposit(Addresses.SWETH_TOKEN, swethWhale, 10 ether);
+        deposit(Addresses.SWETH_TOKEN, swWhale, 10 ether);
     }
 
     function test_transfer_del_node_stETH() public {
@@ -120,13 +120,13 @@ contract ForkTest is Test {
 
     function test_transfer_del_node_rETH() public {
         vm.skip(true);
-        deposit(Addresses.RETH_TOKEN, rethWhale, 2 ether);
+        deposit(Addresses.RETH_TOKEN, rWhale, 2 ether);
         transfer_DelegatorNode(Addresses.RETH_TOKEN, 1.2 ether);
     }
 
     function test_transfer_del_node_swETH() public {
         vm.skip(true);
-        deposit(Addresses.SWETH_TOKEN, swethWhale, 2 ether);
+        deposit(Addresses.SWETH_TOKEN, swWhale, 2 ether);
         transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1.2 ether);
     }
 
@@ -136,12 +136,64 @@ contract ForkTest is Test {
         lrtOracle.updatePrimeETHPrice();
     }
 
+    function test_transfer_eigen_OETH() public {
+        unpauseStrategy(Addresses.OETH_EIGEN_STRATEGY);
+
+        deposit(Addresses.OETH_TOKEN, oWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.OETH_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.OETH_TOKEN, Addresses.OETH_EIGEN_STRATEGY);
+    }
+
+    function test_transfer_eigen_SFRX() public {
+        unpauseStrategy(Addresses.SFRXETH_EIGEN_STRATEGY);
+
+        deposit(Addresses.SFRXETH_TOKEN, frxWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.SFRXETH_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.SFRXETH_TOKEN, Addresses.SFRXETH_EIGEN_STRATEGY);
+    }
+
     function test_transfer_eigen_ETHX() public {
         unpauseStrategy(Addresses.ETHX_EIGEN_STRATEGY);
 
         deposit(Addresses.ETHX_TOKEN, xWhale, 1 ether);
         transfer_DelegatorNode(Addresses.ETHX_TOKEN, 1 ether);
         transfer_Eigen(Addresses.ETHX_TOKEN, Addresses.ETHX_EIGEN_STRATEGY);
+    }
+
+    function test_transfer_eigen_mETH() public {
+        unpauseStrategy(Addresses.METH_EIGEN_STRATEGY);
+
+        // TODO remove after multi-sig tx 1
+        vm.startPrank(manager);
+        lrtConfig.updateAssetStrategy(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
+
+        deposit(Addresses.METH_TOKEN, mWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.METH_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
+    }
+
+    function test_transfer_eigen_STETH() public {
+        unpauseStrategy(Addresses.STETH_EIGEN_STRATEGY);
+
+        deposit(Addresses.STETH_TOKEN, stWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.STETH_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.STETH_TOKEN, Addresses.STETH_EIGEN_STRATEGY);
+    }
+
+    function test_transfer_eigen_RETH() public {
+        unpauseStrategy(Addresses.RETH_EIGEN_STRATEGY);
+
+        deposit(Addresses.RETH_TOKEN, rWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.RETH_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.RETH_TOKEN, Addresses.RETH_EIGEN_STRATEGY);
+    }
+
+    function test_transfer_eigen_SWETH() public {
+        unpauseStrategy(Addresses.SWETH_EIGEN_STRATEGY);
+
+        deposit(Addresses.SWETH_TOKEN, swWhale, 1 ether);
+        transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1 ether);
+        transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
     }
 
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
