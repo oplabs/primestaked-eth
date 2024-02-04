@@ -10,6 +10,7 @@ import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { Addresses } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -113,7 +114,7 @@ contract DeployDelegatorPoolOracle is Script {
 
         bool isFork = vm.envOr("IS_FORK", false);
         if (isFork) {
-            address mainnetProxyOwner = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+            address mainnetProxyOwner = Addresses.PROXY_OWNER;
             console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
             vm.startBroadcast(mainnetProxyOwner);
         } else {

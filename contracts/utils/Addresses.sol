@@ -2,7 +2,9 @@
 pragma solidity 0.8.21;
 
 library Addresses {
-    address public constant PROXY_OWNER = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+    address public constant ADMIN_MULTISIG = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
+
+    address public constant PROXY_OWNER = ADMIN_MULTISIG;
     address public constant PROXY_FACTORY = 0x279b272E8266D2fd87e64739A8ecD4A5c94F953D;
     address public constant PROXY_ADMIN = 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758;
 
@@ -48,5 +50,7 @@ library Addresses {
     address public constant EIGEN_UNPAUSER = 0x369e6F597e22EaB55fFb173C6d9cD234BD699111;
     address public constant EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
 
-    address public constant ADMIN_MULTISIG = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
+    address public constant ADMIN_ROLE = ADMIN_MULTISIG;
+    address public constant MANAGER_ROLE = ADMIN_MULTISIG;
+    address public constant OPERATOR_ROLE = ADMIN_MULTISIG;
 }
