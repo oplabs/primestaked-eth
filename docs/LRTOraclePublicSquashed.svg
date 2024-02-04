@@ -19,14 +19,14 @@
 <text text-anchor="start" x="8" y="-235.1" font-family="Times,serif" font-size="14.00">Public:</text>
 <text text-anchor="start" x="8" y="-218.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;lrtConfig: ILRTConfig &lt;&lt;LRTConfigRoleChecker&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-201.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;assetPriceOracle: mapping(address=&gt;address) &lt;&lt;LRTOracle&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-184.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;rsETHPrice: uint256 &lt;&lt;LRTOracle&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-184.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;primeETHPrice: uint256 &lt;&lt;LRTOracle&gt;&gt;</text>
 <polyline fill="none" stroke="black" points="0,-176.5 459.24,-176.5 "/>
 <text text-anchor="start" x="8" y="-159.9" font-family="Times,serif" font-size="14.00">External:</text>
 <text text-anchor="start" x="8" y="-143.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;assetPriceOracle(asset: address): address &lt;&lt;ILRTOracle&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-126.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;rsETHPrice(): uint256 &lt;&lt;ILRTOracle&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-126.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;primeETHPrice(): uint256 &lt;&lt;ILRTOracle&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-109.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updateLRTConfig(lrtConfigAddr: address) &lt;&lt;LRTConfigRoleChecker&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-92.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;initialize(lrtConfigAddr: address) &lt;&lt;LRTOracle&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-75.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updateRSETHPrice() &lt;&lt;LRTOracle&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-75.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updatePrimeETHPrice(): (price_: uint256) &lt;&lt;LRTOracle&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-59.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updatePriceOracleFor(asset: address, priceOracle: address) &lt;&lt;LRTOracle&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-42.3" font-family="Times,serif" font-size="14.00">Public:</text>
 <text text-anchor="start" x="8" y="-25.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;getAssetPrice(asset: address): uint256 &lt;&lt;LRTOracle&gt;&gt;</text>
