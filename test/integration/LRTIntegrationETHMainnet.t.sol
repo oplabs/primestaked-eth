@@ -13,14 +13,15 @@ import {
     LRTConfig,
     LRTDepositPool
 } from "./LRTIntegrationTest.t.sol";
+import { Addresses } from "contracts/utils/Addresses.sol";
 
 contract SkipLRTIntegrationTestETHMainnet is LRTIntegrationTest {
     function setUp() public override {
         string memory ethMainnetRPC = vm.envString("MAINNET_RPC_URL");
         fork = vm.createSelectFork(ethMainnetRPC);
 
-        admin = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
-        manager = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
+        admin = Addresses.ADMIN_MULTISIG;
+        manager = Addresses.ADMIN_MULTISIG;
 
         stWhale = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
         ethXWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;

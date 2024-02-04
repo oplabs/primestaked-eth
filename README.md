@@ -169,6 +169,8 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 
 # Deployed Contracts
 
+![](./docs/plantuml/primeContracts.png)
+
 ## Mainnet
 
 ### Proxied contracts
@@ -193,5 +195,12 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 |-------------------------|------------------------------------------------|
 | ProxyFactory            | 0x279b272E8266D2fd87e64739A8ecD4A5c94F953D     |
 | ProxyAdmin              | 0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758     |
-| ProxyAdmin Owner        | 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168     |
-| Admin Multisig          | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
+
+### Operational Roles
+
+| Contract Name     |  Address                                       |
+|-------------------|------------------------------------------------|
+| ProxyAdmin Owner  | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
+| Admin             | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
+| Manager           | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
+| Operator          | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
