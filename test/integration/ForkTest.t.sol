@@ -15,6 +15,8 @@ import { getLSTs } from "script/foundry-scripts/DeployLRT.s.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract ForkTest is Test {
     uint256 public fork;
@@ -25,6 +27,7 @@ contract ForkTest is Test {
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
 
+    address public proxyAdminOwner;
     address public admin;
     address public manager;
 
@@ -46,8 +49,9 @@ contract ForkTest is Test {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
-        admin = Addresses.PROXY_OWNER;
-        manager = Addresses.PROXY_OWNER;
+        proxyAdminOwner = Addresses.PROXY_OWNER;
+        admin = Addresses.ADMIN_ROLE;
+        manager = Addresses.MANAGER_ROLE;
 
         stWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
         xWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
@@ -190,6 +194,36 @@ contract ForkTest is Test {
         deposit(Addresses.SWETH_TOKEN, swWhale, 1 ether);
         transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
+    }
+
+    function test_DepositPool_optIn_OETH() public {
+        LRTDepositPool newLrtDepositPool = new LRTDepositPool();
+
+        // TODO remove this once the Deposit Pool contract is upgraded
+        // Need to upgrade the deposit pool contract first
+        vm.prank(proxyAdminOwner);
+        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
+            ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), address(newLrtDepositPool)
+        );
+
+        // Admin can now opt in for rebase of OETH for the DepositPool contract
+        vm.prank(admin);
+        lrtDepositPool.optIn(Addresses.OETH_TOKEN);
+    }
+
+    function test_NodeDelegator_optIn_OETH() public {
+        NodeDelegator newNodeDelegator = new NodeDelegator();
+
+        // TODO remove this once the NodeDelegator contract is upgraded
+        // Need to upgrade the NodeDelegator contract first
+        vm.prank(proxyAdminOwner);
+        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
+            ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), address(newNodeDelegator)
+        );
+
+        // Admin can now opt in for rebase of OETH for the NodeDelegator contract
+        vm.prank(admin);
+        nodeDelegator1.optIn(Addresses.OETH_TOKEN);
     }
 
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
