@@ -163,10 +163,6 @@ contract ForkTest is Test {
     function test_transfer_eigen_mETH() public {
         unpauseStrategy(Addresses.METH_EIGEN_STRATEGY);
 
-        // TODO remove after multi-sig tx 1
-        vm.startPrank(manager);
-        lrtConfig.updateAssetStrategy(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
-
         deposit(Addresses.METH_TOKEN, mWhale, 1 ether);
         transfer_DelegatorNode(Addresses.METH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
