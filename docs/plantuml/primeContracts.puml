@@ -2,7 +2,10 @@
 
 skinparam tabSize 2
 
-title "Prime Staked ETH Contract Dependencies"
+' title "Prime Staked ETH Contract Dependencies"
+' title "Prime Staked ETH Oracle Contract Dependencies"
+title "Account and Contract Dependencies"
+' title "EigenLayer Contract Dependencies"
 
 object "Stakers" as staker <<account>> {
 }
@@ -10,11 +13,11 @@ object "Stakers" as staker <<account>> {
 object "Manager" as man <<Prime Staked>> <<2/7 multi-sig>> {
 }
 
-' object "Admin" as admin <<Prime Staked>> <<2/7 multi-sig>> {
-' }
+object "Admin" as admin <<Prime Staked>> <<2/7 multi-sig>> {
+}
 
-' object "Operator" as op <<Prime Staked>> <<2/7 multi-sig>> {
-' }
+object "Operator" as op <<Prime Staked>> <<2/7 multi-sig>> {
+}
 
 object "primeETH" as peth <<Prime Staked>> <<Proxy>> {
 }
@@ -22,23 +25,75 @@ object "primeETH" as peth <<Prime Staked>> <<Proxy>> {
 object "Deposit\nPool" as dep <<Prime Staked>> <<Proxy>> {
 assets:
     \tOETH
+    \tETHx
     \tmETH
     \trETH
-    \tswETH
-    \tETHx
-    \tstETH
     \tsfrxETH
+    \tswETH
+    \tstETH
 }
+
+' object "Config" as config <<Prime Staked>> <<Proxy>> {
+' }
+
+object "Oracle" as oracle <<Prime Staked>> <<Proxy>> {
+}
+
+' object "ChainlinkPriceOracle" as cloracle <<Prime Staked>> <<Proxy>> {
+' assets:
+'     \trETH
+'     \tstETH
+'     \tswETH
+' }
+' object "MEthPriceOracle" as moracle <<Prime Staked>> <<Proxy>> {
+' asset: mETH
+' }
+' object "EthXPriceOracle" as xoracle <<Prime Staked>> <<Proxy>> {
+' asset: ETHx
+' }
+' object "SfrxETHPriceOracle" as sfrxoracle <<Prime Staked>> <<Proxy>> {
+' asset: sfrxETH
+' }
+
+' object "OETHPriceOracle" as ooracle <<Prime Staked>> <<Proxy>> {
+' asset: OETH
+' }
+
+' object "EACAggregatorProxy" as rcl <<ChainLink>> {
+' asset: rETH
+' }
+' object "EACAggregatorProxy" as stcl <<ChainLink>> {
+' asset: stETH
+' }
+' object "PriceFeedSwellSwetheth" as swrs <<RedStone>> {
+' asset: swETH
+' }
+
+' object "sfrxETH" as sfrxETH <<Frax>> <<Proxy>> {
+' shares: sfrxETH
+' asset: frxETH
+' }
+' object "SfrxEthWethDualOracle" as frxo <<Frax>> <<Proxy>> {
+' asset: frxETH
+' }
+
+' object "StaderStakePoolsManager" as sspm <<Stader>> <<Proxy>> {
+' asset: ETHx
+' }
+
+' object "Staking" as ms <<Mantle>>  <<Proxy>> {
+' asset: mETH
+' }
 
 object "Node\nDelegator 1" as del1 <<Prime Staked>> <<Proxy>> {
 assets:
     \tOETH
+    \tETHx
     \tmETH
     \trETH
-    \tswETH
-    \tETHx
-    \tstETH
     \tsfrxETH
+    \tswETH
+    \tstETH
 }
 
 ' object "Node\nDelegator 2" as del2 <<Prime Staked>> <<Proxy>> {
@@ -47,44 +102,38 @@ assets:
 '     \tsfrxETH
 ' }
 
-' object "Config" as config <<Prime Staked>> <<Proxy>> {
+' object "Strategy\nManager" as stratMan <<EigenLayer>> <<Proxy>> {
 ' }
 
-object "Oracle" as oracle <<Prime Staked>> <<Proxy>> {
-}
+' object "OETH\nStrategy" as stratOETH <<EigenLayer>> <<Proxy>> {
+' asset: OETH
+' }
+' object "mETH\nStrategy" as stratMETH <<EigenLayer>> <<Proxy>> {
+' asset: mETH
+' }
+' object "rETH\nStrategy" as stratRETH <<EigenLayer>> <<Proxy>> {
+' asset: rETH
+' }
+' object "swETH\nStrategy" as stratSWETH <<EigenLayer>> <<Proxy>> {
+' asset: swETH
+' }
+' object "ETHx\nStrategy" as stratETHx <<EigenLayer>> <<Proxy>> {
+' asset: ETHx
+' }
+' object "stETH\nStrategy" as stratLido <<EigenLayer>> <<Proxy>> {
+' asset: stETH
+' }
+' object "sfrxETH\nStrategy" as stratFrax <<EigenLayer>> <<Proxy>> {
+' asset: sfrxETH
+' }
 
-object "Strategy\nManager" as stratMan <<EigenLayer>> <<Proxy>> {
-}
-
-object "OETH\nStrategy" as stratOETH <<EigenLayer>> <<Proxy>> {
-asset: OETH
-}
-object "mETH\nStrategy" as stratMETH <<EigenLayer>> <<Proxy>> {
-asset: mETH
-}
-object "rETH\nStrategy" as stratRETH <<EigenLayer>> <<Proxy>> {
-asset: rETH
-}
-object "swETH\nStrategy" as stratSWETH <<EigenLayer>> <<Proxy>> {
-asset: swETH
-}
-object "ETHx\nStrategy" as stratETHx <<EigenLayer>> <<Proxy>> {
-asset: ETHx
-}
-object "stETH\nStrategy" as stratLido <<EigenLayer>> <<Proxy>> {
-asset: stETH
-}
-object "sfrxETH\nStrategy" as stratFrax <<EigenLayer>> <<Proxy>> {
-asset: sfrxETH
-}
-
-object "Delegation\nManager" as delMan <<EigenLayer>> <<Proxy>> {
-}
+' object "Delegation\nManager" as delMan <<EigenLayer>> <<Proxy>> {
+' }
 ' object "Slasher" as slasher <<EigenLayer>> <<Proxy>> {
 ' }
 
-object "EigenLayer\nOperator" as eop <<account>> {
-}
+' object "EigenLayer\nOperator" as eop <<account>> {
+' }
 
 ' object "Eigen\nPod Manager" as podMan <<EigenLayer>> <<Proxy>> {
 ' }
@@ -93,57 +142,74 @@ object "EigenLayer\nOperator" as eop <<account>> {
 ' object "Eigen\nPod 2" as pod2 <<EigenLayer>> <<Proxy>> {
 ' }
 
-
 staker ..> dep : depositAsset
 
-' Main functions
-man ..> dep : transferAssetToNodeDelegator,\nswapAssetWithinDepositPool
-man ....> del1 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool
+' ' Main functions
+' man ..> dep : transferAssetToNodeDelegator,\nswapAssetWithinDepositPool
+' man ....> del1 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool
 
 ' ' All functions
-' admin ..> dep : setMinAmountToDeposit,\nupdateMaxNodeDelegatorLimit,\nupdateLRTConfig,\nunpause
-' admin ..> peth : updateLRTConfig,\nunpause
-' admin ....> del1 : updateLRTConfig,\nunpause
-' admin ...> oracle : updatePriceOracleFor,\nupdateLRTConfig
-' man ..> dep : transferAssetToNodeDelegator,\nswapAssetWithinDepositPool,\npause
-' man ..> peth : pause
-' man ....> del1 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool
-' op ....> del1 : stakeEth
-' ' man ...> del2 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool,\ncreateEigenPod
+admin ..> dep : setMinAmountToDeposit,\nupdateMaxNodeDelegatorLimit,\nupdateLRTConfig,\nunpause
+admin ..> peth : updateLRTConfig,\nunpause
+admin ....> del1 : updateLRTConfig,\nunpause
+admin ...> oracle : updatePriceOracleFor,\nupdateLRTConfig
+man ..> dep : transferAssetToNodeDelegator,\nswapAssetWithinDepositPool,\npause
+man ..> peth : pause
+man ....> del1 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool
+op ....> del1 : stakeEth
+' man ...> del2 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool,\ncreateEigenPod
 
-dep .> peth : mint,\nburnFrom
+peth <. dep : mint,\nburnFrom
 
-' config <. dep : depositLimitByAsset,\ngetContract,\npeth
-
-dep ...> del1 : getAssetBalance,\ngetAssetBalances
-' dep ...> del2 : getAssetBalance,\ngetAssetBalances,\ngetETHEigenPodBalance,\nsendETHFromDepositPoolToNDC
-dep ..> oracle : getAssetPrice
-
-' config <.. del1 : getContract,\nassetStrategy
+' dep ..> config : hasRole,\ndepositLimitByAsset,\ngetContract,\nprimeETH
+' config <.. del1 : hasRole,\ngetContract,\nassetStrategy
+' oracle ..> config : hasRole,\ngetContract,\ngetSupportedAssetList,\nprimeETH
+' peth ..> config : hasRole
 ' config <.. del2 : getContract,\nassetStrategy
 
-del1 .> eop
-eop <.. delMan
+dep ...> del1 : getAssetBalance,\ngetAssetBalances
+'' dep ...> del2 : getAssetBalance,\ngetAssetBalances,\ngetETHEigenPodBalance,\nsendETHFromDepositPoolToNDC
+dep .> oracle : getAssetPrice
 
-del1 ..> stratMan : depositIntoStrategy,\ngetDeposits
-' del2 ..> stratMan : depositIntoStrategy,\ngetDeposits
-stratMan .> delMan : increaseDelegatedShares,\ndecreaseDelegatedShares
-' delMan ..> slasher
+' oracle ..> cloracle : getAssetPrice
+' oracle ..> moracle : getAssetPrice
+' oracle ..> xoracle : getAssetPrice
+' oracle ..> sfrxoracle : getAssetPrice
+' oracle ..> ooracle : getAssetPrice
+
+' cloracle ..> rcl : latestRoundData
+' cloracle ..> stcl : latestRoundData
+' cloracle ..> swrs : latestRoundData
+
+' xoracle ..> sspm : getExchangeRate
+
+' sfrxoracle ..> sfrxETH : pricePerShare
+' sfrxoracle ..> frxo : getCurveEmaEthPerFrxEth
+
+' moracle ..> ms : mETHToETH
+
+' del1 .> eop
+' eop <.. delMan
+
+' del1 ..> stratMan : depositIntoStrategy,\ngetDeposits
+' ' del2 ..> stratMan : depositIntoStrategy,\ngetDeposits
+' stratMan .> delMan : increaseDelegatedShares,\ndecreaseDelegatedShares
+' ' delMan ..> slasher
 
 ' del1 ..> podMan : createPod,\nownerToPod
-' ' del2 ..> podMan : createPod,\nownerToPod
+' ' ' del2 ..> podMan : createPod,\nownerToPod
 ' podMan ..> pod1
-' podMan ..> pod2
+' ' podMan ..> pod2
 
 ' del1 ...> pod1 : verifyWithdrawalCredentialsAndBalance
-' del2 ...> pod2 : verifyWithdrawalCredentialsAndBalance
+' ' del2 ...> pod2 : verifyWithdrawalCredentialsAndBalance
 
-stratMan ..> stratOETH : deposit,\nwithdraw
-stratMan ..> stratMETH : deposit,\nwithdraw
-stratMan ..> stratRETH : deposit,\nwithdraw
-stratMan ..> stratSWETH : deposit,\nwithdraw
-stratMan ..> stratETHx : deposit,\nwithdraw
-stratMan ..> stratLido : deposit,\nwithdraw
-stratMan ..> stratFrax : deposit,\nwithdraw
+' stratMan ..> stratOETH : deposit,\nwithdraw
+' stratMan ..> stratMETH : deposit,\nwithdraw
+' stratMan ..> stratRETH : deposit,\nwithdraw
+' stratMan ..> stratSWETH : deposit,\nwithdraw
+' stratMan ..> stratETHx : deposit,\nwithdraw
+' stratMan ..> stratLido : deposit,\nwithdraw
+' stratMan ..> stratFrax : deposit,\nwithdraw
 
 @enduml

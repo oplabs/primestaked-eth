@@ -169,7 +169,7 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 
 # Deployed Contracts
 
-![](./docs/plantuml/primeContracts.png)
+![Base Prime Staked Contracts](./docs/plantuml/primeBaseContracts.png)
 
 ## Mainnet
 
@@ -205,6 +205,8 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 | Manager           | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
 | Operator          | 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0     |
 
+![Prime Staked Accounts](./docs/plantuml/primeAccountContracts.png)
+
 ### Supported LSTs
 
 | Contract Name         |  Address                                   |
@@ -216,3 +218,11 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 | Staked Frax (sfrxETH) | 0xac3E018457B222d93114458476f3E3416Abbe38F |
 | Rocket Pool (rETH)    | 0xae78736cd615f374d3085123a210448e74fc6393 |
 | Swell (swETH)         | 0xf951E335afb289353dc249e82926178EaC7DEd78 |
+
+### Oracle contracts
+
+![Prime Staked Oracle contracts](./docs/plantuml/primeOracleContracts.png)
+
+### EigenLayer contracts
+
+![EigenLayer contracts](./docs/plantuml/primeEigenContracts.png)
