@@ -40,6 +40,8 @@ contract ForkTest is Test {
 
     uint256 indexOfNodeDelegator;
 
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
@@ -81,13 +83,15 @@ contract ForkTest is Test {
         deposit(Addresses.SFRXETH_TOKEN, frxWhale, 10 ether);
     }
 
-    // function test_deposit_rETH() public {
-    //     deposit(Addresses.RETH_TOKEN, rethWhale, 10 ether);
-    // }
+    function test_deposit_rETH() public {
+        vm.skip(true);
+        deposit(Addresses.RETH_TOKEN, rethWhale, 10 ether);
+    }
 
-    // function test_deposit_swETH() public {
-    //     deposit(Addresses.SWETH_TOKEN, swethWhale, 10 ether);
-    // }
+    function test_deposit_swETH() public {
+        vm.skip(true);
+        deposit(Addresses.SWETH_TOKEN, swethWhale, 10 ether);
+    }
 
     function test_transfer_del_node_stETH() public {
         deposit(Addresses.STETH_TOKEN, stWhale, 1 ether);
@@ -114,8 +118,21 @@ contract ForkTest is Test {
         transfer_DelegatorNode(Addresses.SFRXETH_TOKEN, 1.2 ether);
     }
 
+    function test_transfer_del_node_rETH() public {
+        vm.skip(true);
+        deposit(Addresses.RETH_TOKEN, rethWhale, 2 ether);
+        transfer_DelegatorNode(Addresses.RETH_TOKEN, 1.2 ether);
+    }
+
+    function test_transfer_del_node_swETH() public {
+        vm.skip(true);
+        deposit(Addresses.SWETH_TOKEN, swethWhale, 2 ether);
+        transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1.2 ether);
+    }
+
     function test_update_primeETH_price() public {
         // anyone can call
+        vm.prank(address(1));
         lrtOracle.updatePrimeETHPrice();
     }
 
@@ -124,7 +141,7 @@ contract ForkTest is Test {
 
         deposit(Addresses.ETHX_TOKEN, xWhale, 1 ether);
         transfer_DelegatorNode(Addresses.ETHX_TOKEN, 1 ether);
-        transfer_Eigen(Addresses.ETHX_TOKEN);
+        transfer_Eigen(Addresses.ETHX_TOKEN, Addresses.ETHX_EIGEN_STRATEGY);
     }
 
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
@@ -132,26 +149,44 @@ contract ForkTest is Test {
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         vm.startPrank(whale);
         ERC20(asset).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
 
-        // TODO check primeETH was minted
-        // TODO check deposit pool balance increased
+        // Should transfer `asset` from whale to pool
+        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Transfer(whale, address(lrtDepositPool), amountToTransfer);
+
+        // Should mint primeETH
+        vm.expectEmit({
+            emitter: Addresses.PRIME_STAKED_ETH,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
+        emit Transfer(address(0), whale, amountToTransfer);
+
+        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
 
         vm.stopPrank();
     }
 
     function transfer_DelegatorNode(address asset, uint256 amountToTransfer) public {
         vm.prank(manager);
-        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
 
-        // TODO check asset was transferred from DepositPool to Delegator Node
+        // Should transfer `asset` from DepositPool to the Delegator node
+        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Transfer(address(lrtDepositPool), address(nodeDelegator1), amountToTransfer);
+
+        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
     }
 
-    function transfer_Eigen(address asset) public {
+    function transfer_Eigen(address asset, address strategy) public {
         vm.prank(manager);
-        nodeDelegator1.depositAssetIntoStrategy(asset);
 
-        // TODO check asset was transferred from nodeDelegator to Eigen asset strategy
+        // Should transfer `asset` from nodeDelegator to Eigen asset strategy
+        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Transfer(address(nodeDelegator1), strategy, 0);
+
+        nodeDelegator1.depositAssetIntoStrategy(asset);
     }
 
     function unpauseStrategy(address strategyAddress) private {
