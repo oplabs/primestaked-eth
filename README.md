@@ -22,12 +22,16 @@
 
 ### Immutable Contracts
 
+The following are [Open Zeppelin](https://www.openzeppelin.com/contracts) contracts.
+
 | Contract Name | Address                                                                                                                    |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | ProxyFactory  | [0x279b272E8266D2fd87e64739A8ecD4A5c94F953D](https://etherscan.io/address/0x279b272E8266D2fd87e64739A8ecD4A5c94F953D#code) |
 | ProxyAdmin    | [0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758](https://etherscan.io/address/0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758#code) |
 
 ### Operational Roles
+
+The protocol is currently managed by a [Gnosis Safe](https://safe.global), 3 of 7 multi-signature wallet.
 
 | Contract Name    | Address                                                                                                                    |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -38,7 +42,7 @@
 
 ![Prime Staked Accounts](./docs/plantuml/primeAccountContracts.png)
 
-### Supported LSTs
+### Supported Liquid Staking Tokens (LSTs)
 
 | Contract Name         | Address                                                                                                             |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -95,34 +99,90 @@ This is a list of the most frequently needed commands.
 Delete the build artifacts and cache directories:
 
 ```sh
-$ forge clean
+forge clean
 ```
 
 ### Compile
 
 Compile the contracts:
 
-```sh
-$ forge build
+```bash
+forge build
 ```
 
-### Coverage
+### Format
 
-Get a test coverage report:
+Format the contracts:
 
-```sh
-$ forge coverage
+```bash
+forge fmt
 ```
 
-### Deploy
+### Lint
 
-## Deploy to testnet
+Lint the contracts:
+
+```bash
+$ npm lint
+```
+
+## Testing
+
+### Unit Tests
+
+```sh
+make unit-test
+```
+
+### Fork Tests
+
+Run the fork tests against mainnet or a local. The `FORK_RPC_URL` env var controls whether the fork tests run against
+mainnet or a local forked node.
+
+```bash
+make fork-test
+```
+
+### Integration Tests
+
+Run the integration tests against Goerli
+
+```bash
+make int-test
+```
+
+### Test Coverage
+
+Generate test coverage and output result to the terminal:
+
+```sh
+$ npm test:coverage
+```
+
+Generate test coverage with lcov report (you'll have to open the `./coverage/index.html` file in your browser, to do so
+simply copy paste the path):
+
+```sh
+$ npm test:coverage:report
+```
+
+### Gas Usage
+
+Get a gas report:
+
+```bash
+$ forge test --gas-report
+```
+
+## Deploy
+
+### Deploy to testnet
 
 ```bash
 make deploy-lrt-testnet
 ```
 
-## For tests (mainnet) using Anvil:
+### For tests (mainnet) using Anvil:
 
 In one terminal run the Anvil node forking the mainnet
 
@@ -137,26 +197,7 @@ make pool-deleg-oracle-fork
 make add-assets-fork
 ```
 
-Run the unit tests
-
-```bash
-make unit-test
-```
-
-Run the integration tests against Goerli
-
-```bash
-make int-test
-```
-
-Run the fork tests against mainnet or a local. The `FORK_RPC_URL` env var controls whether the fork tests run against
-mainnet or a local forked node.
-
-```bash
-make fork-test
-```
-
-## Deploy to Anvil:
+### Deploy to Anvil:
 
 ```bash
 make deploy-lrt-local-test
@@ -168,14 +209,14 @@ Create a Deploy script in `script/Deploy.s.sol`:
 
 and run the script:
 
-```sh
-$ forge script script/Deploy.s.sol --broadcast --fork-url http://localhost:8545
+```bash
+forge script script/Deploy.s.sol --broadcast --fork-url http://localhost:8545
 ```
 
 For instructions on how to deploy to a testnet or mainnet, check out the
 [Solidity Scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) tutorial.
 
-## Verify Contracts
+### Verify Contracts
 
 Follow this pattern `contractAddress=<contractAddress> contractPath=<contract-path> make verify-lrt-proxy-testnet`
 
@@ -183,57 +224,6 @@ Example:
 
 ```bash
 contractAddress=0x0000000000000000000000000000000000000000 contractPath=contracts/LRTConfig.sol:LRTConfig  make verify-lrt-proxy-testnet
-```
-
-### Format
-
-Format the contracts:
-
-```sh
-$ forge fmt
-```
-
-### Gas Usage
-
-Get a gas report:
-
-```sh
-$ forge test --gas-report
-```
-
-### Lint
-
-Lint the contracts:
-
-```sh
-$ npm lint
-```
-
-### Test
-
-Run the tests:
-
-```sh
-$ forge test
-```
-
-Run just the unit tests
-
-```sh
-$ forge test --no-match-contract "(Skip|IntegrationTest)"
-```
-
-Generate test coverage and output result to the terminal:
-
-```sh
-$ npm test:coverage
-```
-
-Generate test coverage with lcov report (you'll have to open the `./coverage/index.html` file in your browser, to do so
-simply copy paste the path):
-
-```sh
-$ npm test:coverage:report
 ```
 
 # Credits
