@@ -15,9 +15,11 @@
     "editor.defaultFormatter": "JuanBlanco.solidity"
   },
   "solidity.formatter": "forge",
+  "solidity.monoRepoSupport": true,
   "solidity.compileUsingRemoteVersion": "v0.8.21",
   "plantuml.exportOutDir": "docs/plantuml",
   "plantuml.exportFormat": "png",
   "plantuml.exportIncludeFolderHeirarchy": false,
-  "plantuml.exportSubFolder": false
+  "plantuml.exportSubFolder": false,
+  "prettier.configPath": "./.prettierrc.json",
 }

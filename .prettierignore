@@ -16,6 +16,4 @@ out
 lcov.info
 package-lock.json
 yarn.lock
-
-# readme files
-*.md
+metrics.md
