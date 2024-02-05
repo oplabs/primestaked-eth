@@ -254,9 +254,9 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
         vm.stopPrank();
     }
 
-    function test_RevertWhenCallerIsNotLRTManager() external {
+    function test_RevertWhenCallerIsNotLRTOperator() external {
         vm.startPrank(alice);
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         nodeDel.depositAssetIntoStrategy(address(ethX));
         vm.stopPrank();
     }
@@ -267,14 +267,14 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
         vm.prank(manager);
         lrtConfig.addNewSupportedAsset(randomAddress, depositLimit);
 
-        vm.startPrank(manager);
+        vm.startPrank(operator);
         vm.expectRevert(INodeDelegator.StrategyIsNotSetForAsset.selector);
         nodeDel.depositAssetIntoStrategy(randomAddress);
         vm.stopPrank();
     }
 
     function test_DepositAssetIntoStrategy() external {
-        vm.startPrank(manager);
+        vm.startPrank(operator);
         expectEmit();
         emit AssetDepositIntoStrategy(address(ethX), address(ethXMockStrategy), amountDeposited);
         nodeDel.depositAssetIntoStrategy(address(ethX));
@@ -379,7 +379,7 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
 
     function test_GetAssetBalances() external {
         // deposit NodeDelegator balance into strategy
-        vm.startPrank(manager);
+        vm.startPrank(operator);
         nodeDel.depositAssetIntoStrategy(address(ethX));
         nodeDel.depositAssetIntoStrategy(address(stETH));
         vm.stopPrank();
@@ -412,7 +412,7 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
 
     function test_GetAssetBalance() external {
         // deposit NodeDelegator balance into strategy
-        vm.startPrank(manager);
+        vm.startPrank(operator);
         nodeDel.depositAssetIntoStrategy(address(ethX));
         vm.stopPrank();
 

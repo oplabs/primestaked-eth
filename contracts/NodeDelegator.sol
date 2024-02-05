@@ -26,6 +26,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
     uint256 public stakedButNotVerifiedEth;
 
+    uint256 internal constant DUST_AMOUNT = 10;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -72,7 +74,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         whenNotPaused
         nonReentrant
         onlySupportedAsset(asset)
-        onlyLRTManager
+        onlyLRTOperator
     {
         _depositAssetIntoStrategy(asset);
     }
@@ -85,7 +87,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         override
         whenNotPaused
         nonReentrant
-        onlyLRTManager
+        onlyLRTOperator
     {
         // For each of the specified assets
         for (uint256 i; i < assets.length;) {
@@ -103,15 +105,21 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     function _depositAssetIntoStrategy(address asset) internal {
+        IERC20 token = IERC20(asset);
+        uint256 balance = token.balanceOf(address(this));
+
+        // EigenLayer does not allow minting zero shares. Error: StrategyBase.deposit: newShares cannot be zero
+        // So do not deposit if dust amount
+        if (balance <= DUST_AMOUNT) {
+            return;
+        }
+
         address strategy = lrtConfig.assetStrategy(asset);
         if (strategy == address(0)) {
             revert StrategyIsNotSetForAsset();
         }
 
-        IERC20 token = IERC20(asset);
         address eigenlayerStrategyManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER);
-
-        uint256 balance = token.balanceOf(address(this));
 
         emit AssetDepositIntoStrategy(asset, strategy, balance);
 

@@ -125,6 +125,9 @@ contract ForkTest is Test, ContractUpgrades {
     function test_bulk_transfer_all_eigen() public {
         // TODO remove this once the Deposit Pool contract has been upgraded
         upgradeDepositPool();
+        upgradeNodeDelegator();
+        // Unpause all Eigen deposits
+        unpauseAllStrategies();
 
         deposit(Addresses.STETH_TOKEN, stWhale, 10 ether);
         deposit(Addresses.OETH_TOKEN, oWhale, 11 ether);
@@ -168,16 +171,24 @@ contract ForkTest is Test, ContractUpgrades {
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), oethBalanceBefore);
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
+        // Transfer assets to NodeDelegator
         lrtDepositPool.transferAssetsToNodeDelegator(nodeDelegatorIndex, assets);
-
         // Run again with no assets
         lrtDepositPool.transferAssetsToNodeDelegator(nodeDelegatorIndex, assets);
+
+        // Deposit assets in EigenLayer
+        nodeDelegator1.depositAssetsIntoStrategy(assets);
+        // Run again with no assets
+        nodeDelegator1.depositAssetsIntoStrategy(assets);
         vm.stopPrank();
     }
 
     function test_bulk_transfer_some_eigen() public {
         // TODO remove this once the Deposit Pool contract has been upgraded
         upgradeDepositPool();
+        upgradeNodeDelegator();
+        // Unpause Eigen deposits
+        unpauseAllStrategies();
 
         // Should transfer `asset` from DepositPool to the Delegator node
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
@@ -197,8 +208,13 @@ contract ForkTest is Test, ContractUpgrades {
 
         uint256 nodeDelegatorIndex = 0;
 
-        vm.prank(Addresses.OPERATOR_ROLE);
+        vm.startPrank(Addresses.OPERATOR_ROLE);
         lrtDepositPool.transferAssetsToNodeDelegator(nodeDelegatorIndex, assets);
+
+        nodeDelegator1.depositAssetsIntoStrategy(assets);
+        nodeDelegator1.depositAssetsIntoStrategy(assets);
+
+        vm.stopPrank();
     }
 
     function test_transfer_eigen_OETH() public {
@@ -302,16 +318,35 @@ contract ForkTest is Test, ContractUpgrades {
         nodeDelegator1.depositAssetIntoStrategy(asset);
     }
 
+    /// @dev unpause an EigenLayer Strategy is currently paused
     function unpauseStrategy(address strategyAddress) internal {
-        vm.startPrank(Addresses.EIGEN_UNPAUSER);
-
         IStrategy eigenStrategy = IStrategy(strategyAddress);
         IStrategy eigenStrategyManager = IStrategy(Addresses.EIGEN_STRATEGY_MANAGER);
 
-        // Unpause deposits and withdrawals
-        eigenStrategyManager.unpause(0);
-        eigenStrategy.unpause(0);
+        vm.startPrank(Addresses.EIGEN_UNPAUSER);
+
+        // only unpause strategy if already paused
+        if (eigenStrategy.paused(0)) {
+            // Unpause deposits and withdrawals
+            eigenStrategy.unpause(0);
+        }
+
+        // only unpause strategy manager if already paused
+        if (eigenStrategyManager.paused(0)) {
+            // Unpause deposits and withdrawals
+            eigenStrategyManager.unpause(0);
+        }
 
         vm.stopPrank();
+    }
+
+    function unpauseAllStrategies() internal {
+        unpauseStrategy(Addresses.STETH_EIGEN_STRATEGY);
+        unpauseStrategy(Addresses.OETH_EIGEN_STRATEGY);
+        unpauseStrategy(Addresses.METH_EIGEN_STRATEGY);
+        unpauseStrategy(Addresses.SFRXETH_EIGEN_STRATEGY);
+        unpauseStrategy(Addresses.ETHX_EIGEN_STRATEGY);
+        unpauseStrategy(Addresses.RETH_EIGEN_STRATEGY);
+        unpauseStrategy(Addresses.SWETH_EIGEN_STRATEGY);
     }
 }
