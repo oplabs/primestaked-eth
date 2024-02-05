@@ -10,10 +10,11 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
+import { ContractUpgrades } from "contracts/utils/ContractUpgrades.sol";
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ForkTest is Test {
+contract ForkTest is Test, ContractUpgrades {
     uint256 public fork;
 
     LRTDepositPool public lrtDepositPool;
@@ -21,8 +22,6 @@ contract ForkTest is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
-    address public admin;
-    address public manager;
 
     address public stWhale;
     address public xWhale;
@@ -39,9 +38,6 @@ contract ForkTest is Test {
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
-
-        admin = Addresses.ADMIN_ROLE;
-        manager = Addresses.MANAGER_ROLE;
 
         stWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
         xWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
@@ -126,14 +122,17 @@ contract ForkTest is Test {
         lrtOracle.updatePrimeETHPrice();
     }
 
-    function test_bulk_transfer_del_node() public {
-        // TODO remove this once the Deposit Pool contract is upgraded
-        // Need to upgrade the deposit pool contract first
+    function test_bulk_transfer_all_eigen() public {
+        // TODO remove this once the Deposit Pool contract has been upgraded
         upgradeDepositPool();
 
-        // // Should transfer `asset` from DepositPool to the Delegator node
-        // vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
-        // emit Transfer(address(lrtDepositPool), address(nodeDelegator1), amountToTransfer);
+        deposit(Addresses.STETH_TOKEN, stWhale, 10 ether);
+        deposit(Addresses.OETH_TOKEN, oWhale, 11 ether);
+        deposit(Addresses.ETHX_TOKEN, xWhale, 12 ether);
+        deposit(Addresses.METH_TOKEN, mWhale, 13 ether);
+        deposit(Addresses.SFRXETH_TOKEN, frxWhale, 14 ether);
+        deposit(Addresses.RETH_TOKEN, rWhale, 15 ether);
+        deposit(Addresses.SWETH_TOKEN, swWhale, 16 ether);
 
         address[] memory assets = new address[](7);
         assets[0] = Addresses.STETH_TOKEN;
@@ -144,12 +143,62 @@ contract ForkTest is Test {
         assets[5] = Addresses.RETH_TOKEN;
         assets[6] = Addresses.SWETH_TOKEN;
 
-        vm.startPrank(manager);
-        lrtDepositPool.transferAssetsToNodeDelegator(indexOfNodeDelegator, assets);
+        uint256 nodeDelegatorIndex = 0;
+
+        // Should transfer `asset` from DepositPool to the Delegator node
+        uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
+        uint256 oethBalanceBefore = IERC20(Addresses.OETH_TOKEN).balanceOf(address(lrtDepositPool));
+
+        vm.expectEmit({
+            emitter: Addresses.STETH_TOKEN,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: true
+        });
+        emit Transfer(address(lrtDepositPool), address(nodeDelegator1), stEthBalanceBefore);
+
+        vm.expectEmit({
+            emitter: Addresses.OETH_TOKEN,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: true
+        });
+        emit Transfer(address(lrtDepositPool), address(nodeDelegator1), oethBalanceBefore);
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+        lrtDepositPool.transferAssetsToNodeDelegator(nodeDelegatorIndex, assets);
 
         // Run again with no assets
-        lrtDepositPool.transferAssetsToNodeDelegator(indexOfNodeDelegator, assets);
+        lrtDepositPool.transferAssetsToNodeDelegator(nodeDelegatorIndex, assets);
         vm.stopPrank();
+    }
+
+    function test_bulk_transfer_some_eigen() public {
+        // TODO remove this once the Deposit Pool contract has been upgraded
+        upgradeDepositPool();
+
+        // Should transfer `asset` from DepositPool to the Delegator node
+        uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
+        vm.expectEmit({
+            emitter: Addresses.STETH_TOKEN,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: true
+        });
+        emit Transfer(address(lrtDepositPool), address(nodeDelegator1), stEthBalanceBefore);
+
+        address[] memory assets = new address[](3);
+        assets[0] = Addresses.STETH_TOKEN;
+        assets[1] = Addresses.OETH_TOKEN;
+        assets[2] = Addresses.METH_TOKEN;
+
+        uint256 nodeDelegatorIndex = 0;
+
+        vm.prank(Addresses.OPERATOR_ROLE);
+        lrtDepositPool.transferAssetsToNodeDelegator(nodeDelegatorIndex, assets);
     }
 
     function test_transfer_eigen_OETH() public {
@@ -212,7 +261,7 @@ contract ForkTest is Test {
 
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         vm.startPrank(whale);
-        ERC20(asset).approve(address(lrtDepositPool), amountToTransfer);
+        IERC20(asset).approve(address(lrtDepositPool), amountToTransfer);
 
         // Should transfer `asset` from whale to pool
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
@@ -234,7 +283,7 @@ contract ForkTest is Test {
     }
 
     function transfer_DelegatorNode(address asset, uint256 amountToTransfer) internal {
-        vm.prank(manager);
+        vm.prank(Addresses.MANAGER_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
@@ -244,7 +293,7 @@ contract ForkTest is Test {
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
-        vm.prank(manager);
+        vm.prank(Addresses.MANAGER_ROLE);
 
         // Should transfer `asset` from nodeDelegator to Eigen asset strategy
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
@@ -264,23 +313,5 @@ contract ForkTest is Test {
         eigenStrategy.unpause(0);
 
         vm.stopPrank();
-    }
-
-    function upgradeDepositPool() internal {
-        LRTDepositPool newLrtDepositPool = new LRTDepositPool();
-
-        vm.prank(proxyAdminOwner);
-        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
-            ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), address(newLrtDepositPool)
-        );
-    }
-
-    function upgradeNodeDelegator() internal {
-        NodeDelegator newNodeDelegator = new NodeDelegator();
-
-        vm.prank(proxyAdminOwner);
-        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
-            ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), address(newNodeDelegator)
-        );
     }
 }

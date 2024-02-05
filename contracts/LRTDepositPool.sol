@@ -310,7 +310,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     )
         external
         nonReentrant
-        onlyLRTManager
+        onlyLRTOperator
         onlySupportedAsset(asset)
     {
         address nodeDelegator = nodeDelegatorQueue[ndcIndex];
@@ -330,7 +330,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         external
         override
         nonReentrant
-        onlyLRTManager
+        onlyLRTOperator
     {
         address nodeDelegator = nodeDelegatorQueue[ndcIndex];
 

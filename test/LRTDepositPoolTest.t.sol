@@ -734,8 +734,15 @@ contract LRTDepositPoolTransferAssetToNodeDelegator is LRTDepositPoolTest {
 
     address[] public nodeDelegatorQueueProspectives;
 
+    address public operator;
+
     function setUp() public override {
         super.setUp();
+
+        operator = makeAddr("operator");
+
+        vm.prank(admin);
+        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, operator);
 
         // initialize LRTDepositPool
         lrtDepositPool.initialize(address(lrtConfig));
@@ -761,11 +768,17 @@ contract LRTDepositPoolTransferAssetToNodeDelegator is LRTDepositPoolTest {
         vm.stopPrank();
     }
 
-    function test_RevertWhenNotCalledByLRTConfigManager() external {
+    function test_RevertWhenNotCalledByLRTConfigOperator() external {
         vm.startPrank(alice);
 
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         lrtDepositPool.transferAssetToNodeDelegator(0, address(ethX), 1 ether);
+
+        address[] memory assets = new address[](2);
+        assets[0] = address(ethX);
+        assets[1] = address(stETH);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+        lrtDepositPool.transferAssetsToNodeDelegator(0, assets);
 
         vm.stopPrank();
     }
@@ -787,12 +800,45 @@ contract LRTDepositPoolTransferAssetToNodeDelegator is LRTDepositPoolTest {
         }
 
         // transfer 1 ether ethX to node delegator contract one
-        vm.startPrank(manager);
+        vm.startPrank(operator);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegatorContractOneInNDArray, address(ethX), 1 ether);
         vm.stopPrank();
 
         assertEq(ethX.balanceOf(address(lrtDepositPool)), 2 ether, "Asset amount in lrtDepositPool is incorrect");
         assertEq(ethX.balanceOf(nodeDelegatorContractOne), 1 ether, "Asset is not transferred to node delegator");
+    }
+
+    // TODO add bulk transfer unit test
+    function test_TransferAssetsToNodeDelegator() external {
+        // deposit 3 ether ethX
+        vm.startPrank(alice);
+        ethX.approve(address(lrtDepositPool), 3 ether);
+        lrtDepositPool.depositAsset(address(ethX), 3 ether, minimunAmountOfPRETHToReceive, referralId);
+
+        stETH.approve(address(lrtDepositPool), 6 ether);
+        lrtDepositPool.depositAsset(address(stETH), 6 ether, minimunAmountOfPRETHToReceive, referralId);
+        vm.stopPrank();
+
+        uint256 indexOfNodeDelegatorContractOneInNDArray;
+        address[] memory nodeDelegatorArray = lrtDepositPool.getNodeDelegatorQueue();
+        for (uint256 i = 0; i < nodeDelegatorArray.length; i++) {
+            if (lrtDepositPool.nodeDelegatorQueue(i) == nodeDelegatorContractOne) {
+                indexOfNodeDelegatorContractOneInNDArray = i;
+                break;
+            }
+        }
+
+        // transfer 1 ether ethX to node delegator contract one
+        vm.startPrank(operator);
+        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegatorContractOneInNDArray, address(ethX), 1 ether);
+        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegatorContractOneInNDArray, address(stETH), 2 ether);
+        vm.stopPrank();
+
+        assertEq(ethX.balanceOf(address(lrtDepositPool)), 2 ether, "ETHx amount in lrtDepositPool is incorrect");
+        assertEq(ethX.balanceOf(nodeDelegatorContractOne), 1 ether, "ETHx is not transferred to node delegator");
+
+        assertEq(stETH.balanceOf(address(lrtDepositPool)), 4 ether, "stETH amount in lrtDepositPool is incorrect");
+        assertEq(stETH.balanceOf(nodeDelegatorContractOne), 2 ether, "stETH is not transferred to node delegator");
     }
 }
 
