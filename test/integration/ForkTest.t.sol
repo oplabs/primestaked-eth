@@ -3,20 +3,15 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
-import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
-import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
+import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
+import { LRTConfig } from "contracts/LRTConfig.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { UtilLib } from "contracts/utils/UtilLib.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
-import { getLSTs } from "script/foundry-scripts/DeployLRT.s.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract ForkTest is Test {
     uint256 public fork;
@@ -26,8 +21,6 @@ contract ForkTest is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
-
-    address public proxyAdminOwner;
     address public admin;
     address public manager;
 
@@ -41,15 +34,12 @@ contract ForkTest is Test {
 
     string public referralId = "1234";
 
-    uint256 indexOfNodeDelegator;
-
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
-        proxyAdminOwner = Addresses.PROXY_OWNER;
         admin = Addresses.ADMIN_ROLE;
         manager = Addresses.MANAGER_ROLE;
 
@@ -192,22 +182,6 @@ contract ForkTest is Test {
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
     }
 
-    function test_DepositPool_optIn_OETH() public {
-        LRTDepositPool newLrtDepositPool = new LRTDepositPool();
-
-        // Admin can now opt in for rebase of OETH for the DepositPool contract
-        vm.prank(admin);
-        lrtDepositPool.optIn(Addresses.OETH_TOKEN);
-    }
-
-    function test_NodeDelegator_optIn_OETH() public {
-        NodeDelegator newNodeDelegator = new NodeDelegator();
-
-        // Admin can now opt in for rebase of OETH for the NodeDelegator contract
-        vm.prank(admin);
-        nodeDelegator1.optIn(Addresses.OETH_TOKEN);
-    }
-
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
 
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
@@ -240,7 +214,7 @@ contract ForkTest is Test {
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), amountToTransfer);
 
-        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, asset, amountToTransfer);
+        lrtDepositPool.transferAssetToNodeDelegator(0, asset, amountToTransfer);
     }
 
     function transfer_Eigen(address asset, address strategy) public {
