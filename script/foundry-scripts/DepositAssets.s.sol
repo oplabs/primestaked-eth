@@ -57,10 +57,7 @@ contract DepositAssets is Script {
         depositAssetToEL(Addresses.SWETH_TOKEN);
         depositAssetToEL(Addresses.ETHX_TOKEN);
 
-        vm.writeFile(
-            TX_FILE,
-            outData
-        );
+        vm.writeFile(TX_FILE, outData);
 
         vm.stopPrank();
     }
@@ -74,19 +71,16 @@ contract DepositAssets is Script {
             return;
         }
         balance = Math.min(balance, maxDepositAmount);
-        
+
         // Transfer to NodeDelegator
         console.log("Simulating transfer of %s assets to NodeDelegator: %s", balance, asset);
-        
+
         // Build tx call
-        bytes memory transferTxData = abi.encodeCall(depositPool.transferAssetToNodeDelegator, (
-            NODE_DELEGATOR_INDEX, 
-            asset,
-            balance
-        ));
+        bytes memory transferTxData =
+            abi.encodeCall(depositPool.transferAssetToNodeDelegator, (NODE_DELEGATOR_INDEX, asset, balance));
 
         // Simulate it
-        (bool success, ) = address(depositPool).call(transferTxData);
+        (bool success,) = address(depositPool).call(transferTxData);
         if (!success) {
             revert TransferToNodeDelegatorFailed();
         }
@@ -95,12 +89,10 @@ contract DepositAssets is Script {
         console.log("Simulating deposit of %s assets to EL Strategy: %s", balance, asset);
 
         // Build tx call
-        bytes memory depositTxData = abi.encodeCall(nodeDelegator.depositAssetIntoStrategy, (
-            asset
-        ));
+        bytes memory depositTxData = abi.encodeCall(nodeDelegator.depositAssetIntoStrategy, (asset));
 
         // Simulate it
-        (success, ) = address(nodeDelegator).call(depositTxData);
+        (success,) = address(nodeDelegator).call(depositTxData);
 
         if (!success) {
             revert DepositToELStrategyFailed();
