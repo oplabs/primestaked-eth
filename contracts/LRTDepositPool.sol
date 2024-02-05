@@ -328,6 +328,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         address[] calldata assets
     )
         external
+        override
         nonReentrant
         onlyLRTManager
     {

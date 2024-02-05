@@ -306,9 +306,9 @@ contract ForkTest is Test {
             ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), address(newLrtDepositPool)
         );
     }
-    
+
     function upgradeNodeDelegator() internal {
-         NodeDelegator newNodeDelegator = new NodeDelegator();
+        NodeDelegator newNodeDelegator = new NodeDelegator();
 
         vm.prank(proxyAdminOwner);
         ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(

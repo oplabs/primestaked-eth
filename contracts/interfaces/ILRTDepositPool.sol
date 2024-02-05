@@ -47,6 +47,7 @@ interface ILRTDepositPool {
     function addNodeDelegatorContractToQueue(address[] calldata nodeDelegatorContract) external;
 
     function transferAssetToNodeDelegator(uint256 ndcIndex, address asset, uint256 amount) external;
+    function transferAssetsToNodeDelegator(uint256 ndcIndex, address[] calldata assets) external;
 
     function updateMaxNodeDelegatorLimit(uint256 maxNodeDelegatorLimit) external;
 

@@ -74,6 +74,35 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         onlySupportedAsset(asset)
         onlyLRTManager
     {
+        _depositAssetIntoStrategy(asset);
+    }
+
+    /// @notice Deposits all specified assets lying in this NDC into its strategy
+    /// @dev only supported assets can be deposited and only called by the LRT manager
+    /// @param assets List of assets to deposit
+    function depositAssetsIntoStrategy(address[] calldata assets)
+        external
+        override
+        whenNotPaused
+        nonReentrant
+        onlyLRTManager
+    {
+        // For each of the specified assets
+        for (uint256 i; i < assets.length;) {
+            // Check the asset is supported
+            if (!lrtConfig.isSupportedAsset(assets[i])) {
+                revert ILRTConfig.AssetNotSupported();
+            }
+
+            _depositAssetIntoStrategy(assets[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function _depositAssetIntoStrategy(address asset) internal {
         address strategy = lrtConfig.assetStrategy(asset);
         if (strategy == address(0)) {
             revert StrategyIsNotSetForAsset();
