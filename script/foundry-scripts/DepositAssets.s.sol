@@ -66,7 +66,7 @@ contract DepositAssets is Script {
         // Check balance of DepositPool
         uint256 balance = ERC20(asset).balanceOf(address(depositPool));
 
-        if (balance == 0) {
+        if (balance < 1 ether) {
             // Skip when nothing to transfer
             return;
         }
