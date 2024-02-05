@@ -66,7 +66,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Deposits an asset lying in this NDC into its strategy
-    /// @dev only supported assets can be deposited and only called by the LRT manager
+    /// @dev only supported assets can be deposited and only called by the LRT Operator
     /// @param asset the asset to deposit
     function depositAssetIntoStrategy(address asset)
         external
@@ -80,7 +80,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Deposits all specified assets lying in this NDC into its strategy
-    /// @dev only supported assets can be deposited and only called by the LRT manager
+    /// @dev only supported assets can be deposited and only called by the LRT Operator
     /// @param assets List of assets to deposit
     function depositAssetsIntoStrategy(address[] calldata assets)
         external
