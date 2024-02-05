@@ -225,4 +225,7 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 
 ### EigenLayer contracts
 
+[EigenLayer contracts](
+https://github.com/Layr-Labs/eigenlayer-contracts?tab=readme-ov-file#current-mainnet-deployment)
+
 ![EigenLayer contracts](./docs/plantuml/primeEigenContracts.png)
