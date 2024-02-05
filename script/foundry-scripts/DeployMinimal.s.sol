@@ -43,7 +43,8 @@ contract DeployMinimal is Script {
     }
 
     function run() external {
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
         proxyFactory = new ProxyFactory();

@@ -17,7 +17,8 @@ contract UpgradePrimeStakedToken is Script {
     address public newImplementation;
 
     function run() public {
-        vm.startBroadcast(); // deployer must be the ProxyAdmin
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
         uint256 chainId = block.chainid;
         if (chainId == 1) {
