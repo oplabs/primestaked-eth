@@ -22,7 +22,8 @@ contract UpdateDepositLimits is Script {
             vm.startPrank(mainnetProxyOwner);
         } else {
             console.log("Deploying on mainnet deployer: %s", msg.sender);
-            vm.startBroadcast();
+            uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+            vm.startBroadcast(deployerPrivateKey);
         }
 
         LRTConfig lrtConfig = LRTConfig(Addresses.LRT_CONFIG);

@@ -16,7 +16,8 @@ contract UpdateAssetStrategy is Script {
     }
 
     function run() external {
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
         console.log("UpdateAssetStrategy started...");
 
         address asset = 0x0000000000000000000000000000000000000000;
