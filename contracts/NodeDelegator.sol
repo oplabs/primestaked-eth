@@ -104,6 +104,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
+    /// @dev Deposits an asset into its strategy.
+    /// The calling function is responsible for ensuring the asset is supported.
+    /// @param asset the asset to deposit
     function _depositAssetIntoStrategy(address asset) internal {
         address strategy = lrtConfig.assetStrategy(asset);
         if (strategy == address(0)) {

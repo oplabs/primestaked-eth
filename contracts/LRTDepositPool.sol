@@ -314,7 +314,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         onlySupportedAsset(asset)
     {
         address nodeDelegator = nodeDelegatorQueue[ndcIndex];
-        if (!IERC20(asset).transfer(nodeDelegator, amount)) {
+        UtilLib.checkNonZeroAddress(nodeDelegator);
+
+        if (!ERC20I(asset).transfer(nodeDelegator, amount)) {
             revert TokenTransferFailed();
         }
     }
