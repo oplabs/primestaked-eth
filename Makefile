@@ -62,6 +62,11 @@ add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.
 deposit-limits-mainnet :; forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast
 deposit-limits-fork :; IS_FORK=true forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast
 
+# upgrade deposit pool and delegator node
+upgrade-deposit-delegator-mainnet :; forge script script/foundry-scripts/UpgradeDepositPoolNodeDelegator.s.sol:UpgradeDepositPoolNodeDelegator --rpc-url ${MAINNET_RPC_URL}  --private-key ${DEPLOYER_PRIVATE_KEY} --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+upgrade-deposit-delegator-fork :; IS_FORK=true forge script script/foundry-scripts/UpgradeDepositPoolNodeDelegator.s.sol:UpgradeDepositPoolNodeDelegator --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+upgrade-deposit-delegator-local :; forge script script/foundry-scripts/UpgradeDepositPoolNodeDelegator.s.sol:UpgradeDepositPoolNodeDelegator --rpc-url localhost --private-key ${LOCAL_DEPLOYER_PRIVATE_KEY} --broadcast -vvv
+
 # utils
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
 
