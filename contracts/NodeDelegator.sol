@@ -8,6 +8,7 @@ import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.s
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 import { IEigenStrategyManager } from "./interfaces/IEigenStrategyManager.sol";
+import { IOETH } from "./interfaces/IOETH.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -235,6 +236,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
 
         emit ETHDepositFromDepositPool(msg.value);
+    }
+
+    /// @dev opts in for rebase so the asset's token balance will increase
+    function optIn(address asset) external onlyLRTAdmin onlySupportedAsset(asset) {
+        IOETH(asset).rebaseOptIn();
     }
 
     /// @dev allow NodeDelegator to receive ETH rewards

@@ -9,6 +9,7 @@ import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
+import { IOETH } from "./interfaces/IOETH.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -408,6 +409,11 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @dev Returns to normal state. Contract must be paused
     function unpause() external onlyLRTAdmin {
         _unpause();
+    }
+
+    /// @dev opts in for rebase so the asset's token balance will increase
+    function optIn(address asset) external onlyLRTAdmin onlySupportedAsset(asset) {
+        IOETH(asset).rebaseOptIn();
     }
 
     receive() external payable { }
