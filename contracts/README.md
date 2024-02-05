@@ -2,6 +2,8 @@
 
 ## PrimeStakedETH
 
+[PrimeStakedETH.sol](./PrimeStakedETH.sol)
+
 ### Hierarchy
 
 ![Prime Staked ETH Hierarchy](../docs/PrimeStakedETHHierarchy.svg)
@@ -15,6 +17,8 @@
 ![Prime Staked ETH Storage](../docs/PrimeStakedETHStorage.svg)
 
 ## LRTDepositPool
+
+[LRTDepositPool.sol](./LRTDepositPool.sol)
 
 ### Hierarchy
 
@@ -30,6 +34,8 @@
 
 ## LRTOracle
 
+[LRTOracle.sol](./LRTOracle.sol)
+
 ### Hierarchy
 
 ![Oracle Hierarchy](../docs/LRTOracleHierarchy.svg)
@@ -44,6 +50,8 @@
 
 ## NodeDelegator
 
+[NodeDelegator.sol](./NodeDelegator.sol)
+
 ### Hierarchy
 
 ![NodeDelegator Hierarchy](../docs/NodeDelegatorHierarchy.svg)
@@ -57,6 +65,8 @@
 ![NodeDelegator Storage](../docs/NodeDelegatorStorage.svg)
 
 ## LRTConfig
+
+[LRTConfig.sol](./LRTConfig.sol)
 
 ### Hierarchy
 

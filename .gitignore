@@ -15,3 +15,6 @@ artifacts
 
 # foundry files
 broadcast
+
+# Metrics report
+metrics.md
