@@ -39,11 +39,11 @@ contract ForkTest is Test, ContractUpgrades {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
-        stWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
-        xWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
+        stWhale = 0xd8d041705735cd770408AD31F883448851F2C39d;
+        xWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
         oWhale = 0xEADB3840596cabF312F2bC88A4Bb0b93A4E1FF5F;
         mWhale = 0xf89d7b9c864f589bbF53a82105107622B35EaA40;
-        frxWhale = 0x036676389e48133B63a802f8635AD39E752D375D;
+        frxWhale = 0x46782D268FAD71DaC3383Ccf2dfc44C861fb4c7D;
         rWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
         swWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
 
