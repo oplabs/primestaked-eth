@@ -105,6 +105,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     function _depositAssetIntoStrategy(address asset) internal {
+        address strategy = lrtConfig.assetStrategy(asset);
+        if (strategy == address(0)) {
+            revert StrategyIsNotSetForAsset();
+        }
+
         IERC20 token = IERC20(asset);
         uint256 balance = token.balanceOf(address(this));
 
@@ -112,11 +117,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // So do not deposit if dust amount
         if (balance <= DUST_AMOUNT) {
             return;
-        }
-
-        address strategy = lrtConfig.assetStrategy(asset);
-        if (strategy == address(0)) {
-            revert StrategyIsNotSetForAsset();
         }
 
         address eigenlayerStrategyManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER);
