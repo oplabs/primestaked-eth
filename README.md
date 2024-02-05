@@ -58,13 +58,23 @@ The protocol is currently managed by a [Gnosis Safe](https://safe.global), 3 of 
 
 ![Prime Staked Oracle contracts](./docs/plantuml/primeOracleContracts.png)
 
-| Contract Name                                                        | Proxy Address                              | Implementation Address                     |
-| -------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
-| [ChainlinkPriceOracle](./contracts/oracles/ChainlinkPriceOracle.sol) | 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09 | 0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5 |
-| [OETHPriceOracle](./contracts/oracles/OETHPriceOracle.sol)           | 0xc513bDfbC308bC999cccc852AF7C22aBDF44A995 | 0xd91d3bEC19E921e911A487394B155da552953917 |
-| [SfrxETHPriceOracle](./contracts/oracles/SfrxETHPriceOracle.sol)     | 0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294 | 0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3 |
-| [EthXPriceOracle](./contracts/oracles/EthXPriceOracle.sol)           | 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C | 0xd101bd159968106595d48948677fee9e8a0450a9 |
-| [MEthPriceOracle ](./contracts/oracles/MEthPriceOracle.sol)          | 0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369 | 0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8 |
+| Contract Name                                                        | Proxy Address                                                                                                              | Implementation Address                                                                                                     |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [ChainlinkPriceOracle](./contracts/oracles/ChainlinkPriceOracle.sol) | [0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09](https://etherscan.io/address/0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09#code) | [0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5](https://etherscan.io/address/0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5#code) |
+| [OETHPriceOracle](./contracts/oracles/OETHPriceOracle.sol)           | [0xc513bDfbC308bC999cccc852AF7C22aBDF44A995](https://etherscan.io/address/0xc513bDfbC308bC999cccc852AF7C22aBDF44A995#code) | [0xd91d3bEC19E921e911A487394B155da552953917](https://etherscan.io/address/0xd91d3bEC19E921e911A487394B155da552953917#code) |
+| [SfrxETHPriceOracle](./contracts/oracles/SfrxETHPriceOracle.sol)     | [0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294](https://etherscan.io/address/0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294#code) | [0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3](https://etherscan.io/address/0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3#code) |
+| [EthXPriceOracle](./contracts/oracles/EthXPriceOracle.sol)           | [0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C](https://etherscan.io/address/0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C#code) | [0xd101bd159968106595d48948677fee9e8a0450a9](https://etherscan.io/address/0xd101bd159968106595d48948677fee9e8a0450a9#code) |
+| [MEthPriceOracle ](./contracts/oracles/MEthPriceOracle.sol)          | [0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369](https://etherscan.io/address/0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369#code) | [0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8](https://etherscan.io/address/0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8#code) |
+
+| LST                   | Price Provider                                                                 | Price Source                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Origin (OETH)         | fixed 1 ETH                                                                    |                                                                                                                       |
+| Mantle (mETH)         | `mETHToETH` on Mantle Staking                                                  | [0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f](https://etherscan.io/address/0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f) |
+| Stader (ETHx)         | `getExchangeRate` on Stake Pools Manager                                       | [0xcf5EA1b38380f6aF39068375516Daf40Ed70D299](https://etherscan.io/address/0xcf5EA1b38380f6aF39068375516Daf40Ed70D299) |
+| Lido (stETH)          | [ChainLink](https://data.chain.link/feeds/ethereum/mainnet/steth-eth)          | [0x86392dC19c0b719886221c78AB11eb8Cf5c52812](https://etherscan.io/address/0x86392dC19c0b719886221c78AB11eb8Cf5c52812) |
+| Staked Frax (sfrxETH) | [Frax Dual Oracle](https://docs.frax.finance/frax-oracle/frax-oracle-overview) | [0x584902BCe4282003E420Cf5b7ae5063D6C1c182a](https://etherscan.io/address/0x584902BCe4282003E420Cf5b7ae5063D6C1c182a) |
+| Rocket Pool (rETH)    | [ChainLink](https://data.chain.link/feeds/base/base/reth-eth)                  | [0xf397bF97280B488cA19ee3093E81C0a77F02e9a5](https://etherscan.io/address/0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09) |
+| Swell (swETH)         | [RedStone](https://app.redstone.finance/#/app/token/SWETH\ETH)                 | [0x061bB36F8b67bB922937C102092498dcF4619F86](https://etherscan.io/address/0x061bB36F8b67bB922937C102092498dcF4619F86) |
 
 ### EigenLayer contracts
 
