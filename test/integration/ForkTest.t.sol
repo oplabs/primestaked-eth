@@ -88,12 +88,10 @@ contract ForkTest is Test {
     }
 
     function test_deposit_rETH() public {
-        vm.skip(true);
         deposit(Addresses.RETH_TOKEN, rWhale, 10 ether);
     }
 
     function test_deposit_swETH() public {
-        vm.skip(true);
         deposit(Addresses.SWETH_TOKEN, swWhale, 10 ether);
     }
 
@@ -123,13 +121,11 @@ contract ForkTest is Test {
     }
 
     function test_transfer_del_node_rETH() public {
-        vm.skip(true);
         deposit(Addresses.RETH_TOKEN, rWhale, 2 ether);
         transfer_DelegatorNode(Addresses.RETH_TOKEN, 1.2 ether);
     }
 
     function test_transfer_del_node_swETH() public {
-        vm.skip(true);
         deposit(Addresses.SWETH_TOKEN, swWhale, 2 ether);
         transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1.2 ether);
     }
@@ -199,13 +195,6 @@ contract ForkTest is Test {
     function test_DepositPool_optIn_OETH() public {
         LRTDepositPool newLrtDepositPool = new LRTDepositPool();
 
-        // TODO remove this once the Deposit Pool contract is upgraded
-        // Need to upgrade the deposit pool contract first
-        vm.prank(proxyAdminOwner);
-        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
-            ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), address(newLrtDepositPool)
-        );
-
         // Admin can now opt in for rebase of OETH for the DepositPool contract
         vm.prank(admin);
         lrtDepositPool.optIn(Addresses.OETH_TOKEN);
@@ -213,13 +202,6 @@ contract ForkTest is Test {
 
     function test_NodeDelegator_optIn_OETH() public {
         NodeDelegator newNodeDelegator = new NodeDelegator();
-
-        // TODO remove this once the NodeDelegator contract is upgraded
-        // Need to upgrade the NodeDelegator contract first
-        vm.prank(proxyAdminOwner);
-        ProxyAdmin(Addresses.PROXY_ADMIN).upgrade(
-            ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), address(newNodeDelegator)
-        );
 
         // Admin can now opt in for rebase of OETH for the NodeDelegator contract
         vm.prank(admin);
