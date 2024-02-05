@@ -18,3 +18,6 @@ broadcast
 
 # Metrics report
 metrics.md
+
+data/tx.*.json
+data/*.csv
