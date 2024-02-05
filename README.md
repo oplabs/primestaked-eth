@@ -178,7 +178,7 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 | Contract Name           | Proxy Address                                  | Implementation Address                         |
 |-------------------------|------------------------------------------------|------------------------------------------------|
 | PrimeStakedETH          | 0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615     | 0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2     |
-| LRTDepositPool          | 0xA479582c8b64533102F6F528774C536e354B8d32     | 0x51ADD57dC33A3CB5FFf28Fe149198BD38753975D     |
+| LRTDepositPool          | 0xA479582c8b64533102F6F528774C536e354B8d32     | 0x8fb3c5152EeE3e2E3531f741DADd54323e9b2fa0     |
 | LRTConfig               | 0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF     | 0xcdfD989e689872506E2897316b10e29c84AB087F     |
 | LRTOracle               | 0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32     | 0xeF8c39489A83467B1c994B8E4c62cBE26DEB69ce     |
 | ChainlinkPriceOracle    | 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09     | 0x255C082Fb505212BA2396EDbF621d8aF1e5D29A5     |
@@ -186,7 +186,7 @@ Originally forked from Kelp. Further development by Origin Protocol beginning Ja
 | SfrxETHPriceOracle      | 0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294     | 0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3     |
 | EthXPriceOracle         | 0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C     | 0xd101bd159968106595d48948677fee9e8a0450a9     |
 | MEthPriceOracle         | 0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369     | 0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8     |
-| NodeDelegator index 0   | 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2     | 0xEBd48593C5463efa51a9971ce6bdB8A8761F0676     |
+| NodeDelegator index 0   | 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2     | 0x319Be66FfFb11b2058bb9D0Bb17665089e82dbf4     |
 | NodeDelegator index 1   | 0x0000000000000000000000000000000000000000     | 0x0000000000000000000000000000000000000000     |
 
 ### Immutable Contracts
