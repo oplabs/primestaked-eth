@@ -18,6 +18,7 @@ interface INodeDelegator {
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
+    function depositAssetsIntoStrategy(address[] calldata assets) external;
 
     function maxApproveToEigenStrategyManager(address asset) external;
 

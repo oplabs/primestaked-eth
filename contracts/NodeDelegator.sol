@@ -26,6 +26,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
     uint256 public stakedButNotVerifiedEth;
 
+    uint256 internal constant DUST_AMOUNT = 10;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -64,7 +66,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Deposits an asset lying in this NDC into its strategy
-    /// @dev only supported assets can be deposited and only called by the LRT manager
+    /// @dev only supported assets can be deposited and only called by the LRT Operator
     /// @param asset the asset to deposit
     function depositAssetIntoStrategy(address asset)
         external
@@ -72,17 +74,55 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         whenNotPaused
         nonReentrant
         onlySupportedAsset(asset)
-        onlyLRTManager
+        onlyLRTOperator
     {
+        _depositAssetIntoStrategy(asset);
+    }
+
+    /// @notice Deposits all specified assets lying in this NDC into its strategy
+    /// @dev only supported assets can be deposited and only called by the LRT Operator
+    /// @param assets List of assets to deposit
+    function depositAssetsIntoStrategy(address[] calldata assets)
+        external
+        override
+        whenNotPaused
+        nonReentrant
+        onlyLRTOperator
+    {
+        // For each of the specified assets
+        for (uint256 i; i < assets.length;) {
+            // Check the asset is supported
+            if (!lrtConfig.isSupportedAsset(assets[i])) {
+                revert ILRTConfig.AssetNotSupported();
+            }
+
+            _depositAssetIntoStrategy(assets[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @dev Deposits an asset into its strategy.
+    /// The calling function is responsible for ensuring the asset is supported.
+    /// @param asset the asset to deposit
+    function _depositAssetIntoStrategy(address asset) internal {
         address strategy = lrtConfig.assetStrategy(asset);
         if (strategy == address(0)) {
             revert StrategyIsNotSetForAsset();
         }
 
         IERC20 token = IERC20(asset);
-        address eigenlayerStrategyManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER);
-
         uint256 balance = token.balanceOf(address(this));
+
+        // EigenLayer does not allow minting zero shares. Error: StrategyBase.deposit: newShares cannot be zero
+        // So do not deposit if dust amount
+        if (balance <= DUST_AMOUNT) {
+            return;
+        }
+
+        address eigenlayerStrategyManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER);
 
         emit AssetDepositIntoStrategy(asset, strategy, balance);
 

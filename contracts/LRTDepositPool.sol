@@ -310,12 +310,53 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     )
         external
         nonReentrant
-        onlyLRTManager
+        onlyLRTOperator
         onlySupportedAsset(asset)
     {
         address nodeDelegator = nodeDelegatorQueue[ndcIndex];
+        UtilLib.checkNonZeroAddress(nodeDelegator);
+
         if (!IERC20(asset).transfer(nodeDelegator, amount)) {
             revert TokenTransferFailed();
+        }
+    }
+
+    /// @notice Transfers all specified assets lying in this DepositPool to a node delegator
+    /// @dev only callable by LRT Manager
+    /// @param ndcIndex Index of NodeDelegator contract address in nodeDelegatorQueue starting at zero.
+    /// @param assets List of asset addresses
+    function transferAssetsToNodeDelegator(
+        uint256 ndcIndex,
+        address[] calldata assets
+    )
+        external
+        override
+        nonReentrant
+        onlyLRTOperator
+    {
+        address nodeDelegator = nodeDelegatorQueue[ndcIndex];
+        UtilLib.checkNonZeroAddress(nodeDelegator);
+
+        // For each of the specified assets
+        for (uint256 i; i < assets.length;) {
+            // Check the asset is supported
+            if (!lrtConfig.isSupportedAsset(assets[i])) {
+                revert ILRTConfig.AssetNotSupported();
+            }
+
+            // Get the asset's balance held by this contract
+            uint256 amount = IERC20(assets[i]).balanceOf(address(this));
+
+            // If something to transfer
+            if (amount > 0) {
+                // Transfer the asset to the node delegator
+                if (!IERC20(assets[i]).transfer(nodeDelegator, amount)) {
+                    revert TokenTransferFailed();
+                }
+            }
+            unchecked {
+                ++i;
+            }
         }
     }
 
