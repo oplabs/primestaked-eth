@@ -63,6 +63,12 @@ deploy-oracle-mainnet :; forge script script/foundry-scripts/DeployOracle.s.sol:
 upgrade-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/DeployOracle.s.sol:DeployOracle --rpc-url localhost --broadcast -vvv
 upgrade-oracle-local :; forge script script/foundry-scripts/DeployOracle.s.sol:DeployOracle --rpc-url localhost --broadcast -vvv
 
+# Deploy ChainlinkPriceOracle
+deploy-chainlink-mainnet :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+upgrade-chainlink-fork :; IS_FORK=true forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
+upgrade-chainlink-local :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
+
+
 # utils
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
 
