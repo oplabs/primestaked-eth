@@ -53,14 +53,15 @@ contract ForkTest is Test, ContractUpgrades {
         lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
 
-        upgrades();
+        // Any pending deployments or access control changes
+        deployments();
 
         // Unpause all EigenLayer deposits
         unpauseAllStrategies();
     }
 
     /// @dev Any pending contract upgrades or access control changes
-    function upgrades() internal {
+    function deployments() internal {
         // Upgrade to the latest contracts
         upgradeDepositPool();
         upgradeNodeDelegator();
@@ -228,56 +229,42 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function test_transfer_eigen_OETH() public {
-        unpauseStrategy(Addresses.OETH_EIGEN_STRATEGY);
-
         deposit(Addresses.OETH_TOKEN, oWhale, 1 ether);
         transfer_DelegatorNode(Addresses.OETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.OETH_TOKEN, Addresses.OETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_SFRX() public {
-        unpauseStrategy(Addresses.SFRXETH_EIGEN_STRATEGY);
-
         deposit(Addresses.SFRXETH_TOKEN, frxWhale, 1 ether);
         transfer_DelegatorNode(Addresses.SFRXETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.SFRXETH_TOKEN, Addresses.SFRXETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_ETHX() public {
-        unpauseStrategy(Addresses.ETHX_EIGEN_STRATEGY);
-
         deposit(Addresses.ETHX_TOKEN, xWhale, 1 ether);
         transfer_DelegatorNode(Addresses.ETHX_TOKEN, 1 ether);
         transfer_Eigen(Addresses.ETHX_TOKEN, Addresses.ETHX_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_mETH() public {
-        unpauseStrategy(Addresses.METH_EIGEN_STRATEGY);
-
         deposit(Addresses.METH_TOKEN, mWhale, 1 ether);
         transfer_DelegatorNode(Addresses.METH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_STETH() public {
-        unpauseStrategy(Addresses.STETH_EIGEN_STRATEGY);
-
         deposit(Addresses.STETH_TOKEN, stWhale, 1 ether);
         transfer_DelegatorNode(Addresses.STETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.STETH_TOKEN, Addresses.STETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_RETH() public {
-        unpauseStrategy(Addresses.RETH_EIGEN_STRATEGY);
-
         deposit(Addresses.RETH_TOKEN, rWhale, 1 ether);
         transfer_DelegatorNode(Addresses.RETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.RETH_TOKEN, Addresses.RETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_SWETH() public {
-        unpauseStrategy(Addresses.SWETH_EIGEN_STRATEGY);
-
         deposit(Addresses.SWETH_TOKEN, swWhale, 1 ether);
         transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
@@ -309,7 +296,7 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function transfer_DelegatorNode(address asset, uint256 amountToTransfer) internal {
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
@@ -319,7 +306,7 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from nodeDelegator to Eigen asset strategy
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
