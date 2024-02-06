@@ -335,6 +335,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         onlyLRTOperator
     {
         address nodeDelegator = nodeDelegatorQueue[ndcIndex];
+        UtilLib.checkNonZeroAddress(nodeDelegator);
 
         // For each of the specified assets
         for (uint256 i; i < assets.length;) {
