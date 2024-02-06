@@ -6,18 +6,13 @@ import "forge-std/Script.sol";
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { LRTConfig } from "contracts/LRTConfig.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
-// import contract to be upgraded
-// e.g. import "contracts/LRTConfig.sol";
-import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
-
-contract UpgradeDepositPoolNodeDelegator is Script {
-    ProxyAdmin public proxyAdmin;
-
-    function run() public {
+contract DeployNodeDelegator is Script {
+    function run() external {
         if (block.chainid != 1) {
             revert("Not Mainnet");
         }
@@ -33,22 +28,20 @@ contract UpgradeDepositPoolNodeDelegator is Script {
             vm.startBroadcast(deployerPrivateKey);
         }
 
-        proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
+        ProxyAdmin proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
 
-        // Deploy the new Deposit Pool contract
-        address newDepositPoolImpl = address(new LRTDepositPool());
-        console.log("LRTDepositPool implementation deployed at: %s", newDepositPoolImpl);
+        // Deploy the new implementation contract
+        address newImpl = address(new NodeDelegator());
+        console.log("NodeDelegator implementation deployed at: %s", newImpl);
+
         // upgrade proxy if on a fork
         if (isFork) {
-            proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.LRT_DEPOSIT_POOL), newDepositPoolImpl);
-        }
+            proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), newImpl);
 
-        // Deploy the new Deposit Pool contract
-        address newNodeDelegatorImpl = address(new NodeDelegator());
-        console.log("NodeDelegator implementation deployed at: %s", newNodeDelegatorImpl);
-        // upgrade proxy if on a fork
-        if (isFork) {
-            proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.NODE_DELEGATOR), newNodeDelegatorImpl);
+            // Test moving the Operator role from the multisig to the relayer
+            LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
+            config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
+            config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
         }
 
         if (isFork) {
