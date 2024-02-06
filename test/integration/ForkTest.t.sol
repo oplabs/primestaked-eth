@@ -10,6 +10,7 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { ContractUpgrades } from "contracts/utils/ContractUpgrades.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -51,6 +52,28 @@ contract ForkTest is Test, ContractUpgrades {
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
+
+        // Any pending deployments or access control changes
+        deployments();
+
+        // Unpause all EigenLayer deposits
+        unpauseAllStrategies();
+    }
+
+    /// @dev Any pending contract upgrades or access control changes
+    function deployments() internal {
+        // Upgrade to the latest contracts
+        // upgradeDepositPool();
+        // upgradeNodeDelegator();
+        // upgradeOracle();
+        // upgradeChainlinkPriceOracle();
+
+        // Change roles assignments
+        // vm.startPrank(Addresses.ADMIN_ROLE);
+        // LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
+        // config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
+        // config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
+        // vm.stopPrank();
     }
 
     function test_deposit_stETH() public {
@@ -123,12 +146,6 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function test_bulk_transfer_all_eigen() public {
-        // TODO remove this once the Deposit Pool contract has been upgraded
-        upgradeDepositPool();
-        upgradeNodeDelegator();
-        // Unpause all Eigen deposits
-        unpauseAllStrategies();
-
         deposit(Addresses.STETH_TOKEN, stWhale, 10 ether);
         deposit(Addresses.OETH_TOKEN, oWhale, 11 ether);
         deposit(Addresses.ETHX_TOKEN, xWhale, 12 ether);
@@ -184,12 +201,6 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function test_bulk_transfer_some_eigen() public {
-        // TODO remove this once the Deposit Pool contract has been upgraded
-        upgradeDepositPool();
-        upgradeNodeDelegator();
-        // Unpause Eigen deposits
-        unpauseAllStrategies();
-
         // Should transfer `asset` from DepositPool to the Delegator node
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
         vm.expectEmit({
@@ -218,56 +229,42 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function test_transfer_eigen_OETH() public {
-        unpauseStrategy(Addresses.OETH_EIGEN_STRATEGY);
-
         deposit(Addresses.OETH_TOKEN, oWhale, 1 ether);
         transfer_DelegatorNode(Addresses.OETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.OETH_TOKEN, Addresses.OETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_SFRX() public {
-        unpauseStrategy(Addresses.SFRXETH_EIGEN_STRATEGY);
-
         deposit(Addresses.SFRXETH_TOKEN, frxWhale, 1 ether);
         transfer_DelegatorNode(Addresses.SFRXETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.SFRXETH_TOKEN, Addresses.SFRXETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_ETHX() public {
-        unpauseStrategy(Addresses.ETHX_EIGEN_STRATEGY);
-
         deposit(Addresses.ETHX_TOKEN, xWhale, 1 ether);
         transfer_DelegatorNode(Addresses.ETHX_TOKEN, 1 ether);
         transfer_Eigen(Addresses.ETHX_TOKEN, Addresses.ETHX_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_mETH() public {
-        unpauseStrategy(Addresses.METH_EIGEN_STRATEGY);
-
         deposit(Addresses.METH_TOKEN, mWhale, 1 ether);
         transfer_DelegatorNode(Addresses.METH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_STETH() public {
-        unpauseStrategy(Addresses.STETH_EIGEN_STRATEGY);
-
         deposit(Addresses.STETH_TOKEN, stWhale, 1 ether);
         transfer_DelegatorNode(Addresses.STETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.STETH_TOKEN, Addresses.STETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_RETH() public {
-        unpauseStrategy(Addresses.RETH_EIGEN_STRATEGY);
-
         deposit(Addresses.RETH_TOKEN, rWhale, 1 ether);
         transfer_DelegatorNode(Addresses.RETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.RETH_TOKEN, Addresses.RETH_EIGEN_STRATEGY);
     }
 
     function test_transfer_eigen_SWETH() public {
-        unpauseStrategy(Addresses.SWETH_EIGEN_STRATEGY);
-
         deposit(Addresses.SWETH_TOKEN, swWhale, 1 ether);
         transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
@@ -299,7 +296,7 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function transfer_DelegatorNode(address asset, uint256 amountToTransfer) internal {
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
@@ -309,7 +306,7 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from nodeDelegator to Eigen asset strategy
         vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
