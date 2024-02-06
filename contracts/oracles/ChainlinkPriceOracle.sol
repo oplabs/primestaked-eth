@@ -58,7 +58,7 @@ contract ChainlinkPriceOracle is IPriceFetcher, IAssetPriceFeed, LRTConfigRoleCh
     /// @dev only LRTManager is allowed
     /// @param asset asset address for which oracle price feed needs to be added/updated
     /// @param priceFeed chainlink price feed contract which contains exchange rate info
-    function updatePriceFeedFor(address asset, address priceFeed) external onlyLRTManager onlySupportedAsset(asset) {
+    function updatePriceFeedFor(address asset, address priceFeed) external onlyLRTAdmin onlySupportedAsset(asset) {
         UtilLib.checkNonZeroAddress(priceFeed);
         assetPriceFeed[asset] = priceFeed;
         emit AssetPriceFeedUpdate(asset, priceFeed);

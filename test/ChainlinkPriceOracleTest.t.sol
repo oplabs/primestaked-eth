@@ -82,23 +82,23 @@ contract ChainlinkPriceOracleSetPriceFeed is ChainlinkPriceOracleTest {
         priceFeed = new MockPriceAggregator();
     }
 
-    function test_RevertWhenCallerIsNotLRTManager() external {
+    function test_RevertWhenCallerIsNotLRTAdmin() external {
         vm.startPrank(alice);
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigAdmin.selector);
         priceOracle.updatePriceFeedFor(address(ethX), address(priceFeed));
         vm.stopPrank();
     }
 
     function test_RevertWhenAssetIsNotSupported() external {
         address randomAddress = address(0x123);
-        vm.startPrank(manager);
+        vm.startPrank(admin);
         vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
         priceOracle.updatePriceFeedFor(randomAddress, address(priceFeed));
         vm.stopPrank();
     }
 
     function test_RevertWhenPriceFeedIsZero() external {
-        vm.startPrank(manager);
+        vm.startPrank(admin);
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
         priceOracle.updatePriceFeedFor(address(ethX), address(0));
         vm.stopPrank();
@@ -107,7 +107,7 @@ contract ChainlinkPriceOracleSetPriceFeed is ChainlinkPriceOracleTest {
     function test_SetAssetPriceFeed() external {
         assertEq(priceOracle.assetPriceFeed(address(ethX)), address(0));
 
-        vm.startPrank(manager);
+        vm.startPrank(admin);
         expectEmit();
         emit AssetPriceFeedUpdate(address(ethX), address(priceFeed));
         priceOracle.updatePriceFeedFor(address(ethX), address(priceFeed));
@@ -125,7 +125,7 @@ contract ChainlinkPriceOracleFetchAssetPrice is ChainlinkPriceOracleTest {
         priceOracle.initialize(address(lrtConfig));
         priceFeed = new MockPriceAggregator();
 
-        vm.prank(manager);
+        vm.prank(admin);
         priceOracle.updatePriceFeedFor(address(ethX), address(priceFeed));
     }
 
