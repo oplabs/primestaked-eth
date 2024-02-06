@@ -63,17 +63,17 @@ contract ForkTest is Test, ContractUpgrades {
     /// @dev Any pending contract upgrades or access control changes
     function deployments() internal {
         // Upgrade to the latest contracts
-        upgradeDepositPool();
-        upgradeNodeDelegator();
-        upgradeOracle();
-        upgradeChainlinkPriceOracle();
+        // upgradeDepositPool();
+        // upgradeNodeDelegator();
+        // upgradeOracle();
+        // upgradeChainlinkPriceOracle();
 
-        // TODO remove after upgrade
-        vm.startPrank(Addresses.PROXY_OWNER);
-        LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
-        config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
-        config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
-        vm.stopPrank();
+        // Change roles assignments
+        // vm.startPrank(Addresses.ADMIN_ROLE);
+        // LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
+        // config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
+        // config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
+        // vm.stopPrank();
     }
 
     function test_deposit_stETH() public {
