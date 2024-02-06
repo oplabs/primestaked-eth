@@ -10,6 +10,7 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { ContractUpgrades } from "contracts/utils/ContractUpgrades.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -51,6 +52,27 @@ contract ForkTest is Test, ContractUpgrades {
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
+
+        upgrades();
+
+        // Unpause all EigenLayer deposits
+        unpauseAllStrategies();
+    }
+
+    /// @dev Any pending contract upgrades or access control changes
+    function upgrades() internal {
+        // Upgrade to the latest contracts
+        upgradeDepositPool();
+        upgradeNodeDelegator();
+        upgradeOracle();
+        upgradeChainlinkPriceOracle();
+
+        // TODO remove after upgrade
+        vm.startPrank(Addresses.PROXY_OWNER);
+        LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
+        config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
+        config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
+        vm.stopPrank();
     }
 
     function test_deposit_stETH() public {
@@ -123,12 +145,6 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function test_bulk_transfer_all_eigen() public {
-        // TODO remove this once the Deposit Pool contract has been upgraded
-        upgradeDepositPool();
-        upgradeNodeDelegator();
-        // Unpause all Eigen deposits
-        unpauseAllStrategies();
-
         deposit(Addresses.STETH_TOKEN, stWhale, 10 ether);
         deposit(Addresses.OETH_TOKEN, oWhale, 11 ether);
         deposit(Addresses.ETHX_TOKEN, xWhale, 12 ether);
@@ -184,12 +200,6 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function test_bulk_transfer_some_eigen() public {
-        // TODO remove this once the Deposit Pool contract has been upgraded
-        upgradeDepositPool();
-        upgradeNodeDelegator();
-        // Unpause Eigen deposits
-        unpauseAllStrategies();
-
         // Should transfer `asset` from DepositPool to the Delegator node
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
         vm.expectEmit({
