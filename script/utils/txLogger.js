@@ -15,11 +15,11 @@ async function logTxDetails(tx, method, confirm = true) {
   const receipt = await tx.wait();
 
   // Calculate tx cost in Wei
-  const txCost = receipt.gasUsed.mul(tx.gasPrice) ?? 0;
+  const txCost = receipt.gasUsed.mul(tx.gasPrice ?? 0);
   log(
-    `Processed ${method} tx in block ${receipt.blockNumber}, using ${receipt.gasUsed} gas, gas price ${
-      tx.gasPrice ?? 0n / BigInt(1e9)
-    } GWei, costing ${formatUnits(txCost)} ETH`,
+    `Processed ${method} tx in block ${receipt.blockNumber}, using ${receipt.gasUsed} gas costing ${formatUnits(
+      txCost,
+    )} ETH`,
   );
 
   return receipt;

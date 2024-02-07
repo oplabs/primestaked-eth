@@ -12,7 +12,7 @@ const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minD
   const minDepositBN = parseEther(minDeposit.toString());
 
   if (balance.gte(minDepositBN)) {
-    const assetAddress = await asset.getAddress();
+    const assetAddress = await asset.address;
 
     log(`About to transfer ${formatUnits(balance)} ${symbol} to Node Delegator with index ${index}`);
     const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(0, assetAddress, balance);
