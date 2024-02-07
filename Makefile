@@ -68,23 +68,6 @@ deploy-chainlink-mainnet :; forge script script/foundry-scripts/DeployChainlinkP
 upgrade-chainlink-fork :; IS_FORK=true forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
 upgrade-chainlink-local :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
 
-
-# Deploy NodeDelegator
-deploy-node-delegator-mainnet :; forge script script/foundry-scripts/DeployNodeDelegator.s.sol:DeployNodeDelegator --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-upgrade-node-delegator-fork :; IS_FORK=true forge script script/foundry-scripts/DeployNodeDelegator.s.sol:DeployNodeDelegator --rpc-url localhost --broadcast -vvv
-upgrade-node-delegator-local :; forge script script/foundry-scripts/NodeDeDeployNodeDelegatorlegator.s.sol:DeployNodeDelegator --rpc-url localhost --broadcast -vvv
-
-# Deploy LRTOracle
-deploy-oracle-mainnet :; forge script script/foundry-scripts/DeployOracle.s.sol:DeployOracle --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-upgrade-oracle-fork :; IS_FORK=true forge script script/foundry-scripts/DeployOracle.s.sol:DeployOracle --rpc-url localhost --broadcast -vvv
-upgrade-oracle-local :; forge script script/foundry-scripts/DeployOracle.s.sol:DeployOracle --rpc-url localhost --broadcast -vvv
-
-# Deploy ChainlinkPriceOracle
-deploy-chainlink-mainnet :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-upgrade-chainlink-fork :; IS_FORK=true forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
-upgrade-chainlink-local :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
-
-
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)
     BLOCK_PARAM=--fork-block-number=${BLOCK_NUMBER}
