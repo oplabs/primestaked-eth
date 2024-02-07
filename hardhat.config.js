@@ -24,7 +24,7 @@ module.exports = {
     hardhat: {
       forking: {
         url: `${process.env.FORK_RPC_URL}`,
-        ...(process.env.BLOCK_NUMBER ? { blockNumber: process.env.BLOCK_NUMBER } : {}),
+        ...(process.env.BLOCK_NUMBER ? { blockNumber: parseInt(process.env.BLOCK_NUMBER) } : {}),
       },
     },
     mainnet: {

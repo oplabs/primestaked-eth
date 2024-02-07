@@ -69,8 +69,11 @@ upgrade-chainlink-fork :; IS_FORK=true forge script script/foundry-scripts/Deplo
 upgrade-chainlink-local :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
 
 
-# utils
-node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate
+# Started a local forked node
+ifneq ($(BLOCK_NUMBER),)
+    BLOCK_PARAM=--fork-block-number=${BLOCK_NUMBER}
+endif
+node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate ${BLOCK_PARAM}
 
 # test commands
 unit-test:; forge test --no-match-contract "(Skip|IntegrationTest|ForkTest)"

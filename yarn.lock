@@ -844,7 +844,7 @@
     axios "^1.4.0"
     lodash "^4.17.21"
 
-"@openzeppelin/defender-sdk@^1.7.0":
+"@openzeppelin/defender-sdk@^1.9.0":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/defender-sdk/-/defender-sdk-1.9.0.tgz#86d41f1492a97dad5a0a783da251c135d84719d5"
   integrity sha512-8L0KzaBHfboI0BdRFpmOynYqhODHcSx/6VrVBINp65m7eXtVQZzPz8WJFNZpaHyyTftMYyNCfz/haLsyAvbHWw==
@@ -2039,7 +2039,7 @@ ethers@^5.7.1:
     "@ethersproject/web" "5.7.1"
     "@ethersproject/wordlists" "5.7.0"
 
-ethers@^6.9, ethers@^6.9.0:
+ethers@^6.10.0, ethers@^6.9.0:
   version "6.10.0"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-6.10.0.tgz#20f3c63c60d59a993f8090ad423d8a3854b3b1cd"
   integrity sha512-nMNwYHzs6V1FR3Y4cdfxSQmNgZsRj1RiTU25JwvnJLmyzw9z3SKxNc2XKDuiXXo/v9ds5Mp9m6HBabgYQQ26tA==
