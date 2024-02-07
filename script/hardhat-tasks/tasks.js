@@ -1,6 +1,6 @@
 const { subtask, task, types } = require("hardhat/config");
 
-const { depositEL } = require("./prime");
+const { depositAssetEL, depositAllEL } = require("./prime");
 const { setAutotaskVars } = require("./autotask");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -9,16 +9,29 @@ const addresses = require("../utils/addresses");
 require("./prime");
 
 // Prime Staked
-subtask("depositEL", "Deposit an asset to EigenLayer")
+subtask("depositAssetEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "OETH", types.string)
   .addParam("index", "Index of Node Delegator", 0, types.int)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPool = await hre.ethers.getContractAt("LRTDepositPool", addresses.mainnet.LRT_DEPOSIT_POOL);
     const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", addresses.mainnet.NODE_DELEGATOR);
-    await depositEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+    await depositAssetEL({ signer, depositPool, nodeDelegator, ...taskArgs });
   });
-task("depositEL").setAction(async (_, __, runSuper) => {
+task("depositAssetEL").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("depositAllEL", "Deposit an asset to EigenLayer")
+  .addParam("index", "Index of Node Delegator", 0, types.int)
+  .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 1, types.float)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const depositPool = await hre.ethers.getContractAt("LRTDepositPool", addresses.mainnet.LRT_DEPOSIT_POOL);
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", addresses.mainnet.NODE_DELEGATOR);
+    await depositAllEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+  });
+task("depositAllEL").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
