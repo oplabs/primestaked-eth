@@ -1,42 +1,32 @@
 const { subtask, task, types } = require("hardhat/config");
 
-const { depositAssetEL, depositAllEL } = require("./prime");
+const { depositAssetEL, depositAllEL } = require("./deposits");
 const { setAutotaskVars } = require("./autotask");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const addresses = require("../utils/addresses");
 
-require("./prime");
-
 // Prime Staked
-subtask("depositAssetEL", "Deposit an asset to EigenLayer")
-  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "OETH", types.string)
-  .addParam("index", "Index of Node Delegator", 0, types.int)
-  .setAction(async (taskArgs) => {
-    const signer = await getSigner();
-    const depositPool = await hre.ethers.getContractAt("LRTDepositPool", addresses.mainnet.LRT_DEPOSIT_POOL);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", addresses.mainnet.NODE_DELEGATOR);
-    await depositAssetEL({ signer, depositPool, nodeDelegator, ...taskArgs });
-  });
-task("depositAssetEL").setAction(async (_, __, runSuper) => {
-  return runSuper();
-});
-
-subtask("depositAllEL", "Deposit an asset to EigenLayer")
+subtask("depositEL", "Deposit an asset to EigenLayer")
+  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "ALL", types.string)
   .addParam("index", "Index of Node Delegator", 0, types.int)
   .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 1, types.float)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPool = await hre.ethers.getContractAt("LRTDepositPool", addresses.mainnet.LRT_DEPOSIT_POOL);
     const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", addresses.mainnet.NODE_DELEGATOR);
-    await depositAllEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+    if (taskArgs.symbol === "ALL") {
+      await depositAllEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+    } else {
+      await depositAssetEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+    }
   });
-task("depositAllEL").setAction(async (_, __, runSuper) => {
+task("depositEL").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
 // Defender
-subtask("setAutotaskVars", "Set environment variables on Defender Autotasks. eg DEBUG=origin*")
+subtask("setAutotaskVars", "Set environment variables on Defender Autotasks. eg DEBUG=prime*")
   .addOptionalParam("id", "Identifier of the Defender Autotask", "ffcfc580-7b0a-42ed-a4f2-3f0a3add9779", types.string)
   .setAction(setAutotaskVars);
 task("setAutotaskVars").setAction(async (_, __, runSuper) => {

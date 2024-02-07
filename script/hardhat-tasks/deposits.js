@@ -3,7 +3,7 @@ const { resolveAddress, resolveAsset } = require("../utils/assets");
 const addresses = require("../utils/addresses");
 const { formatUnits, parseEther } = require("ethers");
 
-const log = require("../utils/logger")("task:prime");
+const log = require("../utils/logger")("task:deposits");
 
 const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, index, confirm }) => {
   const assetAddress = resolveAddress(symbol);
@@ -38,7 +38,7 @@ const depositAllEL = async (options) => {
     const resolvedSymbol = await asset.symbol();
     if (balance > minDepositBN) {
       log(`About to deposit ${formatUnits(balance)} ${resolvedSymbol} to EigenLayer`);
-      depositAssetEL({ ...options, symbol: resolvedSymbol });
+      await depositAssetEL({ ...options, symbol: resolvedSymbol });
     } else {
       log(`Skipping deposit of ${resolvedSymbol} as the balance is ${formatUnits(balance)}`);
     }
