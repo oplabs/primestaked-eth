@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-require("@nomicfoundation/hardhat-ethers");
+require("@nomiclabs/hardhat-ethers");
 require("@nomicfoundation/hardhat-foundry");
 
 require("./script/hardhat-tasks/tasks");
@@ -31,7 +31,7 @@ module.exports = {
       url: `${process.env.MAINNET_RPC_URL}`,
     },
     goerli: {
-      url: `${process.env.PROVIDER_URL_TESTNET}`,
+      url: `${process.env.GOERLI_RPC_URL}`,
     },
     local: {
       url: "http://localhost:8545",

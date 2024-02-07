@@ -1,7 +1,7 @@
 const { logTxDetails } = require("../utils/txLogger");
-const { resolveAddress, resolveAsset } = require("../utils/assets");
+const { resolveAsset } = require("../utils/assets");
 const addresses = require("../utils/addresses");
-const { formatUnits, parseEther } = require("ethers");
+const { formatUnits, parseEther } = require("ethers").utils;
 
 const log = require("../utils/logger")("task:deposits");
 
@@ -11,7 +11,7 @@ const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minD
   const balance = await asset.balanceOf(addresses.mainnet.LRT_DEPOSIT_POOL);
   const minDepositBN = parseEther(minDeposit.toString());
 
-  if (balance >= minDepositBN) {
+  if (balance.gte(minDepositBN)) {
     const assetAddress = await asset.getAddress();
 
     log(`About to transfer ${formatUnits(balance)} ${symbol} to Node Delegator with index ${index}`);
