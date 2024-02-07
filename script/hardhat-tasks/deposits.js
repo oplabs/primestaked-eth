@@ -47,7 +47,7 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
     const symbol = await asset.symbol();
 
     const balance = await asset.balanceOf(addresses.mainnet.LRT_DEPOSIT_POOL);
-    if (balance >= minDepositBN) {
+    if (balance.gte(minDepositBN)) {
       log(`Will deposit ${formatUnits(balance)} ${symbol}`);
       depositAssets.push(assetAddress);
       symbols.push(symbol);
@@ -56,13 +56,17 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
     }
   }
 
-  log(`About to transfer assets ${symbols} to Node Delegator with index ${index}`);
-  const tx1 = await depositPool.connect(signer).transferAssetsToNodeDelegator(0, depositAssets);
-  await logTxDetails(tx1, "transferAssetToNodeDelegator");
+  if (depositAssets.length > 0) {
+    log(`About to transfer assets ${symbols} to Node Delegator with index ${index}`);
+    const tx1 = await depositPool.connect(signer).transferAssetsToNodeDelegator(0, depositAssets);
+    await logTxDetails(tx1, "transferAssetToNodeDelegator");
 
-  log(`About to deposit assets to EigenLayer`);
-  const tx2 = await nodeDelegator.connect(signer).depositAssetsIntoStrategy(depositAssets);
-  await logTxDetails(tx2, "depositAssetIntoStrategy");
+    log(`About to deposit assets to EigenLayer`);
+    const tx2 = await nodeDelegator.connect(signer).depositAssetsIntoStrategy(depositAssets);
+    await logTxDetails(tx2, "depositAssetIntoStrategy");
+  } else {
+    console.log("No assets to deposit");
+  }
 };
 
 module.exports = { depositAssetEL, depositAllEL };
