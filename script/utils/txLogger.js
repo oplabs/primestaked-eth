@@ -9,9 +9,7 @@ const log = require("./logger")("utils:txLogger");
  * @returns {ContractReceipt} transaction receipt
  */
 async function logTxDetails(tx, method, confirm = true) {
-  log(
-    `Sent ${method} transaction with hash ${tx.hash} from ${tx.from} with nonce ${tx.nonce}`
-  );
+  log(`Sent ${method} transaction with hash ${tx.hash} from ${tx.from} with nonce ${tx.nonce}`);
 
   if (!confirm) return;
   const receipt = await tx.wait();
@@ -19,11 +17,9 @@ async function logTxDetails(tx, method, confirm = true) {
   // Calculate tx cost in Wei
   const txCost = receipt.gasUsed * tx.gasPrice ?? 0;
   log(
-    `Processed ${method} tx in block ${receipt.blockNumber}, using ${
-      receipt.gasUsed
-    } gas, gas price ${
+    `Processed ${method} tx in block ${receipt.blockNumber}, using ${receipt.gasUsed} gas, gas price ${
       tx.gasPrice ?? 0n / BigInt(1e9)
-    } GWei, costing ${formatUnits(txCost)} ETH`
+    } GWei, costing ${formatUnits(txCost)} ETH`,
   );
 
   return receipt;

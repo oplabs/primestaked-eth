@@ -1,7 +1,7 @@
 const { subtask, task, types } = require("hardhat/config");
 
 const { depositAssetEL, depositAllEL } = require("./deposits");
-const { setAutotaskVars } = require("./autotask");
+const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const addresses = require("../utils/addresses");
@@ -26,10 +26,10 @@ task("depositEL").setAction(async (_, __, runSuper) => {
 });
 
 // Defender
-subtask("setAutotaskVars", "Set environment variables on Defender Autotasks. eg DEBUG=prime*")
-  .addOptionalParam("id", "Identifier of the Defender Autotask", "ffcfc580-7b0a-42ed-a4f2-3f0a3add9779", types.string)
-  .setAction(setAutotaskVars);
-task("setAutotaskVars").setAction(async (_, __, runSuper) => {
+subtask("setActionVars", "Set environment variables on a Defender Actions. eg DEBUG=prime*")
+  .addParam("id", "Identifier of the Defender Actions", undefined, types.string)
+  .setAction(setActionVars);
+task("setActionVars").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

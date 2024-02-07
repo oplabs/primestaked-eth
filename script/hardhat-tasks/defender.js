@@ -1,19 +1,19 @@
 const { AutotaskClient } = require("@openzeppelin/defender-autotask-client");
 
-const setAutotaskVars = async (options) => {
+const setActionVars = async (options) => {
   const creds = {
-    apiKey: process.env.API_KEY,
-    apiSecret: process.env.API_SECRET,
+    apiKey: process.env.DEFENDER_TEAM_KEY,
+    apiSecret: process.env.DEFENDER_TEAM_SECRET,
   };
   const client = new AutotaskClient(creds);
 
   // Update Variables
   const variables = await client.updateEnvironmentVariables(options.id, {
-    DEBUG: "origin*",
+    DEBUG: "prime*",
   });
   console.log("updated Autotask environment variables", variables);
 };
 
 module.exports = {
-  setAutotaskVars,
+  setActionVars,
 };
