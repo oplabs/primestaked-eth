@@ -32,7 +32,7 @@ const resolveAsset = async (symbol, signer) => {
   if (!symbol.match(ethereumAddress)) {
     log(`Resolved ${symbol} to ${assetAddr}`);
   }
-  // const asset = await ethers.getContractAt("IERC20Metadata", assetAddr);
+  
   const asset = new ethers.Contract(assetAddr, ecr20Abi, signer);
 
   if (symbol.match(ethereumAddress)) {
