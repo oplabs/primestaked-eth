@@ -1,9 +1,9 @@
+const { ethers } = require("ethers");
+
 const addresses = require("./addresses");
 const { ethereumAddress } = require("./regex");
-// Commented out as Hardhat will load a version of ethers with helper function getContractAt
-// which comes from the @nomicfoundation/hardhat-ethers package.
-// The following needs to be uncommented if building for an Autotask
-// const { ethers } = require("ethers");
+
+const { abi: ecr20Abi } = require("../../out/IERC20Metadata.sol/IERC20Metadata.json");
 
 const log = require("../utils/logger")("utils:assets");
 
@@ -24,7 +24,7 @@ const resolveAddress = (symbol) => {
  * Resolves a token symbol to a ERC20 token contract.
  * @param {string} symbol token symbol of the asset. eg OUSD, USDT, stETH, CRV...
  */
-const resolveAsset = async (symbol) => {
+const resolveAsset = async (symbol, signer) => {
   const assetAddr = addresses.mainnet[symbol] || addresses.mainnet[symbol + "Proxy"] || symbol;
   if (!assetAddr) {
     throw Error(`Failed to resolve symbol "${symbol}" to an address`);
@@ -32,7 +32,8 @@ const resolveAsset = async (symbol) => {
   if (!symbol.match(ethereumAddress)) {
     log(`Resolved ${symbol} to ${assetAddr}`);
   }
-  const asset = await ethers.getContractAt("IERC20Metadata", assetAddr);
+  // const asset = await ethers.getContractAt("IERC20Metadata", assetAddr);
+  const asset = new ethers.Contract(assetAddr, ecr20Abi, signer);
 
   if (symbol.match(ethereumAddress)) {
     log(`Resolved ${symbol} to ${await asset.symbol()} asset`);

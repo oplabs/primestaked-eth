@@ -299,14 +299,27 @@ npx rollup -c
 
 The following will upload the different Action bundles to Defender.
 
-```
-# Deposit to EigenLayer
-npx defender-autotask update-code 184e6533-9413-48be-ac01-4a63f87c3035 ./dist/depositAllEL
+```sh
+# change to the defender-actions folder
+cd ./script/defender-actions
+
+# Export the DEFENDER_TEAM_KEY and DEFENDER_TEAM_SECRET environment variables
+export DEFENDER_TEAM_KEY=
+export DEFENDER_TEAM_SECRET=
+# Alternatively, the following can be used but it will export all env var including DEPLOYER_PRIVATE_KEY and LOCAL_DEPLOYER_PRIVATE_KEY
+# set -o allexport && source ../../.env && set +o allexport
+
 # Set the DEBUG environment variable to prime* for the Defender Action
 npx hardhat setActionVars --id 184e6533-9413-48be-ac01-4a63f87c3035
+
+# Upload Deposit to EigenLayer code
+# The Defender autotask client uses generic env var names so we'll set them first from the values in the .env file
+export API_KEY=${DEFENDER_TEAM_KEY}
+export API_SECRET=${DEFENDER_TEAM_SECRET}
+npx defender-autotask update-code 184e6533-9413-48be-ac01-4a63f87c3035 ./dist/depositAllEL
 ```
 
-`rollup` and `defender-autotask` can be installed globally to avoid the `npx` prefix.
+`rollup` and `defender-autotask-client` can be installed globally to avoid the `npx` prefix.
 
 ### Defender Actions
 

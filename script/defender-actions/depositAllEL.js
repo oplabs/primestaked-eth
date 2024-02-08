@@ -23,7 +23,6 @@ const handler = async (event) => {
     nodeDelegator,
     index: 0,
     minDeposit: 1,
-    confirm: false,
   });
 };
 

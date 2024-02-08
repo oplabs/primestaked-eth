@@ -5,8 +5,8 @@ const { formatUnits, parseEther } = require("ethers").utils;
 
 const log = require("../utils/logger")("task:deposits");
 
-const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minDeposit, index, confirm }) => {
-  const asset = await resolveAsset(symbol);
+const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minDeposit, index }) => {
+  const asset = await resolveAsset(symbol, signer);
 
   const balance = await asset.balanceOf(addresses.mainnet.LRT_DEPOSIT_POOL);
   const minDepositBN = parseEther(minDeposit.toString());
@@ -16,11 +16,11 @@ const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minD
 
     log(`About to transfer ${formatUnits(balance)} ${symbol} to Node Delegator with index ${index}`);
     const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(0, assetAddress, balance);
-    await logTxDetails(tx1, "transferAssetToNodeDelegator", confirm);
+    await logTxDetails(tx1, "transferAssetToNodeDelegator");
 
     log(`About to deposit ${symbol} to EigenLayer`);
     const tx2 = await nodeDelegator.connect(signer).depositAssetIntoStrategy(assetAddress);
-    await logTxDetails(tx2, "depositAssetIntoStrategy", confirm);
+    await logTxDetails(tx2, "depositAssetIntoStrategy");
   } else {
     log(`Skipping deposit of ${await asset.symbol()} as the balance is ${formatUnits(balance)}`);
   }
@@ -43,7 +43,7 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
   const symbols = [];
 
   for (const assetAddress of assetAddresses) {
-    const asset = await resolveAsset(assetAddress);
+    const asset = await resolveAsset(assetAddress, signer);
     const symbol = await asset.symbol();
 
     const balance = await asset.balanceOf(addresses.mainnet.LRT_DEPOSIT_POOL);
@@ -57,7 +57,7 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
   }
 
   if (depositAssets.length > 0) {
-    log(`About to transfer assets ${symbols} to Node Delegator with index ${index}`);
+    console.log(`About to transfer assets ${symbols} to Node Delegator with index ${index}`);
     const tx1 = await depositPool.connect(signer).transferAssetsToNodeDelegator(0, depositAssets);
     await logTxDetails(tx1, "transferAssetToNodeDelegator");
 

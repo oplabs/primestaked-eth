@@ -11,7 +11,7 @@ const log = require("../utils/logger")("task:tokens");
 async function tokenBalance({ account, block, symbol }) {
   const signer = await getSigner();
 
-  const asset = await resolveAsset(symbol);
+  const asset = await resolveAsset(symbol, signer);
   const accountAddr = account || (await signer.getAddress());
 
   const blockTag = await getBlockNumber(block);
@@ -26,7 +26,7 @@ async function tokenBalance({ account, block, symbol }) {
 async function tokenAllowance({ block, owner, spender, symbol }) {
   const signer = await getSigner();
 
-  const asset = await resolveAsset(symbol);
+  const asset = await resolveAsset(symbol, signer);
   const ownerAddr = owner || (await signer.getAddress());
 
   const blockTag = await getBlockNumber(block);
@@ -44,7 +44,7 @@ async function tokenApprove({ amount, symbol, spender }) {
     throw new Error(`Invalid Ethereum address: ${spender}`);
   }
 
-  const asset = await resolveAsset(symbol);
+  const asset = await resolveAsset(symbol, signer);
   const assetUnits = parseUnits(amount.toString(), await asset.decimals());
 
   log(`About to approve ${spender} to spend ${amount} ${symbol}`);
@@ -71,7 +71,7 @@ async function tokenTransfer({ amount, symbol, to }) {
     return;
   }
 
-  const asset = await resolveAsset(symbol);
+  const asset = await resolveAsset(symbol, signer);
   const assetUnits = parseUnits(amount.toString(), await asset.decimals());
 
   log(`About to transfer ${amount} ${symbol} to ${to}`);
@@ -90,7 +90,7 @@ async function tokenTransferFrom({ amount, symbol, from, to }) {
   }
   const toAddr = to || (await signer.getAddress());
 
-  const asset = await resolveAsset(symbol);
+  const asset = await resolveAsset(symbol, signer);
   const assetUnits = parseUnits(amount.toString(), await asset.decimals());
 
   log(`About to transfer ${amount} ${symbol} from ${from} to ${toAddr}`);
