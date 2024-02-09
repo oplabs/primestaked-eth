@@ -10,20 +10,26 @@
     "test": "forge test",
     "test:coverage": "forge coverage",
     "test:coverage:report": "forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage",
-    "metrics": "npx solidity-code-metrics contracts/*.sol contracts/**/*.sol > metrics.md",
-    "upgrade:mainnet": "npx hardhat run script/hardhat-scripts/upgrade.ts --network mainnet",
-    "upgrade:goerli": "npx hardhat run script/hardhat-scripts/upgrade.ts --network goerli"
+    "metrics": "npx solidity-code-metrics contracts/*.sol contracts/**/*.sol > metrics.md"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
-    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
-    "@openzeppelin/hardhat-upgrades": "^2.3.3",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@openzeppelin/defender-autotask-client": "^1.54.1",
+    "@openzeppelin/defender-sdk": "^1.9.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "ethers": "^5.7.2",
     "hardhat": "^2.18.3",
     "prettier": "^3.0.3",
+    "rollup": "^4.9.1",
+    "solhint": "^4.0.0",
     "solidity-code-metrics": "^0.0.25"
   },
   "dependencies": {
-    "dotenv": "^16.3.1",
-    "solhint": "^4.0.0"
+    "dotenv": "^16.3.1"
   }
 }
