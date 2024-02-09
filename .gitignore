@@ -21,3 +21,6 @@ metrics.md
 
 data/tx.*.json
 data/*.csv
+
+# Defender Actions
+dist

@@ -112,7 +112,7 @@ contract LRTDepositPoolInitialize is LRTDepositPoolTest {
     }
 }
 
-contract test_GetETHDistributionData is LRTDepositPoolTest {
+contract LRTDepositPoolDepositETH is LRTDepositPoolTest {
     function setUp() public override {
         super.setUp();
 
@@ -151,11 +151,12 @@ contract test_GetETHDistributionData is LRTDepositPoolTest {
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
-        minimunAmountOfPRETHToReceive = lrtDepositPool.getMintAmount(LRTConstants.ETH_TOKEN, 1 ether);
+        uint256 depositAmount = 1 ether;
+        minimunAmountOfPRETHToReceive = lrtDepositPool.getMintAmount(LRTConstants.ETH_TOKEN, depositAmount);
 
         expectEmit();
-        emit ETHDeposit(alice, 1 ether, minimunAmountOfPRETHToReceive, referralId);
-        lrtDepositPool.depositETH{ value: 1 ether }(minimunAmountOfPRETHToReceive, referralId);
+        emit ETHDeposit(alice, depositAmount, minimunAmountOfPRETHToReceive, referralId);
+        lrtDepositPool.depositETH{ value: depositAmount }(minimunAmountOfPRETHToReceive, referralId);
 
         // alice balance of prETH after deposit
         uint256 aliceBalanceAfter = preth.balanceOf(address(alice));
@@ -488,8 +489,9 @@ contract LRTDepositPoolGetETHDistributionData is LRTDepositPoolTest {
         lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueue);
         vm.stopPrank();
 
-        // deposit 3 ether
+        // deposit 5 ether
         vm.startPrank(alice);
+        minimunAmountOfPRETHToReceive = 5 ether;
         lrtDepositPool.depositETH{ value: 5 ether }(minimunAmountOfPRETHToReceive, referralId);
         vm.stopPrank();
 
