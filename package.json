@@ -10,6 +10,8 @@
     "test": "forge test",
     "test:coverage": "forge coverage",
     "test:coverage:report": "forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage",
+    "test:unit": "forge test --no-match-contract \"(Skip|IntegrationTest|Fork)\"",
+    "test:fork": "forge test --no-match-contract \"Skip\" --match-contract \"IntegrationTest\"",
     "metrics": "npx solidity-code-metrics contracts/*.sol contracts/**/*.sol > metrics.md"
   },
   "devDependencies": {
