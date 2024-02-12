@@ -15,6 +15,7 @@ interface INodeDelegator {
     error TokenTransferFailed();
     error StrategyIsNotSetForAsset();
     error InvalidETHSender();
+    error InsufficientWETH(uint256 balance);
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
@@ -26,5 +27,4 @@ interface INodeDelegator {
 
     function getAssetBalance(address asset) external view returns (uint256);
     function getETHEigenPodBalance() external view returns (uint256);
-    function sendETHFromDepositPoolToNDC() external payable;
 }

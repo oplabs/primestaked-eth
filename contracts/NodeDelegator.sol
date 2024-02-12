@@ -9,6 +9,7 @@ import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 import { IEigenStrategyManager } from "./interfaces/IEigenStrategyManager.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
+import { IWETH } from "./interfaces/IWETH.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -221,6 +222,14 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         external
         onlyLRTOperator
     {
+        IWETH weth = IWETH(LRTConstants.WETH_TOKEN_ADDRESS);
+        uint256 wethBalance = weth.balanceOf(address(this));
+        if (wethBalance < 32 ether) {
+            revert InsufficientWETH(wethBalance);
+        }
+        // convert WETH asset to native ETH
+        weth.withdraw(32 ether);
+
         // Call the stake function in the EigenPodManager
         IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
         eigenPodManager.stake{ value: 32 ether }(pubkey, signature, depositDataRoot);
@@ -265,17 +274,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @dev Returns to normal state. Contract must be paused
     function unpause() external onlyLRTAdmin {
         _unpause();
-    }
-
-    /// @dev allow NodeDelegator to receive ETH
-    function sendETHFromDepositPoolToNDC() external payable override {
-        // only allow LRT deposit pool to send ETH to this contract
-        address lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
-        if (msg.sender != lrtDepositPool) {
-            revert InvalidETHSender();
-        }
-
-        emit ETHDepositFromDepositPool(msg.value);
     }
 
     /// @dev opts in for rebase so the asset's token balance will increase

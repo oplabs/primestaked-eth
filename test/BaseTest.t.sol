@@ -5,12 +5,13 @@ pragma solidity 0.8.21;
 import { Test } from "forge-std/Test.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
+import { MockWETH } from "contracts/mocks/MockWETH.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
 contract BaseTest is Test {
     MockToken public stETH;
     MockToken public ethX;
-    MockToken public weth;
+    MockWETH public weth;
 
     MockToken public rETH;
     MockToken public cbETH;
@@ -26,8 +27,8 @@ contract BaseTest is Test {
     function setUp() public virtual {
         stETH = new MockToken("staked ETH", "stETH");
         ethX = new MockToken("ETHX", "ethX");
-        deployCodeTo("MockToken.sol", abi.encode("WETH", "weth"), LRTConstants.WETH_TOKEN_ADDRESS);
-        weth = MockToken(LRTConstants.WETH_TOKEN_ADDRESS);
+        deployCodeTo("MockWETH.sol", abi.encode("WETH", "weth"), LRTConstants.WETH_TOKEN_ADDRESS);
+        weth = MockWETH(LRTConstants.WETH_TOKEN_ADDRESS);
         rETH = new MockToken("rETH", "rETH");
         cbETH = new MockToken("cbETH", "cbETH");
 

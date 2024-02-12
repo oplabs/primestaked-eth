@@ -11,6 +11,7 @@ import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/trans
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import { BeaconChainProofs } from "contracts/interfaces/IEigenPod.sol";
+import { MockWETH } from "contracts/mocks/MockWETH.sol";
 
 contract MockEigenStrategyManager {
     mapping(address depositor => mapping(address strategy => uint256 shares)) public depositorStrategyShareBalances;
@@ -431,8 +432,10 @@ contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
         vm.prank(manager);
         nodeDel.createEigenPod();
 
-        // add ETH to nodeDelegator so it can deposit it into the EigenPodManager
-        vm.deal(address(nodeDel), 1000 ether);
+        // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
+        uint256 amount = 1000 ether;
+        weth.mint(address(nodeDel), amount);
+        vm.deal(LRTConstants.WETH_TOKEN_ADDRESS, amount);
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
@@ -452,13 +455,13 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
 
-        amount = 32 ether;
-
         vm.prank(manager);
         nodeDel.createEigenPod();
 
-        // add ETH to nodeDelegator so it can deposit it into the EigenPodManager
-        vm.deal(address(nodeDel), amount);
+        // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
+        amount = 32 ether;
+        weth.mint(address(nodeDel), amount);
+        vm.deal(LRTConstants.WETH_TOKEN_ADDRESS, amount);
     }
 
     function test_revertWhenCallerIsNotLRTOperator() external {
@@ -469,16 +472,16 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
     }
 
     function test_stakeETH() external {
-        uint256 nodeDelBalanceBefore = address(nodeDel).balance;
+        uint256 nodeDelWethBefore = weth.balanceOf(address(nodeDel));
         uint256 ethEigenPodBalanceBefore = nodeDel.getETHEigenPodBalance();
 
         vm.prank(operator);
         nodeDel.stakeEth(hex"", hex"", hex"");
 
-        uint256 nodeDelBalanceAfter = address(nodeDel).balance;
+        uint256 nodeDelWethAfter = weth.balanceOf(address(nodeDel));
 
-        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not increase");
-        assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amount, "NodeDelegator balance did not increase");
+        assertLt(nodeDelWethAfter, nodeDelWethBefore, "NodeDelegator balance did not decrease");
+        assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
 
         uint256 ethEigenPodBalance = nodeDel.getETHEigenPodBalance();
         assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
@@ -496,8 +499,10 @@ contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
         vm.prank(manager);
         nodeDel.createEigenPod();
 
-        // add ETH to nodeDelegator so it can deposit it into the EigenPodManager
-        vm.deal(address(nodeDel), 1000 ether);
+        // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
+        uint256 amount = 1000 ether;
+        weth.mint(address(nodeDel), amount);
+        vm.deal(LRTConstants.WETH_TOKEN_ADDRESS, amount);
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
@@ -601,40 +606,5 @@ contract NodeDelegatorUnpause is NodeDelegatorTest {
         vm.stopPrank();
 
         assertFalse(nodeDel.paused(), "Contract is still paused");
-    }
-}
-
-contract NodeDelegatorSendETHFromDepositPoolToNDC is NodeDelegatorTest {
-    address public lrtDepositPool;
-    uint256 public amount;
-
-    function setUp() public override {
-        super.setUp();
-        nodeDel.initialize(address(lrtConfig));
-
-        amount = 32 ether;
-
-        // add ETH to LRTDepositPool
-        lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
-        vm.deal(lrtDepositPool, amount);
-    }
-
-    function test_RevertWhenCallerIsNotLRTDepositPool() external {
-        vm.startPrank(alice);
-        vm.expectRevert(INodeDelegator.InvalidETHSender.selector);
-        nodeDel.sendETHFromDepositPoolToNDC();
-        vm.stopPrank();
-    }
-
-    function test_SendETHFromDepositPoolToNDC() external {
-        assertEq(address(nodeDel).balance, 0, "Incorrect balance before sending ETH from LRTDepositPool");
-        // it is callable by LRTDepositPool
-        vm.startPrank(lrtDepositPool);
-        expectEmit();
-        emit ETHDepositFromDepositPool(amount);
-        nodeDel.sendETHFromDepositPoolToNDC{ value: amount }();
-        vm.stopPrank();
-
-        assertEq(address(nodeDel).balance, amount, "Incorrect balance after sending ETH from LRTDepositPool");
     }
 }
