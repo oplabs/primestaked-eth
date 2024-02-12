@@ -40,6 +40,7 @@ contract DeployMinimal is Script {
 
         // add oracle to LRT config
         lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
+        lrtConfigProxy.grantRole(LRTConstants.OPERATOR_ROLE, deployerAddress);
     }
 
     function run() external {
