@@ -1,0 +1,78 @@
+{
+  "0xbf5495Efe5DB9ce00f80364C8B423567e58d2110": {
+    "protocolName": "Renzo",
+    "contractName": "EzEthToken"
+  },
+  "0x74a09653A083691711cF8215a6ab074BB4e99ef5": {
+    "protocolName": "Renzo",
+    "contractName": "RestakeManager"
+  },
+  "0xbaf5f3a05bd7af6f3a0bba207803bf77e2657c8f": {
+    "protocolName": "Renzo",
+    "contractName": "OperatorDelegator"
+  },
+  "0x5a12796f7e7ebbbc8a402667d266d2e65a814042": {
+    "protocolName": "Renzo",
+    "contractName": "RenzoOracle"
+  },
+  "0x4994efc62101a9e3f885d872514c2dc7b3235849": {
+    "protocolName": "Renzo",
+    "contractName": "RoleManager"
+  },
+  "0xf2F305D14DCD8aaef887E0428B3c9534795D0d60": {
+    "protocolName": "Renzo",
+    "contractName": "DepositQueue"
+  },
+  "0x858646372cc42e1a627fce94aa7a7033e7cf075a": {
+    "protocolName": "EigenLayer",
+    "contractName": "StrategyManager"
+  },
+  "0xa4C637e0F704745D182e4D38cAb7E7485321d059": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "OETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "sfrxETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x298aFB19A105D59E74658C4C334Ff360BadE6dd2": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "mETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x93c4b944d05dfe6df7645a86cd2206016c51564d": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "stETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x1bee69b7dfffa4e2d53c2a2df135c388ad25dcd2": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "rETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x0fe4f44bee93503346a3ac9ee5a26b130a5796d6": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "swETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x9d7ed45ee2e8fc5482fa2428f15c971e6369011d": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "ETHx",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x7ca911e83dabf90c90dd3de5411a10f1a6112184": {
+    "protocolName": "EigenLayer",
+    "tokenSymbol": "wBETH",
+    "contractName": "StrategyBaseTVLLimits"
+  },
+  "0x0b1981a9fcc24a445de15141390d3e46da0e425c": {
+    "protocolName": "Renzo",
+    "contractName": "OperatorDelegator"
+  },
+  "0x91e677b07f7af907ec9a428aafa9fc14a0d3a338": {
+    "protocolName": "EigenLayer",
+    "contractName": "EigenPodManager"
+  }
+}
