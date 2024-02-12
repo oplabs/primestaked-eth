@@ -56,6 +56,9 @@ contract ForkTest is Test, ContractUpgrades {
         // Any pending deployments or access control changes
         deployments();
 
+        // Unpause Prime Staked if its paused
+        unpausePrime();
+
         // Unpause all EigenLayer deposits
         unpauseAllStrategies();
     }
@@ -313,6 +316,15 @@ contract ForkTest is Test, ContractUpgrades {
         emit Transfer(address(nodeDelegator1), strategy, 0);
 
         nodeDelegator1.depositAssetIntoStrategy(asset);
+    }
+
+    function unpausePrime() internal {
+        LRTDepositPool lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
+
+        if (lrtDepositPool.paused()) {
+            vm.prank(Addresses.MANAGER_ROLE);
+            lrtDepositPool.unpause();
+        }
     }
 
     /// @dev unpause an EigenLayer Strategy is currently paused
