@@ -57,9 +57,4 @@ interface ILRTDepositPool {
         external
         view
         returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer);
-
-    function getETHDistributionData()
-        external
-        view
-        returns (uint256 ethLyingInDepositPool, uint256 ethLyingInNDCs, uint256 ethStakedInEigenLayer);
 }

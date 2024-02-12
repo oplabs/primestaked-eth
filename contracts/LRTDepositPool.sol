@@ -83,7 +83,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer)
     {
         if (asset == LRTConstants.WETH_TOKEN_ADDRESS) {
-            return getETHDistributionData();
+            return _getETHDistributionData();
         }
         assetLyingInDepositPool = IERC20(asset).balanceOf(address(this));
 
@@ -97,11 +97,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         }
     }
 
-    /// @dev provides ETH amount distribution data among depositPool, NDCs and eigenLayer
-    function getETHDistributionData()
-        public
+    /// @dev provides ETH amount distribution data among depositPool, NDCs and EigenLayer
+    function _getETHDistributionData()
+        internal
         view
-        override
         returns (uint256 wethLyingInDepositPool, uint256 wethLyingInNDCs, uint256 ethStakedInEigenLayer)
     {
         wethLyingInDepositPool = IERC20(LRTConstants.WETH_TOKEN_ADDRESS).balanceOf(address(this));

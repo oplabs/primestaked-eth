@@ -499,7 +499,7 @@ contract LRTDepositPoolGetETHDistributionData is LRTDepositPoolTest {
         vm.stopPrank();
 
         (uint256 wethLyingInDepositPool, uint256 wethLyingInNDCs, uint256 ethStakedInEigenLayer) =
-            lrtDepositPool.getETHDistributionData();
+            lrtDepositPool.getAssetDistributionData(address(weth));
 
         assertEq(wethLyingInDepositPool, 5 ether, "WETH lying in deposit pool is not set");
         assertEq(wethLyingInNDCs, 0, "WETH lying in NDCs is not set");
