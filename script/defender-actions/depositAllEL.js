@@ -22,7 +22,7 @@ const handler = async (event) => {
     depositPool,
     nodeDelegator,
     index: 0,
-    minDeposit: 1,
+    minDeposit: 0.001,
   });
 };
 
