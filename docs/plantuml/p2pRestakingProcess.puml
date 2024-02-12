@@ -1,0 +1,54 @@
+@startuml
+
+skinparam tabSize 2
+
+title "P2P Restaking Process"
+
+actor "Staker" as staker
+participant "API" as api <<P2P>>
+
+box "Blockahin"
+participant "EigenPodManager" as podMan <<EigenLayer>>
+participant "EigenPod" as pod <<EigenLayer>>
+participant "P2pEth2Depositor" as p2pDep <<P2P>>
+participant "P2pEth2Depositor" as p2pDep <<P2P>>
+participant "DepositContract" as dep <<Beacon>>
+end box
+
+' staker -> api: POST create-pod
+' activate api
+' return createPod tx
+
+staker -> podMan: createPod()
+activate podMan
+podMan ->o pod: contructor()
+activate pod
+return
+return eigenPod address
+
+staker -> api: POST nodes-request/create\nuuid,\ntype,\nnodesOptions,\neigenPodOwnerAddress,\ncontrollerAddress,\nfeeRecipientAddress
+activate api
+return
+
+...
+
+staker -> api: status(uuid)
+activate api
+return status,\neigenPodAddress,\npubkey,\nsignature,\ndepositDataRoot,\nwithdrawalCredentials,\ndepositMessageRoot
+
+' staker -> api: POST deposit(\nuuid,\nwithdrawalAddress,\npubkey,\nsignature,\ndepositDataRoot)
+' activate api
+' return deposit tx
+
+' staker -> p2pDep: deposit(\npayableAmount\n[pubkeys],\n[withdrawal_credentials],\n[signatures],\n[deposit_data_roots])
+' activate p2pDep
+' p2pDep -> dep : deposit(\npayableAmount\npubkey,\nwithdrawal_credentials,\nsignature,\ndeposit_data_root)
+' activate dep
+' return
+' return
+
+staker -> dep : deposit(\npayableAmount\npubkey,\nwithdrawal_credentials,\nsignature,\ndeposit_data_root)
+activate dep
+return
+
+@enduml

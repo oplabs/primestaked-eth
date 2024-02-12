@@ -1,0 +1,66 @@
+@startuml
+
+skinparam tabSize 2
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+title "Native Restaking Logical Entities"
+
+entity "Staker" as staker <<Account>> {
+}
+
+entity "Deposit\nPool" as dep <<Prime>> {
+}
+
+entity "primeETH" as lp <<Prime>> {
+}
+
+entity "Node\nDelegator" as del <<Prime>> {
+}
+
+' entity "Operator" as op <<P2P>> {
+' }
+
+entity "Pod\nManager" as podMan <<EigenLayer>> {
+}
+
+entity "Pod" as pod <<EigenLayer>> {
+}
+
+' entity "Slasher" as slash <<EigenLayer>> {
+' }
+
+entity "Validator" as val <<P2P>> {
+}
+
+entity "Deposit" as bdep <<Beacon>> {
+}
+entity "Delayed\nWithdraw\nRouter" as withdraw <<EigenLayer>> {
+}
+
+
+
+staker }o..o| dep
+
+dep ||.|| lp
+dep ||..|{ del
+
+del }o..|| podMan
+podMan ||..o{ pod
+' podMan ||.|| withdraw
+withdraw ||.|| podMan
+' slash ||.|| podMan
+
+del ||...|| pod
+
+pod |o..o{ val
+
+pod }o...|| bdep
+' withdraw ||..o{ pod
+
+@enduml
+
+'  Zero or One	|o--
+' Exactly One	||--
+' Zero or Many	}o--
+' One or Many	}|--
