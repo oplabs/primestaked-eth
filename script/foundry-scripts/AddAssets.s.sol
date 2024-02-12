@@ -16,7 +16,7 @@ import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 
 contract AddAssets is Script {
-    uint256 maxDeposits = 100 ether;
+    uint256 maxDeposits = 100_000 ether;
 
     ProxyFactory public proxyFactory;
     ProxyAdmin public proxyAdmin;
@@ -64,6 +64,8 @@ contract AddAssets is Script {
             addRETH();
             addSwETH();
         }
+
+        addWETH();
 
         if (isFork) {
             vm.stopPrank();
@@ -129,6 +131,17 @@ contract AddAssets is Script {
         lrtOracle.updatePriceOracleFor(Addresses.ETHX_TOKEN, Addresses.ETHX_ORACLE_PROXY);
 
         console.log("Configured ETHx");
+    }
+
+    function addWETH() private {
+        // TODO these needs to be executed by Admin which is now the Multisig
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, Addresses.WETH_TOKEN);
+
+        lrtConfig.addNewSupportedAsset(Addresses.WETH_TOKEN, maxDeposits);
+
+        lrtOracle.updatePriceOracleFor(Addresses.WETH_TOKEN, Addresses.WETH_ORACLE_PROXY);
+
+        console.log("Configured WETH");
     }
 
     function addAssetWithChainlinkOracle(

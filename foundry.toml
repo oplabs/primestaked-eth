@@ -10,7 +10,7 @@ optimizer_runs = 10_000
 solc_version = "0.8.21"
 build_info = true
 extra_output = ["storageLayout"]
-fs_permissions = [{ access = "read-write", path = "./data/"}]
+fs_permissions = [{ access = "read-write", path = "./data/"},{ access = "read", path = "./out/"}]
 
 [profile.ci]
 fuzz = { runs = 10_000 }

@@ -12,6 +12,8 @@ import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { ContractUpgrades } from "contracts/utils/ContractUpgrades.sol";
+import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
+import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -66,10 +68,13 @@ contract ForkTest is Test, ContractUpgrades {
     /// @dev Any pending contract upgrades or access control changes
     function deployments() internal {
         // Upgrade to the latest contracts
-        // upgradeDepositPool();
-        // upgradeNodeDelegator();
+        upgradeDepositPool();
+        upgradeNodeDelegator();
         // upgradeOracle();
         // upgradeChainlinkPriceOracle();
+
+        address wethOracleProxy = deployWETHOracle();
+        addWETH(wethOracleProxy);
 
         // Change roles assignments
         // vm.startPrank(Addresses.ADMIN_ROLE);
@@ -77,6 +82,36 @@ contract ForkTest is Test, ContractUpgrades {
         // config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
         // config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
         // vm.stopPrank();
+    }
+
+    function deployWETHOracle() internal returns (address) {
+        // Deploy implementation contract
+        address implContract = address(new WETHPriceOracle(Addresses.WETH_TOKEN));
+        console.log("WETHPriceOracle deployed at: %s", implContract);
+
+        // Deploy proxy
+        ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
+        address proxy = proxyFactory.create(
+            implContract, Addresses.PROXY_ADMIN, keccak256(abi.encodePacked("WETHPriceOracleProxy"))
+        );
+        console.log("WETHPriceOracleProxy deployed at: %s", proxy);
+
+        return proxy;
+    }
+
+    function addWETH(address wethOracleProxy) internal {
+        vm.startPrank(Addresses.MANAGER_ROLE);
+        uint256 maxAssetLimit = 400_000 ether;
+        lrtConfig.addNewSupportedAsset(Addresses.WETH_TOKEN, maxAssetLimit);
+        vm.stopPrank();
+
+        vm.startPrank(Addresses.ADMIN_ROLE);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, LRTConstants.WETH_TOKEN_ADDRESS);
+        lrtOracle.updatePriceOracleFor(Addresses.WETH_TOKEN, wethOracleProxy);
+        // TODO anything else?
+        vm.stopPrank();
+
+        console.log("Configured WETH");
     }
 
     function test_deposit_stETH() public {

@@ -45,10 +45,6 @@ contract MockNodeDelegator {
         assetBalances[0] = 0;
         assetBalances[1] = 0;
     }
-
-    function sendETHFromDepositPoolToNDC() external payable {
-        // do nothing
-    }
 }
 
 contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
@@ -467,48 +463,56 @@ contract LRTDepositPoolGetETHDistributionData is LRTDepositPoolTest {
         lrtDepositPool.initialize(address(lrtConfig));
     }
 
-    // function test_GetETHDistributionData() external {
-    //     address[] memory assets = new address[](2);
-    //     assets[0] = address(stETH);
-    //     assets[1] = address(ethX);
+    function test_GetETHDistributionData() external {
+        address[] memory assets = new address[](3);
+        assets[0] = address(stETH);
+        assets[1] = address(ethX);
+        assets[2] = address(weth);
 
-    //     uint256[] memory assetBalances = new uint256[](2);
-    //     assetBalances[0] = 1 ether;
-    //     assetBalances[1] = 1 ether;
+        uint256[] memory assetBalances = new uint256[](3);
+        assetBalances[0] = 1 ether;
+        assetBalances[1] = 1 ether;
+        assetBalances[2] = 1 ether;
 
-    //     address nodeDelegatorContractOne = address(new MockNodeDelegator(assets, assetBalances));
-    //     address nodeDelegatorContractTwo = address(new MockNodeDelegator(assets, assetBalances));
-    //     address nodeDelegatorContractThree = address(new MockNodeDelegator(assets, assetBalances));
+        address nodeDelegatorContractOne = address(new MockNodeDelegator(assets, assetBalances));
+        address nodeDelegatorContractTwo = address(new MockNodeDelegator(assets, assetBalances));
+        address nodeDelegatorContractThree = address(new MockNodeDelegator(assets, assetBalances));
 
-    //     address[] memory nodeDelegatorQueue = new address[](3);
-    //     nodeDelegatorQueue[0] = nodeDelegatorContractOne;
-    //     nodeDelegatorQueue[1] = nodeDelegatorContractTwo;
-    //     nodeDelegatorQueue[2] = nodeDelegatorContractThree;
+        address[] memory nodeDelegatorQueue = new address[](3);
+        nodeDelegatorQueue[0] = nodeDelegatorContractOne;
+        nodeDelegatorQueue[1] = nodeDelegatorContractTwo;
+        nodeDelegatorQueue[2] = nodeDelegatorContractThree;
 
-    //     vm.startPrank(admin);
-    //     lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueue);
-    //     vm.stopPrank();
+        vm.startPrank(admin);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, LRTConstants.WETH_TOKEN_ADDRESS);
+        lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueue);
+        vm.stopPrank();
 
-    //     // deposit 3 ether
-    //     vm.startPrank(alice);
-    //     lrtDepositPool.depositETH{ value: 5 ether }(minimunAmountOfPRETHToReceive, referralId);
-    //     vm.stopPrank();
+        vm.startPrank(manager);
+        lrtConfig.addNewSupportedAsset(LRTConstants.WETH_TOKEN_ADDRESS, 10_000 ether);
+        vm.stopPrank();
 
-    //     (uint256 ethLyingInDepositPool, uint256 ethLyingInNDCs, uint256 ethStakedInEigenLayer) =
-    //         lrtDepositPool.getETHDistributionData();
+        // deposit 3 WETH
+        vm.startPrank(alice);
+        weth.approve(address(lrtDepositPool), 5 ether);
+        lrtDepositPool.depositAsset(address(weth), 5 ether, 0, referralId);
+        vm.stopPrank();
 
-    //     assertEq(ethLyingInDepositPool, 5 ether, "ETH lying in deposit pool is not set");
-    //     assertEq(ethLyingInNDCs, 0, "ETH lying in NDCs is not set");
-    //     assertEq(ethStakedInEigenLayer, 3 ether, "ETH staked in eigen layer is not set");
+        (uint256 wethLyingInDepositPool, uint256 wethLyingInNDCs, uint256 ethStakedInEigenLayer) =
+            lrtDepositPool.getETHDistributionData();
 
-    //     // check using getAssetDistributionData
-    //     (ethLyingInDepositPool, ethLyingInNDCs, ethStakedInEigenLayer) =
-    //         lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+        assertEq(wethLyingInDepositPool, 5 ether, "WETH lying in deposit pool is not set");
+        assertEq(wethLyingInNDCs, 0, "WETH lying in NDCs is not set");
+        assertEq(ethStakedInEigenLayer, 3 ether, "ETH staked in Eigen Layer is not set");
 
-    //     assertEq(ethLyingInDepositPool, 5 ether, "ETH lying in deposit pool is not set");
-    //     assertEq(ethLyingInNDCs, 0, "ETH lying in NDCs is not set");
-    //     assertEq(ethStakedInEigenLayer, 3 ether, "ETH staked in eigen layer is not set");
-    // }
+        // check using getAssetDistributionData
+        (wethLyingInDepositPool, wethLyingInNDCs, ethStakedInEigenLayer) =
+            lrtDepositPool.getAssetDistributionData(LRTConstants.WETH_TOKEN_ADDRESS);
+
+        assertEq(wethLyingInDepositPool, 5 ether, "WETH lying in deposit pool is not set");
+        assertEq(wethLyingInNDCs, 0, "WETH lying in NDCs is not set");
+        assertEq(ethStakedInEigenLayer, 3 ether, "ETH staked in Eigen Layer is not set");
+    }
 }
 
 contract LRTDepositPoolAddNodeDelegatorContractToQueue is LRTDepositPoolTest {
@@ -875,39 +879,6 @@ contract LRTDepositTransferETHToNodeDelegator is LRTDepositPoolTest {
         lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueueProspectives);
         vm.stopPrank();
     }
-
-    function test_RevertWhenNotCalledByLRTConfigManager() external {
-        vm.startPrank(alice);
-
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        lrtDepositPool.transferETHToNodeDelegator(0, 1 ether);
-
-        vm.stopPrank();
-    }
-
-    // function test_TransferETHToNodeDelegator() external {
-    //     // deposit 3 ether
-    //     vm.startPrank(alice);
-    //     lrtDepositPool.depositETH{ value: 3 ether }(minimunAmountOfPRETHToReceive, referralId);
-    //     vm.stopPrank();
-
-    //     uint256 indexOfNodeDelegatorContractOneInNDArray;
-    //     address[] memory nodeDelegatorArray = lrtDepositPool.getNodeDelegatorQueue();
-    //     for (uint256 i = 0; i < nodeDelegatorArray.length; i++) {
-    //         if (lrtDepositPool.nodeDelegatorQueue(i) == nodeDelegatorContractOne) {
-    //             indexOfNodeDelegatorContractOneInNDArray = i;
-    //             break;
-    //         }
-    //     }
-
-    //     // transfer 1 ether to node delegator contract one
-    //     vm.startPrank(manager);
-    //     lrtDepositPool.transferETHToNodeDelegator(indexOfNodeDelegatorContractOneInNDArray, 1 ether);
-    //     vm.stopPrank();
-
-    //     assertEq(address(lrtDepositPool).balance, 2 ether, "ETH amount in lrtDepositPool is incorrect");
-    //     assertEq(address(nodeDelegatorContractOne).balance, 1 ether, "ETH is not transferred to node delegator");
-    // }
 }
 
 contract LRTDepositPoolSwapAssetFromDepositPool is LRTDepositPoolTest {

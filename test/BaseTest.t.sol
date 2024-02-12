@@ -4,18 +4,13 @@ pragma solidity 0.8.21;
 
 import { Test } from "forge-std/Test.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-contract MockToken is ERC20 {
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) { }
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
-    }
-}
+import { MockToken } from "contracts/mocks/MockToken.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
 contract BaseTest is Test {
     MockToken public stETH;
     MockToken public ethX;
+    MockToken public weth;
 
     MockToken public rETH;
     MockToken public cbETH;
@@ -31,12 +26,15 @@ contract BaseTest is Test {
     function setUp() public virtual {
         stETH = new MockToken("staked ETH", "stETH");
         ethX = new MockToken("ETHX", "ethX");
+        deployCodeTo("MockToken.sol", abi.encode("WETH", "weth"), LRTConstants.WETH_TOKEN_ADDRESS);
+        weth = MockToken(LRTConstants.WETH_TOKEN_ADDRESS);
         rETH = new MockToken("rETH", "rETH");
         cbETH = new MockToken("cbETH", "cbETH");
 
         // mint LST tokens to alice, bob and carol
         mintLSTTokensForUsers(stETH);
         mintLSTTokensForUsers(ethX);
+        mintLSTTokensForUsers(weth);
         mintLSTTokensForUsers(rETH);
         mintLSTTokensForUsers(cbETH);
 

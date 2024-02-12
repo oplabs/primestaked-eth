@@ -107,7 +107,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
 
         uint256 depositAmount = 66 ether;
         vm.prank(alice);
-        lrtDepositPool.depositETH{ value: depositAmount }(0, "");
+        lrtDepositPool.depositAsset(LRTConstants.WETH_TOKEN_ADDRESS, depositAmount, 0, "");
 
         uint256 aliceBalanceAfter = alice.balance;
         uint256 depositPoolBalanceAfter = address(lrtDepositPool).balance;
@@ -126,7 +126,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
 
         // move eth from deposit pool to ndc
         vm.prank(manager);
-        lrtDepositPool.transferETHToNodeDelegator(0, depositAmount);
+        lrtDepositPool.transferAssetToNodeDelegator(0, LRTConstants.WETH_TOKEN_ADDRESS, depositAmount);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
             lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);

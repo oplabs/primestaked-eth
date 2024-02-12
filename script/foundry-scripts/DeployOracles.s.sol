@@ -10,6 +10,7 @@ import { OETHPriceOracle } from "contracts/oracles/OETHPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { MEthPriceOracle } from "contracts/oracles/MEthPriceOracle.sol";
 import { SfrxETHPriceOracle } from "contracts/oracles/SfrxETHPriceOracle.sol";
+import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 
@@ -40,11 +41,14 @@ contract DeployOracles is Script {
 
         console.log("Deployer: %s", msg.sender);
 
-        deployChainlinkOracle();
+        if (block.number < 19_142_698) {
+            deployChainlinkOracle();
+            deployOETHOracle();
+            deployEthXPriceOracle();
+            deployMEthPriceOracle();
+            deploySfrxEthPriceOracle();
+        }
         deployOETHOracle();
-        deployEthXPriceOracle();
-        deployMEthPriceOracle();
-        deploySfrxEthPriceOracle();
 
         if (isFork) {
             vm.stopPrank();
@@ -69,10 +73,8 @@ contract DeployOracles is Script {
     }
 
     function deployOETHOracle() private {
-        address oeth = 0x856c4Efb76C1D1AE02e20CEB03A2A6a08b0b8dC3;
-
         // Deploy OETHPriceOracle
-        address implContract = address(new OETHPriceOracle(oeth));
+        address implContract = address(new OETHPriceOracle(Addresses.OETH_TOKEN));
         console.log("OETHPriceOracle deployed at: %s", implContract);
 
         // Deploy OETHPriceOracle proxy
@@ -81,9 +83,18 @@ contract DeployOracles is Script {
         console.log("OETHPriceOracleProxy deployed at: %s", proxy);
     }
 
-    function deployEthXPriceOracle() private {
-        address staderStakingPoolManager = Addresses.STADER_STAKING_POOL_MANAGER;
+    function deployWETHOracle() private {
+        // Deploy WETHPriceOracle
+        address implContract = address(new WETHPriceOracle(Addresses.WETH_TOKEN));
+        console.log("WETHPriceOracle deployed at: %s", implContract);
 
+        // Deploy WETHPriceOracle proxy
+        address proxy =
+            proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("WETHPriceOracleProxy")));
+        console.log("WETHPriceOracleProxy deployed at: %s", proxy);
+    }
+
+    function deployEthXPriceOracle() private {
         // Deploy EthXPriceOracle
         address implContract = address(new EthXPriceOracle());
         console.log("EthXPriceOracle deployed at: %s", implContract);
@@ -94,16 +105,13 @@ contract DeployOracles is Script {
         console.log("EthXPriceOracleProxy deployed at: %s", proxy);
 
         // Initialize the proxy
-        EthXPriceOracle(proxy).initialize(staderStakingPoolManager);
+        EthXPriceOracle(proxy).initialize(Addresses.STADER_STAKING_POOL_MANAGER);
         console.log("Initialized EthXPriceOracleProxy");
     }
 
     function deployMEthPriceOracle() private {
-        address mEth = Addresses.METH_TOKEN;
-        address mEthStaking = 0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f;
-
         // Deploy MEthPriceOracle
-        address implContract = address(new MEthPriceOracle(mEth, mEthStaking));
+        address implContract = address(new MEthPriceOracle(Addresses.METH_TOKEN, Addresses.METH_STAKING));
         console.log("MEthPriceOracle deployed at: %s", implContract);
 
         // Deploy MEthPriceOracle proxy
@@ -113,11 +121,8 @@ contract DeployOracles is Script {
     }
 
     function deploySfrxEthPriceOracle() private {
-        address fraxDualOracle = Addresses.FRAX_DUAL_ORACLE;
-        address sfrxETH = Addresses.SFRXETH_TOKEN;
-
         // Deploy SfrxETHPriceOracle
-        address implContract = address(new SfrxETHPriceOracle(sfrxETH, fraxDualOracle));
+        address implContract = address(new SfrxETHPriceOracle(Addresses.SFRXETH_TOKEN, Addresses.FRAX_DUAL_ORACLE));
         console.log("SfrxETHPriceOracle deployed at: %s", implContract);
 
         // Deploy SfrxETHPriceOracle proxy

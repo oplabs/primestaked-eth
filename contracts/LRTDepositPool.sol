@@ -82,7 +82,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         onlySupportedAsset(asset)
         returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer)
     {
-        if (asset == LRTConstants.ETH_TOKEN) {
+        if (asset == LRTConstants.WETH_TOKEN_ADDRESS) {
             return getETHDistributionData();
         }
         assetLyingInDepositPool = IERC20(asset).balanceOf(address(this));
@@ -102,13 +102,13 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         public
         view
         override
-        returns (uint256 ethLyingInDepositPool, uint256 ethLyingInNDCs, uint256 ethStakedInEigenLayer)
+        returns (uint256 wethLyingInDepositPool, uint256 wethLyingInNDCs, uint256 ethStakedInEigenLayer)
     {
-        ethLyingInDepositPool = address(this).balance;
+        wethLyingInDepositPool = IERC20(LRTConstants.WETH_TOKEN_ADDRESS).balanceOf(address(this));
 
         uint256 ndcsCount = nodeDelegatorQueue.length;
         for (uint256 i; i < ndcsCount;) {
-            ethLyingInNDCs += nodeDelegatorQueue[i].balance;
+            wethLyingInNDCs += IERC20(LRTConstants.WETH_TOKEN_ADDRESS).balanceOf(nodeDelegatorQueue[i]);
             ethStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getETHEigenPodBalance();
             unchecked {
                 ++i;
@@ -132,21 +132,6 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /*//////////////////////////////////////////////////////////////
                             write functions
     //////////////////////////////////////////////////////////////*/
-
-    /// @notice Allows user to deposit ETH to the protocol
-    /// @param minPrimeETHAmountExpected Minimum amount of primeETH to receive
-    /// @param referralId referral id
-    function depositETH(
-        uint256 minPrimeETHAmountExpected,
-        string calldata referralId
-    )
-        external
-        payable
-        whenNotPaused
-        nonReentrant
-    {
-        require(false, "unsupported");
-    }
 
     /// @notice helps user stake LST to the protocol
     /// @param asset LST asset address to stake
@@ -360,15 +345,6 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         }
     }
 
-    /// @notice transfers ETH lying in this DepositPool to node delegator contract
-    /// @dev only callable by LRT manager
-    /// @param ndcIndex Index of NodeDelegator contract address in nodeDelegatorQueue
-    /// @param amount ETH amount to transfer
-    function transferETHToNodeDelegator(uint256 ndcIndex, uint256 amount) external nonReentrant onlyLRTManager {
-        address nodeDelegator = nodeDelegatorQueue[ndcIndex];
-        INodeDelegator(nodeDelegator).sendETHFromDepositPoolToNDC{ value: amount }();
-    }
-
     /// @notice swap assets that are accepted by LRTDepositPool
     /// @dev use LRTOracle to get price for fromToken to toToken. Only callable by LRT manager
     /// @param fromAsset Asset address to swap from
@@ -456,6 +432,4 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     function optIn(address asset) external onlyLRTAdmin onlySupportedAsset(asset) {
         IOETH(asset).rebaseOptIn();
     }
-
-    receive() external payable { }
 }
