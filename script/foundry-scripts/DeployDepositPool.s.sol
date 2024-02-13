@@ -80,9 +80,8 @@ contract DeployDepositPool is Script {
         else if (block.chainid == 5) {
             bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
 
-            lrtDepositPoolProxy = LRTDepositPool(
-                payable(proxyFactory.create(address(newDepositPoolImpl), address(proxyAdmin), salt))
-            );
+            lrtDepositPoolProxy =
+                LRTDepositPool(payable(proxyFactory.create(address(newDepositPoolImpl), address(proxyAdmin), salt)));
             // init LRTDepositPool
             lrtDepositPoolProxy.initialize(address(lrtConfigProxy));
 

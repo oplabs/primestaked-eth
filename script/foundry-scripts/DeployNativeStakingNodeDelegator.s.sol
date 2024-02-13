@@ -8,7 +8,6 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { Vm } from "forge-std/Test.sol";
 
-
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
@@ -24,7 +23,7 @@ contract DeployNativeStakingNodeDelegator is Script {
     address public eigenpodManagerAddress;
     address public operatorAddress;
 
-    function setUpByAdmin() private {
+    function _setUpByAdmin() internal {
         // ----------- callable by admin ----------------
 
         // add nodeDelegators to LRTDepositPool queue
@@ -44,7 +43,6 @@ contract DeployNativeStakingNodeDelegator is Script {
         bool isFork = vm.envOr("IS_FORK", false);
 
         if (block.chainid == 1) {
-
             proxyAdminAddress = Addresses.PROXY_ADMIN;
             lrtConfigProxy = LRTConfig(Addresses.LRT_CONFIG);
             lrtDepositPoolProxy = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
@@ -62,7 +60,7 @@ contract DeployNativeStakingNodeDelegator is Script {
                 uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
                 vm.startBroadcast(deployerPrivateKey);
             }
-        } 
+        }
         // Goerli
         else if (block.chainid == 5) {
             eigenpodManagerAddress = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
@@ -91,7 +89,7 @@ contract DeployNativeStakingNodeDelegator is Script {
 
         console.log("Native staking node delegator (proxy) deployed at: ", address(nodeDelegatorProxy2));
 
-        setUpByAdmin();
+        _setUpByAdmin();
         if (isFork) {
             vm.stopPrank();
         } else {
