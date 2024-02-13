@@ -42,6 +42,7 @@ deploy-token-fork :; IS_FORK=true forge script script/foundry-scripts/DeployPrim
 
 # deploy the Assets
 add-assets-mainnet :; forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url ${MAINNET_RPC_URL}  --broadcast -vvv
+add-assets-testnet:; forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url goerli  --broadcast -vvv
 add-assets-fork :; IS_FORK=true forge script script/foundry-scripts/AddAssets.s.sol:AddAssets --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast -vvv
 
 # set max depsoits
@@ -74,6 +75,9 @@ deploy-nativeNodeDelegator-mainnet :; forge script script/foundry-scripts/Deploy
 deploy-nativeNodeDelegator-testnet :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 upgrade-nativeNodeDelegator-fork :; IS_FORK=true forge script script/foundry-scripts/upgradeNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url localhost --broadcast -vvv
 upgrade-nativeNodeDelegator-local :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url localhost --broadcast -vvv
+
+deploy-delegatorPoolOracle-testnet :; forge script script/foundry-scripts/DeployDelegatorPoolOracle.s.sol:DeployDelegatorPoolOracle --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+
 
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)

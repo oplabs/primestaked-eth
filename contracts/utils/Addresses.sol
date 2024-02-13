@@ -19,7 +19,8 @@ library Addresses {
     address public constant LRT_ORACLE = 0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32;
     address public constant LRT_DEPOSIT_POOL = 0xA479582c8b64533102F6F528774C536e354B8d32;
     address public constant NODE_DELEGATOR = 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2;
-
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = address(0);
+    
     address public constant CHAINLINK_ORACLE_PROXY = 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09;
 
     address public constant OETH_TOKEN = 0x856c4Efb76C1D1AE02e20CEB03A2A6a08b0b8dC3;
@@ -78,11 +79,13 @@ library AddressesGoerli {
     // address public constant PRIME_STAKED_ETH = ;
 
     address public constant LRT_CONFIG = 0x4ABe68F6e0D6D23EEF42494CfaEaa6a3398cf0f2;
-    // address public constant LRT_ORACLE = ;
-    address public constant LRT_DEPOSIT_POOL = 0x2aC2754d8722F28319928d10e7C526bdc560A248;
-    // address public constant NODE_DELEGATOR = ;
+    address public constant LRT_ORACLE = address(0xDc61880DD483AFBBAe3311573e731A601ae07680);
+    address public constant LRT_DEPOSIT_POOL = 0xb362ff73Ad3432096DF47419aE6D7bc6cC342F91;
+    address public constant NODE_DELEGATOR = 0x7f4A403f1bd6ed182a3ABd1F840e02B5A360a538;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = address(0xff54d60e6e4F9d1d454b09B4Fc0f7C06977f22D9);
 
     // address public constant CHAINLINK_ORACLE_PROXY = ;
+    address public constant OETH_EIGEN_STRATEGY = address(0);
 
     address public constant STETH_TOKEN = 0x2C40141Cd278746C9666288d12EbF434Eadef700;
     address public constant STETH_EIGEN_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;

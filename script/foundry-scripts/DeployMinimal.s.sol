@@ -10,6 +10,7 @@ import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { TestHelper } from './utils/TestHelper.sol';
 
 function getLSTs() view returns (address stETH, address ethx) {
     uint256 chainId = block.chainid;
@@ -27,7 +28,7 @@ function getLSTs() view returns (address stETH, address ethx) {
     }
 }
 
-contract DeployMinimal is Script {
+contract DeployMinimal is Script, TestHelper {
     address public deployerAddress;
     ProxyAdmin public proxyAdmin;
 
@@ -44,8 +45,7 @@ contract DeployMinimal is Script {
     }
 
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
+        preRun();
 
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
         proxyFactory = new ProxyFactory();
@@ -87,6 +87,6 @@ contract DeployMinimal is Script {
         // setup
         setUpByAdmin();
 
-        vm.stopBroadcast();
+        postRun();
     }
 }

@@ -13,42 +13,44 @@ import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { Addresses } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { TestHelper } from './utils/TestHelper.sol';
 
-contract AddAssets is Script {
+contract AddAssets is Script, TestHelper {
     uint256 maxDeposits = 100_000 ether;
+    uint256 LSTS_1_blockNumber;
+    uint256 LSTS_2_blockNumber;
 
     ProxyFactory public proxyFactory;
     ProxyAdmin public proxyAdmin;
 
     LRTConfig public lrtConfig;
     LRTOracle public lrtOracle;
-    NodeDelegator public nodeDel;
+    NodeDelegator public nodeDelegator;
 
     function run() external {
-        if (block.chainid != 1) {
-            revert("Not Mainnet");
+        if (block.chainid == 1) {
+            LSTS_1_blockNumber = 19_146_000;
+            LSTS_2_blockNumber = 19_150_615;
+        } else if (block.chainid == 5) {
+            // TODO update
+            LSTS_1_blockNumber = 0;
+            LSTS_2_blockNumber = 1;
         }
+        preRun();
 
-        bool isFork = vm.envOr("IS_FORK", false);
-        if (isFork) {
-            address mainnetProxyOwner = Addresses.PROXY_OWNER;
-            console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
-            vm.startPrank(mainnetProxyOwner);
-        } else {
-            console.log("Deploying on mainnet deployer: %s", msg.sender);
-            uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-            vm.startBroadcast(deployerPrivateKey);
-        }
+        (
+            proxyFactory,
+            proxyAdmin,
+            lrtConfig,
+            lrtOracle,,
+            nodeDelegator,
+            ,,,
+        ) = getAddresses();
 
-        proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
-        proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
+        nodeDelegator = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
 
-        lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
-        lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
-        nodeDel = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
-
-        if (block.number < 19_146_000) {
+        if (block.number < LSTS_1_blockNumber) {
             // add manager role to the deployer
             lrtConfig.grantRole(LRTConstants.MANAGER, msg.sender);
 
@@ -60,18 +62,14 @@ contract AddAssets is Script {
             addMEth();
         }
 
-        if (block.number < 19_150_615) {
+        if (block.number < LSTS_2_blockNumber) {
             addRETH();
             addSwETH();
         }
 
         addWETH();
 
-        if (isFork) {
-            vm.stopPrank();
-        } else {
-            vm.stopBroadcast();
-        }
+        postRun();
     }
 
     function addOETH() private {
@@ -163,7 +161,7 @@ contract AddAssets is Script {
 
         lrtOracle.updatePriceOracleFor(asset, address(chainlinkOracleProxy));
 
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(asset);
+        NodeDelegator(payable(nodeDelegator)).maxApproveToEigenStrategyManager(asset);
     }
 
     function configureAsset(bytes32 tokenId, address asset, address strategy, address assetOracle) private {
@@ -174,6 +172,6 @@ contract AddAssets is Script {
 
         lrtOracle.updatePriceOracleFor(asset, assetOracle);
 
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(asset);
+        NodeDelegator(payable(nodeDelegator)).maxApproveToEigenStrategyManager(asset);
     }
 }

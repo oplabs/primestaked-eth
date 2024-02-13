@@ -100,6 +100,14 @@ forge install
 cp .env.example .env
 ```
 
+### Install ethdo a Ethereum 2 POS utility tool
+You can download the binaries from here: https://github.com/wealdtech/ethdo/releases
+
+Copy the downloaded executable to /usr/local/bin
+
+After you try to open it you might need to tell OSX to allow the binary to
+execute as an exception. https://support.apple.com/en-gb/HT202491#openanyway
+
 ## Usage
 
 This is a list of the most frequently needed commands.
@@ -188,8 +196,16 @@ $ forge test --gas-report
 
 ### Deploy to testnet
 
+To run the complete deployment on testnet run the deployments in this order (after each deploy the goerli addresses in Addresses.sol need to be updated)
+
 ```bash
-make deploy-lrt-testnet
+make minimal-deploy-testnet
+
+make deploy-delegatorPoolOracle-testnet
+
+make add-assets-testnet
+
+make deploy-nativeNodeDelegator-testnet
 ```
 
 ### For tests (mainnet) using Anvil:
