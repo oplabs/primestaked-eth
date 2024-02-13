@@ -10,7 +10,7 @@ import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { Addresses } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -21,12 +21,12 @@ function getLSTs() view returns (address stETH, address ethx) {
 
     if (chainId == 1) {
         // mainnet
-        stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-        ethx = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
+        stETH = Addresses.STETH_TOKEN;
+        ethx = Addresses.ETHX_TOKEN;
     } else if (chainId == 5) {
         // goerli
-        stETH = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
-        ethx = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
+        stETH = AddressesGoerli.STETH_TOKEN;
+        ethx = AddressesGoerli.ETHX_TOKEN;
     } else {
         revert("Unsupported network");
     }
@@ -62,15 +62,15 @@ contract DeployDelegatorPoolOracle is Script {
         // https://github.com/Layr-Labs/eigenlayer-contracts#deployments
         if (chainId == 1) {
             // mainnet
-            strategyManager = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
-            stETHStrategy = 0x93c4b944D05dfe6df7645A86cd2206016c51564D;
-            ethXStrategy = 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d;
-            oethStrategy = 0xa4C637e0F704745D182e4D38cAb7E7485321d059;
+            strategyManager = Addresses.EIGEN_STRATEGY_MANAGER;
+            stETHStrategy = Addresses.STETH_EIGEN_STRATEGY;
+            ethXStrategy = Addresses.ETHX_EIGEN_STRATEGY;
+            oethStrategy = Addresses.OETH_EIGEN_STRATEGY;
         } else {
             // testnet
-            strategyManager = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
-            stETHStrategy = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
-            ethXStrategy = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
+            strategyManager = AddressesGoerli.EIGEN_STRATEGY_MANAGER;
+            stETHStrategy = AddressesGoerli.STETH_EIGEN_STRATEGY;
+            ethXStrategy = AddressesGoerli.ETHX_EIGEN_STRATEGY;
             oethStrategy = address(0);
         }
     }
@@ -126,9 +126,9 @@ contract DeployDelegatorPoolOracle is Script {
         uint256 chainId = block.chainid;
 
         // mainnet
-        proxyAdmin = ProxyAdmin(0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758);
-        proxyFactory = ProxyFactory(0x279b272E8266D2fd87e64739A8ecD4A5c94F953D);
-        lrtConfigProxy = LRTConfig(0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF);
+        proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
+        proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
+        lrtConfigProxy = LRTConfig(Addresses.LRT_CONFIG);
 
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());

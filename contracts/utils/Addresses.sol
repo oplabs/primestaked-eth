@@ -61,3 +61,41 @@ library Addresses {
     address public constant EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
     address public constant EIGEN_POD_MANAGER = 0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338;
 }
+
+library AddressesGoerli {
+    // address public constant ADMIN_MULTISIG = ;
+    address public constant DEPLOYER = 0xFD9E6005187F448957a0972a7d0C0A6dA2911236;
+    address public constant RELAYER = 0x41738Cf30cc59e00f090B2C1af57dBf60316AfED;
+
+    address public constant ADMIN_ROLE = DEPLOYER;
+    address public constant MANAGER_ROLE = DEPLOYER;
+    address public constant OPERATOR_ROLE = DEPLOYER;
+
+    // address public constant PROXY_OWNER = ADMIN_MULTISIG;
+    address public constant PROXY_FACTORY = 0x3A958C0C7cC87aC5A0d0cc5Ac3ddd6FE97F13AdD;
+    address public constant PROXY_ADMIN = 0x5Cc848d0333fa42A58aD346FD880CE7c5bD62c90;
+
+    // address public constant PRIME_STAKED_ETH = ;
+
+    address public constant LRT_CONFIG = 0xAa62544784d28E9546820B5A46f2c346caB7d43A;
+    // address public constant LRT_ORACLE = ;
+    address public constant LRT_DEPOSIT_POOL = 0xdACea683462141f74aEb6Aebd8987EDb8260EB23;
+    // address public constant NODE_DELEGATOR = ;
+
+    // address public constant CHAINLINK_ORACLE_PROXY = ;
+
+    address public constant STETH_TOKEN = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
+    address public constant STETH_EIGEN_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
+    // address public constant STETH_ORACLE = ;
+
+    address public constant ETHX_TOKEN = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
+    address public constant ETHX_EIGEN_STRATEGY = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
+    // address public constant ETHX_ORACLE_PROXY = ;
+    address public constant STADER_STAKING_POOL_MANAGER = 0xd0e400Ec6Ed9C803A9D9D3a602494393E806F823;
+
+    address public constant WETH_TOKEN = 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
+
+    address public constant EIGEN_UNPAUSER = 0x3d9C2c2B40d890ad53E27947402e977155CD2808;
+    address public constant EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
+    address public constant EIGEN_POD_MANAGER = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
+}

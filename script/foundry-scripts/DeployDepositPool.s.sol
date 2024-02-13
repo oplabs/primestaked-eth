@@ -9,7 +9,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
-import { Addresses } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
 contract DeployDepositPool is Script {
@@ -50,9 +50,9 @@ contract DeployDepositPool is Script {
                 vm.startBroadcast(deployerPrivateKey);
             }
         } else if (block.chainid == 5) {
-            proxyAdminAddress = 0x5Cc848d0333fa42A58aD346FD880CE7c5bD62c90;
-            lrtConfigProxy = LRTConfig(0xAa62544784d28E9546820B5A46f2c346caB7d43A);
-            proxyFactory = ProxyFactory(0x3A958C0C7cC87aC5A0d0cc5Ac3ddd6FE97F13AdD);
+            proxyAdminAddress = AddressesGoerli.PROXY_ADMIN;
+            lrtConfigProxy = LRTConfig(AddressesGoerli.LRT_CONFIG);
+            proxyFactory = ProxyFactory(AddressesGoerli.PROXY_FACTORY);
 
             console.log("Deploying on Gorli deployer: %s", msg.sender);
             uint256 deployerPrivateKey = vm.envUint("GOERLI_DEPLOYER_PRIVATE_KEY");

@@ -6,6 +6,7 @@ import "forge-std/Script.sol";
 
 import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -15,12 +16,12 @@ function getLSTs() view returns (address stETH, address ethx) {
 
     if (chainId == 1) {
         // mainnet
-        stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-        ethx = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
+        stETH = Addresses.STETH_TOKEN;
+        ethx = Addresses.ETHX_TOKEN;
     } else if (chainId == 5) {
         // goerli
-        stETH = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
-        ethx = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
+        stETH = AddressesGoerli.STETH_TOKEN;
+        ethx = AddressesGoerli.ETHX_TOKEN;
     } else {
         revert("Unsupported network");
     }

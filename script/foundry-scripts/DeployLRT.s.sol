@@ -11,6 +11,7 @@ import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -21,12 +22,12 @@ function getLSTs() view returns (address stETH, address ethx) {
 
     if (chainId == 1) {
         // mainnet
-        stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-        ethx = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
+        stETH = Addresses.STETH_TOKEN;
+        ethx = Addresses.ETHX_TOKEN;
     } else if (chainId == 5) {
         // goerli
-        stETH = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
-        ethx = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
+        stETH = AddressesGoerli.STETH_TOKEN;
+        ethx = AddressesGoerli.ETHX_TOKEN;
     } else {
         revert("Unsupported network");
     }
@@ -68,15 +69,14 @@ contract DeployLRT is Script {
         // https://github.com/Layr-Labs/eigenlayer-contracts#deployments
         if (chainId == 1) {
             // mainnet
-            strategyManager = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
-            stETHStrategy = 0x93c4b944D05dfe6df7645A86cd2206016c51564D;
-            // TODO: NEED TO HAVE ETHX STRATEGY
-            ethXStrategy = 0x0000000000000000000000000000000000000000;
+            strategyManager = Addresses.EIGEN_STRATEGY_MANAGER;
+            stETHStrategy = Addresses.STETH_EIGEN_STRATEGY;
+            ethXStrategy = Addresses.ETHX_EIGEN_STRATEGY;
         } else {
             // testnet
-            strategyManager = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
-            stETHStrategy = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
-            ethXStrategy = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
+            strategyManager = AddressesGoerli.EIGEN_STRATEGY_MANAGER;
+            stETHStrategy = AddressesGoerli.STETH_EIGEN_STRATEGY;
+            ethXStrategy = AddressesGoerli.ETHX_EIGEN_STRATEGY;
         }
     }
 
@@ -85,7 +85,7 @@ contract DeployLRT is Script {
 
         if (chainId == 1) {
             // mainnet
-            stETHPriceFeed = 0x86392dC19c0b719886221c78AB11eb8Cf5c52812;
+            stETHPriceFeed = Addresses.STETH_ORACLE;
             ethxPriceFeed = address(ethXPriceOracleProxy);
         } else {
             // testnet
@@ -219,11 +219,11 @@ contract DeployLRT is Script {
 
         // init EthXPriceOracle
         if (block.chainid == 1) {
-            address staderStakingPoolManager = 0xcf5EA1b38380f6aF39068375516Daf40Ed70D299;
+            address staderStakingPoolManager = Addresses.STADER_STAKING_POOL_MANAGER;
             // mainnet
             ethXPriceOracleProxy.initialize(staderStakingPoolManager);
         } else {
-            address staderStakingPoolManager = 0xd0e400Ec6Ed9C803A9D9D3a602494393E806F823;
+            address staderStakingPoolManager = AddressesGoerli.STADER_STAKING_POOL_MANAGER;
             // testnet
             ethXPriceOracleProxy.initialize(staderStakingPoolManager);
         }
@@ -287,8 +287,8 @@ contract DeployLRT is Script {
 
         // if (chainId == 1) {
         //     // mainnet
-        //     manager = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
-        //     admin = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
+        //     manager = Addresses.MANAGER_ROLE;
+        //     admin = Addresses.ADMIN_ROLE;
         // } else if (chainId == 5) {
         //     // goerli
         //     manager = deployerAddress;

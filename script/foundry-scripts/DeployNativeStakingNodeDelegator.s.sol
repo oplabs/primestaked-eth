@@ -11,7 +11,7 @@ import { Vm } from "forge-std/Test.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
-import { Addresses } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
 contract DeployNativeStakingNodeDelegator is Script {
@@ -48,8 +48,7 @@ contract DeployNativeStakingNodeDelegator is Script {
             lrtDepositPoolProxy = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
             proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
             eigenpodManagerAddress = Addresses.EIGEN_POD_MANAGER;
-            // TODO: fill this out
-            //operatorAddress = 0x...
+            operatorAddress = Addresses.OPERATOR_ROLE;
 
             if (isFork) {
                 address mainnetProxyOwner = Addresses.PROXY_OWNER;
@@ -63,11 +62,11 @@ contract DeployNativeStakingNodeDelegator is Script {
         }
         // Goerli
         else if (block.chainid == 5) {
-            eigenpodManagerAddress = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
-            proxyAdminAddress = 0x5Cc848d0333fa42A58aD346FD880CE7c5bD62c90;
-            lrtConfigProxy = LRTConfig(0xAa62544784d28E9546820B5A46f2c346caB7d43A);
-            proxyFactory = ProxyFactory(0x3A958C0C7cC87aC5A0d0cc5Ac3ddd6FE97F13AdD);
-            lrtDepositPoolProxy = LRTDepositPool(payable(0xdACea683462141f74aEb6Aebd8987EDb8260EB23));
+            eigenpodManagerAddress = AddressesGoerli.EIGEN_POD_MANAGER;
+            proxyAdminAddress = AddressesGoerli.PROXY_ADMIN;
+            lrtConfigProxy = LRTConfig(AddressesGoerli.LRT_CONFIG);
+            proxyFactory = ProxyFactory(AddressesGoerli.PROXY_FACTORY);
+            lrtDepositPoolProxy = LRTDepositPool(AddressesGoerli.LRT_DEPOSIT_POOL);
             operatorAddress = msg.sender;
 
             console.log("Deploying on Gorli deployer: %s", msg.sender);
