@@ -50,6 +50,7 @@ deposit-limits-fork :; IS_FORK=true forge script script/foundry-scripts/UpdateDe
 
 # Deploy LRTDepositPool
 deploy-deposit-pool-mainnet :; forge script script/foundry-scripts/DeployDepositPool.s.sol:DeployDepositPool --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+deploy-deposit-pool-testnet :; forge script script/foundry-scripts/DeployDepositPool.s.sol:DeployDepositPool --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 upgrade-deposit-delegator-fork :; IS_FORK=true forge script script/foundry-scripts/DeployDepositPool.s.sol:DeployDepositPool --rpc-url localhost --broadcast -vvv
 upgrade-deposit-delegator-local :; forge script script/foundry-scripts/DeployDepositPool.s.sol:DeployDepositPool --rpc-url localhost --broadcast -vvv
 
@@ -68,6 +69,12 @@ deploy-chainlink-mainnet :; forge script script/foundry-scripts/DeployChainlinkP
 upgrade-chainlink-fork :; IS_FORK=true forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
 upgrade-chainlink-local :; forge script script/foundry-scripts/DeployChainlinkPriceOracle.s.sol:DeployChainlinkPriceOracle --rpc-url localhost --broadcast -vvv
 
+# Deploy NodeDelegator for native staking
+deploy-nativeNodeDelegator-mainnet :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+deploy-nativeNodeDelegator-testnet :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+upgrade-nativeNodeDelegator-fork :; IS_FORK=true forge script script/foundry-scripts/upgradeNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url localhost --broadcast -vvv
+upgrade-nativeNodeDelegator-local :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url localhost --broadcast -vvv
+	
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)
     BLOCK_PARAM=--fork-block-number=${BLOCK_NUMBER}
