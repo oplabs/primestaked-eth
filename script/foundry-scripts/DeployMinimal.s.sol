@@ -39,7 +39,7 @@ contract DeployMinimal is Script {
     function setUpByAdmin() private {
         // ----------- callable by admin ----------------
 
-        // add oracle to LRT config
+        // grant manager role to the deployer
         lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
     }
 
