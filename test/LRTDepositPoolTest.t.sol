@@ -89,7 +89,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
 
         vm.startPrank(manager);
         // set ETH as supported token
-        lrtConfig.addNewSupportedAsset(LRTConstants.ETH_TOKEN, 100_000 ether);
+        lrtConfig.addNewSupportedAsset(address(weth), 100_000 ether);
         vm.stopPrank();
     }
 }
@@ -107,61 +107,6 @@ contract LRTDepositPoolInitialize is LRTDepositPoolTest {
         assertEq(address(lrtConfig), address(lrtDepositPool.lrtConfig()), "LRT config address is not set");
     }
 }
-
-// contract LRTDepositPoolDepositETH is LRTDepositPoolTest {
-//     function setUp() public override {
-//         super.setUp();
-
-//         // initialize LRTDepositPool
-//         lrtDepositPool.initialize(address(lrtConfig));
-//     }
-
-//     function test_RevertWhenDepositAmountIsZero() external {
-//         vm.expectRevert(ILRTDepositPool.InvalidAmountToDeposit.selector);
-//         lrtDepositPool.depositETH{ value: 0 }(minimunAmountOfPRETHToReceive, referralId);
-//     }
-
-//     function test_RevertWhenDepositAmountIsLessThanMinAmountToDeposit() external {
-//         uint256 minAmountToDeposit = lrtDepositPool.minAmountToDeposit();
-//         uint256 amountToDeposit = minAmountToDeposit / 2;
-
-//         vm.expectRevert(ILRTDepositPool.InvalidAmountToDeposit.selector);
-//         lrtDepositPool.depositETH{ value: amountToDeposit }(minimunAmountOfPRETHToReceive, referralId);
-//     }
-
-//     function test_RevertWhenMinAmountToReceiveIsNotMetWhenCallingDepositETH() external {
-//         vm.startPrank(alice);
-
-//         // increase the minimum amount of prETH to receive to an amount that is not met
-//         minimunAmountOfPRETHToReceive = 100 ether;
-
-//         vm.expectRevert(ILRTDepositPool.MinimumAmountToReceiveNotMet.selector);
-//         lrtDepositPool.depositETH{ value: 1 ether }(minimunAmountOfPRETHToReceive, referralId);
-
-//         vm.stopPrank();
-//     }
-
-//     function test_DepositETH() external {
-//         vm.startPrank(alice);
-
-//         // alice balance of prETH before deposit
-//         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
-
-//         minimunAmountOfPRETHToReceive = lrtDepositPool.getMintAmount(LRTConstants.ETH_TOKEN, 1 ether);
-
-//         expectEmit();
-//         emit ETHDeposit(alice, 1 ether, minimunAmountOfPRETHToReceive, referralId);
-//         lrtDepositPool.depositETH{ value: 1 ether }(minimunAmountOfPRETHToReceive, referralId);
-
-//         // alice balance of prETH after deposit
-//         uint256 aliceBalanceAfter = preth.balanceOf(address(alice));
-//         vm.stopPrank();
-
-//         assertEq(address(lrtDepositPool).balance, 1 ether, "Total ETH deposits is not set");
-//         assertGt(aliceBalanceAfter + 1, aliceBalanceBefore + minimunAmountOfPRETHToReceive, "Alice balance is not
-// set");
-//     }
-// }
 
 contract LRTDepositPoolDepositAsset is LRTDepositPoolTest {
     address public ethXAddress;
@@ -488,9 +433,9 @@ contract LRTDepositPoolGetETHDistributionData is LRTDepositPoolTest {
         lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueue);
         vm.stopPrank();
 
-        vm.startPrank(manager);
-        lrtConfig.addNewSupportedAsset(address(weth), 10_000 ether);
-        vm.stopPrank();
+        // vm.startPrank(manager);
+        // lrtConfig.addNewSupportedAsset(address(weth), 10_000 ether);
+        // vm.stopPrank();
 
         // deposit 3 WETH
         vm.startPrank(alice);

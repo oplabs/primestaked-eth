@@ -107,7 +107,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
             uint256 assetLyingInDepositPoolInitially,
             uint256 assetLyingInNDCsInitially,
             uint256 assetStakedInEigenLayerInitially
-        ) = lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+        ) = lrtDepositPool.getAssetDistributionData(WETHAddress);
 
         uint256 depositAmount = 66 ether;
         vm.prank(alice);
@@ -116,7 +116,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         uint256 aliceBalanceAfter = alice.balance;
         uint256 depositPoolBalanceAfter = address(lrtDepositPool).balance;
         (uint256 assetLyingInDepositPoolNow, uint256 assetLyingInNDCsNow, uint256 assetStakedInEigenLayerNow) =
-            lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+            lrtDepositPool.getAssetDistributionData(WETHAddress);
 
         assertEq(aliceBalanceAfter, aliceBalanceBefore - depositAmount);
         assertEq(depositPoolBalanceAfter, depositPoolBalanceBefore + depositAmount);
@@ -133,7 +133,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         lrtDepositPool.transferAssetToNodeDelegator(0, WETHAddress, depositAmount);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
-            lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+            lrtDepositPool.getAssetDistributionData(WETHAddress);
         assertEq(assetLyingInDepositPoolNow, assetLyingInDepositPoolInitially);
         assertEq(assetLyingInNDCsNow, assetLyingInNDCsInitially + depositAmount, "eth not transferred to ndc 0");
         assertEq(assetStakedInEigenLayerNow, assetStakedInEigenLayerInitially);
@@ -159,7 +159,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         nodeDelegator1.stakeEth(pubkey, signature, depositDataRoot);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
-            lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+            lrtDepositPool.getAssetDistributionData(WETHAddress);
         assertEq(assetLyingInDepositPoolNow, assetLyingInDepositPoolInitially);
         assertEq(assetLyingInNDCsNow, assetLyingInNDCsInitially + depositAmount - 32 ether);
         assertEq(
@@ -180,7 +180,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         nodeDelegator1.stakeEth(pubkey, signature, depositDataRoot);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
-            lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+            lrtDepositPool.getAssetDistributionData(WETHAddress);
         assertEq(assetLyingInDepositPoolNow, assetLyingInDepositPoolInitially);
         assertEq(assetLyingInNDCsNow, assetLyingInNDCsInitially + depositAmount - 64 ether);
         assertEq(
@@ -191,10 +191,10 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
 
         // transfer 2 ether back to deposit pool
         vm.prank(manager);
-        nodeDelegator1.transferBackToLRTDepositPool(LRTConstants.ETH_TOKEN, 2 ether);
+        nodeDelegator1.transferBackToLRTDepositPool(WETHAddress, 2 ether);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
-            lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);
+            lrtDepositPool.getAssetDistributionData(WETHAddress);
         assertEq(assetLyingInDepositPoolNow, assetLyingInDepositPoolInitially + 2 ether);
         assertEq(assetLyingInNDCsNow, assetLyingInNDCsInitially);
         assertEq(

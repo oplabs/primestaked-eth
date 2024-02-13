@@ -109,6 +109,9 @@ contract NodeDelegatorTest is LRTConfigTest {
         mockEigenPodManager = new MockEigenPodManager();
         lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, address(mockEigenPodManager));
 
+        // add WETH token
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
+
         // add manager role
         lrtConfig.grantRole(LRTConstants.MANAGER, manager);
 
@@ -135,6 +138,10 @@ contract NodeDelegatorTest is LRTConfigTest {
             new TransparentUpgradeableProxy(address(nodeDelImpl), address(proxyAdmin), "");
 
         nodeDel = NodeDelegator(payable(nodeDelProxy));
+
+        // Add WETH as a supported asset
+        vm.prank(manager);
+        lrtConfig.addNewSupportedAsset(address(weth), 100_000 ether);
     }
 }
 
@@ -289,8 +296,7 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
 contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
-        vm.prank(manager);
-        lrtConfig.addNewSupportedAsset(LRTConstants.ETH_TOKEN, 100_000 ether);
+
         nodeDel.initialize(address(lrtConfig));
 
         // transfer ethX to NodeDelegator
@@ -341,22 +347,25 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
         assertEq(ethX.balanceOf(mockLRTDepositPool), amountToDeposit, "LRTDepositPool balance did not increase");
     }
 
-    function test_TransferETHBackToLRTDepositPool() external {
+    function test_TransferWETHBackToLRTDepositPool() external {
         uint256 amountToDeposit = 3 ether;
 
-        vm.deal(address(nodeDel), 100 ether);
-        uint256 nodeDelBalanceBefore = address(nodeDel).balance;
+        // mint some WETH to NodeDelegator
+        weth.mint(address(nodeDel), 100 ether);
+        uint256 nodeDelBalanceBefore = weth.balanceOf(address(nodeDel));
 
         // transfer funds in NodeDelegator to to LRTDepositPool
         vm.prank(manager);
-        nodeDel.transferBackToLRTDepositPool(LRTConstants.ETH_TOKEN, amountToDeposit);
+        nodeDel.transferBackToLRTDepositPool(address(weth), amountToDeposit);
 
-        uint256 nodeDelBalanceAfter = address(nodeDel).balance;
+        uint256 nodeDelBalanceAfter = weth.balanceOf(address(nodeDel));
 
-        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not increase");
-        assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not increase");
+        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not decrease");
+        assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not decrease");
 
-        assertEq(mockLRTDepositPool.balance, amountToDeposit, "LRTDepositPool balance did not increase");
+        assertEq(
+            weth.balanceOf(address(mockLRTDepositPool)), amountToDeposit, "LRTDepositPool balance did not increase"
+        );
     }
 }
 
@@ -429,9 +438,6 @@ contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
 
-        vm.prank(admin);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
-
         vm.prank(manager);
         nodeDel.createEigenPod();
 
@@ -457,9 +463,6 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
-
-        vm.prank(admin);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
 
         vm.prank(manager);
         nodeDel.createEigenPod();
@@ -501,9 +504,6 @@ contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
-
-        vm.prank(admin);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
 
         vm.prank(manager);
         nodeDel.createEigenPod();

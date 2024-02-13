@@ -40,9 +40,6 @@ library LRTConstants {
     // add new vars below
     bytes32 public constant EIGEN_POD_MANAGER = keccak256("EIGEN_POD_MANAGER");
 
-    // native ETH as ERC20 for ease of implementation
-    address public constant ETH_TOKEN = address(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
-
     // Operator Role
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 }

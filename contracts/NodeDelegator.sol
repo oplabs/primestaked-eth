@@ -146,12 +146,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     {
         address lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
 
-        bool success;
-        if (asset == LRTConstants.ETH_TOKEN) {
-            (success,) = payable(lrtDepositPool).call{ value: amount }("");
-        } else {
-            success = IERC20(asset).transfer(lrtDepositPool, amount);
-        }
+        bool success = IERC20(asset).transfer(lrtDepositPool, amount);
 
         if (!success) {
             revert TokenTransferFailed();
