@@ -111,7 +111,6 @@ contract DeployDelegatorPoolOracle is Script, TestHelper {
 
     function run() external {
         preRun();
-        // (ProxyFactory proxyFactory, ProxyAdmin proxyAdmin, LRTConfig lrtConfig, LRTOracle lrtOracle, LRTDepositPool lrtDepositPool, address strategyManager, address stETHStrategy, address oethStrategy)
         (
             proxyFactory,
             proxyAdmin,
