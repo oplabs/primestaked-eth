@@ -74,12 +74,14 @@ deploy-nativeNodeDelegator-mainnet :; forge script script/foundry-scripts/Deploy
 deploy-nativeNodeDelegator-testnet :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 upgrade-nativeNodeDelegator-fork :; IS_FORK=true forge script script/foundry-scripts/upgradeNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url localhost --broadcast -vvv
 upgrade-nativeNodeDelegator-local :; forge script script/foundry-scripts/DeployNativeStakingNodeDelegator.s.sol:DeployNativeStakingNodeDelegator --rpc-url localhost --broadcast -vvv
-	
+
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)
     BLOCK_PARAM=--fork-block-number=${BLOCK_NUMBER}
 endif
+
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate ${BLOCK_PARAM}
+node-test-fork:; anvil --fork-url ${GOERLI_RPC_URL} --auto-impersonate ${BLOCK_PARAM}
 
 # test commands
 unit-test:; forge test --no-match-contract "(Skip|IntegrationTest|ForkTest)"
