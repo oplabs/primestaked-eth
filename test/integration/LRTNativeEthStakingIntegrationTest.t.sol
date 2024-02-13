@@ -27,9 +27,13 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
+    address public WETHAddress;
 
     function _upgradeAllContracts() internal {
         vm.startPrank(admin);
+
+        // Goerli WETH
+        WETHAddress = 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
 
         // upgrade lrtConfig
         address proxyAddress = address(lrtConfig);
@@ -58,11 +62,11 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
 
         // Add eth as supported asset
         vm.startPrank(manager);
-        lrtConfig.addNewSupportedAsset(LRTConstants.ETH_TOKEN, 100_000 ether);
+        lrtConfig.addNewSupportedAsset(WETHAddress, 100_000 ether);
 
         // add oracle for ETH
         address oneETHOracle = address(new OneETHPriceOracle());
-        lrtOracle.updatePriceOracleFor(LRTConstants.ETH_TOKEN, oneETHOracle);
+        lrtOracle.updatePriceOracleFor(WETHAddress, oneETHOracle);
 
         vm.stopPrank();
     }
@@ -107,7 +111,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
 
         uint256 depositAmount = 66 ether;
         vm.prank(alice);
-        lrtDepositPool.depositAsset(LRTConstants.WETH_TOKEN_ADDRESS, depositAmount, 0, "");
+        lrtDepositPool.depositAsset(WETHAddress, depositAmount, 0, "");
 
         uint256 aliceBalanceAfter = alice.balance;
         uint256 depositPoolBalanceAfter = address(lrtDepositPool).balance;
@@ -126,7 +130,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
 
         // move eth from deposit pool to ndc
         vm.prank(manager);
-        lrtDepositPool.transferAssetToNodeDelegator(0, LRTConstants.WETH_TOKEN_ADDRESS, depositAmount);
+        lrtDepositPool.transferAssetToNodeDelegator(0, WETHAddress, depositAmount);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
             lrtDepositPool.getAssetDistributionData(LRTConstants.ETH_TOKEN);

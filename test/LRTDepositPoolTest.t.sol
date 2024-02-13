@@ -484,12 +484,12 @@ contract LRTDepositPoolGetETHDistributionData is LRTDepositPoolTest {
         nodeDelegatorQueue[2] = nodeDelegatorContractThree;
 
         vm.startPrank(admin);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, LRTConstants.WETH_TOKEN_ADDRESS);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
         lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueue);
         vm.stopPrank();
 
         vm.startPrank(manager);
-        lrtConfig.addNewSupportedAsset(LRTConstants.WETH_TOKEN_ADDRESS, 10_000 ether);
+        lrtConfig.addNewSupportedAsset(address(weth), 10_000 ether);
         vm.stopPrank();
 
         // deposit 3 WETH
@@ -507,7 +507,7 @@ contract LRTDepositPoolGetETHDistributionData is LRTDepositPoolTest {
 
         // check using getAssetDistributionData
         (wethLyingInDepositPool, wethLyingInNDCs, ethStakedInEigenLayer) =
-            lrtDepositPool.getAssetDistributionData(LRTConstants.WETH_TOKEN_ADDRESS);
+            lrtDepositPool.getAssetDistributionData(address(weth));
 
         assertEq(wethLyingInDepositPool, 5 ether, "WETH lying in deposit pool is not set");
         assertEq(wethLyingInNDCs, 0, "WETH lying in NDCs is not set");

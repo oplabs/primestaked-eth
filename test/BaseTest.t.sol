@@ -25,12 +25,11 @@ contract BaseTest is Test {
     uint256 public oneThousand = 1000 ** 18;
 
     function setUp() public virtual {
-        stETH = new MockToken("staked ETH", "stETH");
+        stETH = new MockToken("Lido ETH", "stETH");
         ethX = new MockToken("ETHX", "ethX");
-        deployCodeTo("MockWETH.sol", abi.encode("WETH", "weth"), LRTConstants.WETH_TOKEN_ADDRESS);
-        weth = MockWETH(LRTConstants.WETH_TOKEN_ADDRESS);
-        rETH = new MockToken("rETH", "rETH");
-        cbETH = new MockToken("cbETH", "cbETH");
+        weth = new MockWETH("Wrapped WETH", "WETH");
+        rETH = new MockToken("Rocket Pool ETH", "rETH");
+        cbETH = new MockToken("Coinbase ETH", "cbETH");
 
         // mint LST tokens to alice, bob and carol
         mintLSTTokensForUsers(stETH);

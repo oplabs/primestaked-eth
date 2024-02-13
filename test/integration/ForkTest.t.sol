@@ -106,7 +106,7 @@ contract ForkTest is Test, ContractUpgrades {
         vm.stopPrank();
 
         vm.startPrank(Addresses.ADMIN_ROLE);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, LRTConstants.WETH_TOKEN_ADDRESS);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, Addresses.WETH_TOKEN);
         lrtOracle.updatePriceOracleFor(Addresses.WETH_TOKEN, wethOracleProxy);
         // TODO anything else?
         vm.stopPrank();

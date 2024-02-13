@@ -222,13 +222,20 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         external
         onlyLRTOperator
     {
-        IWETH weth = IWETH(LRTConstants.WETH_TOKEN_ADDRESS);
-        uint256 wethBalance = weth.balanceOf(address(this));
-        if (wethBalance < 32 ether) {
-            revert InsufficientWETH(wethBalance);
+        // The WETH address is different between chains so reading from the config.
+        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
+        IWETH weth = IWETH(lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN));
+        // Yield from the validators will come as native ETH.
+        uint256 ethBalance = address(this).balance;
+        if (ethBalance < 32 ether) {
+            // If not enough native ETH, convert WETH to native ETH
+            uint256 wethBalance = weth.balanceOf(address(this));
+            if (wethBalance + ethBalance < 32 ether) {
+                revert InsufficientWETH(wethBalance + ethBalance);
+            }
+            // Convert WETH asset to native ETH
+            weth.withdraw(32 ether - ethBalance);
         }
-        // convert WETH asset to native ETH
-        weth.withdraw(32 ether);
 
         // Call the stake function in the EigenPodManager
         IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));

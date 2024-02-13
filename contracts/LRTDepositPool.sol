@@ -70,11 +70,13 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         return nodeDelegatorQueue;
     }
 
-    /// @dev provides asset amount distribution data among depositPool, NDCs and eigenLayer
+    /// @dev provides asset amount distribution data among depositPool, NDCs and EigenLayer
     /// @param asset the asset to get the total amount of
     /// @return assetLyingInDepositPool asset amount lying in this LRTDepositPool contract
-    /// @return assetLyingInNDCs asset amount sum lying in all NDC contract
-    /// @return assetStakedInEigenLayer asset amount deposited in eigen layer strategies through all NDCs
+    /// @return assetLyingInNDCs asset amount sum lying in all NDC contracts. This includes any native ETH when the
+    /// asset is WETH.
+    /// @return assetStakedInEigenLayer asset amount deposited in EigenLayer strategies through all NDCs.
+    /// This is either LSTs in EigenLayer strategies or native ETH managed by EigenLayer pods.
     function getAssetDistributionData(address asset)
         public
         view
@@ -82,33 +84,22 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         onlySupportedAsset(asset)
         returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer)
     {
-        if (asset == LRTConstants.WETH_TOKEN_ADDRESS) {
-            return _getETHDistributionData();
-        }
         assetLyingInDepositPool = IERC20(asset).balanceOf(address(this));
+
+        // The WETH address is different between chains so reading from the config.
+        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
 
         uint256 ndcsCount = nodeDelegatorQueue.length;
         for (uint256 i; i < ndcsCount;) {
             assetLyingInNDCs += IERC20(asset).balanceOf(nodeDelegatorQueue[i]);
-            assetStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
-            unchecked {
-                ++i;
+            if (asset == WETH_TOKEN_ADDRESS) {
+                // Add any ETH in the NDC that was earned from EigenLayer
+                assetLyingInNDCs += nodeDelegatorQueue[i].balance;
+                assetStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getETHEigenPodBalance();
+            } else {
+                assetStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
             }
-        }
-    }
-
-    /// @dev provides ETH amount distribution data among depositPool, NDCs and EigenLayer
-    function _getETHDistributionData()
-        internal
-        view
-        returns (uint256 wethLyingInDepositPool, uint256 wethLyingInNDCs, uint256 ethStakedInEigenLayer)
-    {
-        wethLyingInDepositPool = IERC20(LRTConstants.WETH_TOKEN_ADDRESS).balanceOf(address(this));
-
-        uint256 ndcsCount = nodeDelegatorQueue.length;
-        for (uint256 i; i < ndcsCount;) {
-            wethLyingInNDCs += IERC20(LRTConstants.WETH_TOKEN_ADDRESS).balanceOf(nodeDelegatorQueue[i]);
-            ethStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getETHEigenPodBalance();
             unchecked {
                 ++i;
             }

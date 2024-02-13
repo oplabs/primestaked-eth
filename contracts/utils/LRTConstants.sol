@@ -23,7 +23,6 @@ library LRTConstants {
 
     // WETH token
     bytes32 public constant WETH_TOKEN = keccak256("WETH_TOKEN");
-    address public constant WETH_TOKEN_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     //contracts
     bytes32 public constant LRT_ORACLE = keccak256("LRT_ORACLE");

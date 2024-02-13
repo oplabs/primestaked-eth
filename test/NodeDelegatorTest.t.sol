@@ -429,13 +429,16 @@ contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
 
+        vm.prank(admin);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
+
         vm.prank(manager);
         nodeDel.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
         uint256 amount = 1000 ether;
         weth.mint(address(nodeDel), amount);
-        vm.deal(LRTConstants.WETH_TOKEN_ADDRESS, amount);
+        vm.deal(address(weth), amount);
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
@@ -455,13 +458,16 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
 
+        vm.prank(admin);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
+
         vm.prank(manager);
         nodeDel.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
         amount = 32 ether;
         weth.mint(address(nodeDel), amount);
-        vm.deal(LRTConstants.WETH_TOKEN_ADDRESS, amount);
+        vm.deal(address(weth), amount);
     }
 
     function test_revertWhenCallerIsNotLRTOperator() external {
@@ -496,13 +502,16 @@ contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
 
+        vm.prank(admin);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
+
         vm.prank(manager);
         nodeDel.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
         uint256 amount = 1000 ether;
         weth.mint(address(nodeDel), amount);
-        vm.deal(LRTConstants.WETH_TOKEN_ADDRESS, amount);
+        vm.deal(address(weth), amount);
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
