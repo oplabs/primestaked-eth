@@ -47,7 +47,9 @@ deploy-native-local :; forge script script/foundry-scripts/mainnet/10_deployNati
 ifneq ($(BLOCK_NUMBER),)
     BLOCK_PARAM=--fork-block-number=${BLOCK_NUMBER}
 endif
+
 node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate ${BLOCK_PARAM}
+node-test-fork:; anvil --fork-url ${GOERLI_RPC_URL} --auto-impersonate ${BLOCK_PARAM}
 
 # test commands
 unit-test:; forge test --no-match-contract "(Skip|IntegrationTest|ForkTest)"

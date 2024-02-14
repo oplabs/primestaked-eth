@@ -73,8 +73,8 @@ library AddressesGoerli {
     address public constant OPERATOR_ROLE = DEPLOYER;
 
     // address public constant PROXY_OWNER = ADMIN_MULTISIG;
-    address public constant PROXY_FACTORY = 0x3A958C0C7cC87aC5A0d0cc5Ac3ddd6FE97F13AdD;
-    address public constant PROXY_ADMIN = 0x5Cc848d0333fa42A58aD346FD880CE7c5bD62c90;
+    address public constant PROXY_FACTORY = 0xe58F6e65dB9D82b668C480565e20024887850186;
+    address public constant PROXY_ADMIN = 0x941B4A6C9F37A5e6E00a2c895467839F4dEDe048;
 
     address public constant PRIME_STAKED_ETH = 0x2C40141Cd278746C9666288d12EbF434Eadef700;
 
@@ -86,7 +86,7 @@ library AddressesGoerli {
 
     // address public constant CHAINLINK_ORACLE_PROXY = ;
 
-    address public constant STETH_TOKEN = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
+    address public constant STETH_TOKEN = 0x2C40141Cd278746C9666288d12EbF434Eadef700;
     address public constant STETH_EIGEN_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
     // address public constant STETH_ORACLE = ;
 
