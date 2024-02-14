@@ -18,7 +18,7 @@ import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
-import { DeployAll } from "script/foundry-scripts/mainnet/00_DeployAll.sol";
+import { DeployAll } from "script/foundry-scripts/mainnet/00_deployAll.sol";
 
 contract ForkTest is Test {
     uint256 public fork;
