@@ -13,6 +13,10 @@ import { UpgradeDepositPoolNodeDelegatorOracles } from "./09_upgradeDepositPoolN
 import { DeployNativeETH } from "./10_deployNativeETH.s.sol";
 
 contract DeployAll {
+    // Ignores this contract when checking contract sized with
+    // forge build --sizes
+    bool public IS_SCRIPT = true;
+
     function run() external {
         (new DeployMinimal()).run();
         (new DeployFirstOracles()).run();
