@@ -30,7 +30,7 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        deployBlockNum = 19_172_239;
+        deployBlockNum = 19_143_860;
     }
 
     function _execute() internal override {

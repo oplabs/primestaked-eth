@@ -24,13 +24,13 @@ library OracleLib {
         console.log("LRTOracle implementation deployed at: %s", newImpl);
     }
 
-    function upgradeLRTOracle(address newImpl) external {
+    function upgradeLRTOracle(address newImpl) internal {
         ProxyAdmin proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
 
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.LRT_ORACLE), newImpl);
     }
 
-    function deployChainlinkOracle() internal returns (address proxy) {
+    function deployInitChainlinkOracle() internal returns (address proxy) {
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -47,13 +47,19 @@ library OracleLib {
         console.log("Initialized ChainlinkPriceOracleProxy");
     }
 
-    function upgradeChainlinkOracle(address newImpl) external {
+    function deployChainlinkOracle() internal returns (address newImpl) {
+        // Deploy the new contract
+        newImpl = address(new ChainlinkPriceOracle());
+        console.log("ChainlinkPriceOracle implementation deployed at: %s", newImpl);
+    }
+
+    function upgradeChainlinkOracle(address newImpl) internal {
         ProxyAdmin proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
 
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.CHAINLINK_ORACLE_PROXY), newImpl);
     }
 
-    function deployOETHOracle() internal returns (address proxy) {
+    function deployInitOETHOracle() internal returns (address proxy) {
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -66,7 +72,7 @@ library OracleLib {
         console.log("OETHPriceOracleProxy deployed at: %s", proxy);
     }
 
-    function deployEthXPriceOracle() internal returns (address proxy) {
+    function deployInitEthXPriceOracle() internal returns (address proxy) {
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -83,7 +89,7 @@ library OracleLib {
         console.log("Initialized EthXPriceOracleProxy");
     }
 
-    function deployMEthPriceOracle() internal returns (address proxy) {
+    function deployInitMEthPriceOracle() internal returns (address proxy) {
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -96,7 +102,7 @@ library OracleLib {
         console.log("MEthPriceOracleProxy deployed at: %s", proxy);
     }
 
-    function deploySfrxEthPriceOracle() internal returns (address proxy) {
+    function deployInitSfrxEthPriceOracle() internal returns (address proxy) {
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -109,7 +115,7 @@ library OracleLib {
         console.log("SfrxETHPriceOracleProxy deployed at: %s", proxy);
     }
 
-    function deployWETHOracle() internal returns (address proxy) {
+    function deployInitWETHOracle() internal returns (address proxy) {
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 

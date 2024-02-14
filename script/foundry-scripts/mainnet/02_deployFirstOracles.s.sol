@@ -11,10 +11,10 @@ contract DeployFirstOracles is BaseMainnetScript {
     }
 
     function _execute() internal override {
-        OracleLib.deployChainlinkOracle();
-        OracleLib.deployOETHOracle();
-        OracleLib.deployEthXPriceOracle();
-        OracleLib.deployMEthPriceOracle();
-        OracleLib.deploySfrxEthPriceOracle();
+        OracleLib.deployInitChainlinkOracle();
+        OracleLib.deployInitOETHOracle();
+        OracleLib.deployInitEthXPriceOracle();
+        OracleLib.deployInitMEthPriceOracle();
+        OracleLib.deployInitSfrxEthPriceOracle();
     }
 }

@@ -19,27 +19,32 @@ contract UpgradeDepositPoolNodeDelegatorOracles is BaseMainnetScript {
         deployBlockNum = 19_172_239;
     }
 
+    address newDepositPoolImpl;
+    address newNodeDelegatorImpl;
+    address newOracleImpl;
+    address newChainlinkOracle;
+
     function _execute() internal override {
-        address newDepositPoolImpl = DepositPoolLib.deploy();
-        address newNodeDelegatorImpl = NodeDelegatorLib.deploy();
-        address newOracleImpl = OracleLib.deployLRTOracle();
-        address newChainlinkOracle = OracleLib.deployChainlinkOracle();
+        newDepositPoolImpl = DepositPoolLib.deploy();
+        newNodeDelegatorImpl = NodeDelegatorLib.deploy();
+        newOracleImpl = OracleLib.deployLRTOracle();
+        newChainlinkOracle = OracleLib.deployChainlinkOracle();
+    }
 
-        if (isForked) {
-            vm.startPrank(Addresses.PROXY_OWNER);
+    function _fork() internal override {
+        vm.startPrank(Addresses.PROXY_OWNER);
+        // Upgrade the proxies
+        DepositPoolLib.upgrade(newDepositPoolImpl);
+        NodeDelegatorLib.upgrade(newNodeDelegatorImpl);
+        OracleLib.upgradeLRTOracle(newOracleImpl);
+        // OracleLib.upgradeChainlinkOracle(newChainlinkOracle);
+        vm.stopPrank();
 
-            // Upgrade the proxies
-            DepositPoolLib.upgrade(newDepositPoolImpl);
-            NodeDelegatorLib.upgrade(newNodeDelegatorImpl);
-            OracleLib.upgradeLRTOracle(newOracleImpl);
-            OracleLib.upgradeChainlinkOracle(newChainlinkOracle);
-
-            // move the Operator role from the multisig to the relayer
-            LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
-            config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
-            config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
-
-            vm.stopPrank();
-        }
+        vm.startPrank(Addresses.ADMIN_ROLE);
+        // move the Operator role from the multisig to the relayer
+        LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
+        config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
+        config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
+        vm.stopPrank();
     }
 }

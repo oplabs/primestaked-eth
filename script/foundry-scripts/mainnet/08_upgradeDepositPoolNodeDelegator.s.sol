@@ -21,23 +21,26 @@ contract UpgradeDepositPoolNodeDelegator is BaseMainnetScript {
         deployBlockNum = 19_158_908;
     }
 
+    address newDepositPoolImpl;
+    address newNodeDelegatorLibImpl;
+
     function _execute() internal override {
-        address newDepositPoolImpl = DepositPoolLib.deploy();
-        address newNodeDelegatorLibImpl = NodeDelegatorLib.deploy();
+        newDepositPoolImpl = DepositPoolLib.deploy();
+        newNodeDelegatorLibImpl = NodeDelegatorLib.deploy();
+    }
 
-        if (isForked) {
-            // The proxy owner was the multisig wallet
-            vm.startPrank(Addresses.PROXY_OWNER);
+    function _fork() internal override {
+        // The proxy owner was the multisig wallet
+        vm.startPrank(Addresses.PROXY_OWNER);
 
-            // Upgrade the proxies
-            LRTDepositPool depositPool = DepositPoolLib.upgrade(newDepositPoolImpl);
-            NodeDelegator nodeDelegator = NodeDelegatorLib.upgrade(newNodeDelegatorLibImpl);
+        // Upgrade the proxies
+        LRTDepositPool depositPool = DepositPoolLib.upgrade(newDepositPoolImpl);
+        NodeDelegator nodeDelegator = NodeDelegatorLib.upgrade(newNodeDelegatorLibImpl);
 
-            // Opt in for OETH rebasing
-            depositPool.optIn(Addresses.OETH_TOKEN);
-            nodeDelegator.optIn(Addresses.OETH_TOKEN);
+        // Opt in for OETH rebasing
+        depositPool.optIn(Addresses.OETH_TOKEN);
+        nodeDelegator.optIn(Addresses.OETH_TOKEN);
 
-            vm.stopPrank();
-        }
+        vm.stopPrank();
     }
 }

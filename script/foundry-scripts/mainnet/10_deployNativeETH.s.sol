@@ -27,7 +27,7 @@ contract DeployNativeETH is BaseMainnetScript {
         NodeDelegatorLib.deployInit();
 
         // Deploy new WETH oracle
-        wethOracleProxy = OracleLib.deployWETHOracle();
+        wethOracleProxy = OracleLib.deployInitWETHOracle();
     }
 
     function _fork() internal override {
