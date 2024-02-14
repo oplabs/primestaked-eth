@@ -3,25 +3,27 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
+
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
-import { LRTConfig } from "contracts/LRTConfig.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
-import { ContractUpgrades } from "contracts/utils/ContractUpgrades.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
+
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
+import { DeployAll } from "script/foundry-scripts/mainnet/00_DeployAll.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-contract ForkTest is Test, ContractUpgrades {
+contract ForkTest is Test {
     uint256 public fork;
 
     LRTDepositPool public lrtDepositPool;
-    LRTConfig public lrtConfig;
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
@@ -52,66 +54,17 @@ contract ForkTest is Test, ContractUpgrades {
 
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
-        lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
 
-        // Any pending deployments or access control changes
-        deployments();
+        // Any pending deployments or configuration changes
+        DeployAll deployer = new DeployAll();
+        deployer.run();
 
         // Unpause Prime Staked if its paused
         unpausePrime();
 
         // Unpause all EigenLayer deposits
         unpauseAllStrategies();
-    }
-
-    /// @dev Any pending contract upgrades or access control changes
-    function deployments() internal {
-        // Upgrade to the latest contracts
-        upgradeDepositPool();
-        upgradeNodeDelegator();
-        // upgradeOracle();
-        // upgradeChainlinkPriceOracle();
-
-        address wethOracleProxy = deployWETHOracle();
-        addWETH(wethOracleProxy);
-
-        // Change roles assignments
-        // vm.startPrank(Addresses.ADMIN_ROLE);
-        // LRTConfig config = LRTConfig(Addresses.LRT_CONFIG);
-        // config.grantRole(LRTConstants.OPERATOR_ROLE, Addresses.RELAYER);
-        // config.revokeRole(LRTConstants.OPERATOR_ROLE, Addresses.ADMIN_MULTISIG);
-        // vm.stopPrank();
-    }
-
-    function deployWETHOracle() internal returns (address) {
-        // Deploy implementation contract
-        address implContract = address(new WETHPriceOracle(Addresses.WETH_TOKEN));
-        console.log("WETHPriceOracle deployed at: %s", implContract);
-
-        // Deploy proxy
-        ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
-        address proxy = proxyFactory.create(
-            implContract, Addresses.PROXY_ADMIN, keccak256(abi.encodePacked("WETHPriceOracleProxy"))
-        );
-        console.log("WETHPriceOracleProxy deployed at: %s", proxy);
-
-        return proxy;
-    }
-
-    function addWETH(address wethOracleProxy) internal {
-        vm.startPrank(Addresses.MANAGER_ROLE);
-        uint256 maxAssetLimit = 400_000 ether;
-        lrtConfig.addNewSupportedAsset(Addresses.WETH_TOKEN, maxAssetLimit);
-        vm.stopPrank();
-
-        vm.startPrank(Addresses.ADMIN_ROLE);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, Addresses.WETH_TOKEN);
-        lrtOracle.updatePriceOracleFor(Addresses.WETH_TOKEN, wethOracleProxy);
-        // TODO anything else?
-        vm.stopPrank();
-
-        console.log("Configured WETH");
     }
 
     function test_deposit_stETH() public {
@@ -354,8 +307,6 @@ contract ForkTest is Test, ContractUpgrades {
     }
 
     function unpausePrime() internal {
-        LRTDepositPool lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
-
         if (lrtDepositPool.paused()) {
             vm.prank(Addresses.MANAGER_ROLE);
             lrtDepositPool.unpause();

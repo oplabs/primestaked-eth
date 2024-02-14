@@ -306,7 +306,7 @@ cd ./script/defender-actions
 # Export the DEFENDER_TEAM_KEY and DEFENDER_TEAM_SECRET environment variables
 export DEFENDER_TEAM_KEY=
 export DEFENDER_TEAM_SECRET=
-# Alternatively, the following can be used but it will export all env var including DEPLOYER_PRIVATE_KEY and LOCAL_DEPLOYER_PRIVATE_KEY
+# Alternatively, the following can be used but it will export all env var including DEPLOYER_PRIVATE_KEY
 # set -o allexport && source ../../.env && set +o allexport
 
 # Set the DEBUG environment variable to prime* for the Defender Action
