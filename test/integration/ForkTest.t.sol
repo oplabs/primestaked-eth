@@ -147,7 +147,7 @@ contract ForkTest is Test {
         bytes memory pubkey =
             hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e";
         bytes memory signature =
-            // solhint-disable-next-line max-line-length
+        // solhint-disable-next-line max-line-length
             hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a";
         bytes32 depositDataRoot = 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b;
         // nodeDelegator2.stakeEth(pubkey, signature, depositDataRoot);

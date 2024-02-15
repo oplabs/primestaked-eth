@@ -73,8 +73,8 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @dev provides asset amount distribution data among depositPool, NDCs and EigenLayer
     /// @param asset the asset to get the total amount of
     /// @return assetLyingInDepositPool asset amount lying in this LRTDepositPool contract
-    /// @return assetLyingInNDCs asset amount sum lying in all NDC contracts. This includes any native ETH when the
-    /// asset is WETH.
+    /// @return assetLyingInNDCs asset amount sum lying in all NDC contracts.
+    /// This includes any native ETH when the asset is WETH.
     /// @return assetStakedInEigenLayer asset amount deposited in EigenLayer strategies through all NDCs.
     /// This is either LSTs in EigenLayer strategies or native ETH managed by EigenLayer pods.
     function getAssetDistributionData(address asset)
