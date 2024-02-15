@@ -80,6 +80,10 @@ contract ForkTest is Test {
         address asset = Addresses.WETH_TOKEN;
         deposit(asset, wWhale, 20 ether);
 
+        // Get before asset balances
+        (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
         vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
@@ -87,6 +91,42 @@ contract ForkTest is Test {
         emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
 
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
+
+        // Get after asset balances
+        (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
+        // stETH can leave a dust amount behind so using assertApproxEqRel
+        assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore - transferAmount, "assets in DepositPool");
+        assertEq(assetsNDCsAfter, assetsNDCsBefore + transferAmount, "assets in NDCs");
+        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
+    }
+
+    function test_ETH_rewards() public {
+        uint256 transferAmount = 18 ether;
+        address asset = Addresses.WETH_TOKEN;
+        deposit(asset, wWhale, 30 ether);
+
+        vm.prank(Addresses.OPERATOR_ROLE);
+        lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
+
+        // Get before asset balances
+        (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        // Transfer from ETH to the Node Delegator to simulate ETH rewards
+        vm.deal(Addresses.NODE_DELEGATOR2, 0.01 ether);
+
+        // Get after asset balances
+        (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
+        // stETH can leave a dust amount behind so using assertApproxEqRel
+        assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
+        assertEq(assetsNDCsAfter, assetsNDCsBefore + 0.01 ether, "assets in NDCs");
+        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
     }
 
     function test_stakeETH() public {
@@ -107,6 +147,7 @@ contract ForkTest is Test {
         bytes memory pubkey =
             hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e";
         bytes memory signature =
+            // solhint-disable-next-line max-line-length
             hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a";
         bytes32 depositDataRoot = 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b;
         // nodeDelegator2.stakeEth(pubkey, signature, depositDataRoot);
