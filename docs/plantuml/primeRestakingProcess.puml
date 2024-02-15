@@ -12,6 +12,7 @@ participant "API" as api <<P2P>>
 box "Blockahin"
 participant "DepositPool" as dp <<Prime>>
 participant "NodeDelegator" as nd <<Prime>>
+participant "WETH" as weth <<Wrapped ETH>>
 participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
 participant "DepositContract" as dep <<Beacon>>
@@ -39,15 +40,44 @@ return status,\neigenPodAddress,\npubkey,\nsignature,\ndepositDataRoot,\nwithdra
 
 end group
 
-group User deposit into Prime Staked
+group User deposits WETH into Prime Staked
 
-staker -> dp : depositETH(\npayableAmount)
-note right : ETH from staker\nis sent to DepositPool
+staker -> dp : deposit(asset, amount)
+note right : WETH from staker\nis transferred to DepositPool
 activate dp
 return
 
 end group
 
+group Operator Stakes 32 ETH to new validator
+
+op -> dp : transferAssetToNodeDelegator(\nndcIndex,\nasset\namount)
+activate dp
+note right : WETH transfer\nfrom DepositPool\nto Node Delegator
+return
+
+
+op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
+activate nd
+nd -> weth : withdraw(\namount)
+activate weth
+note right : WETH burned for ETH
+return ETH
+nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
+note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
+activate podMan
+podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
+activate pod
+pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
+activate dep
+return
+return
+return
+return
+' man -> dep : deposit(\npubkey,\nsignature,\ndeposit_data_root)
+' activate dep
+' return
+end group
 
 ' group Manager adds another validator
 
@@ -61,35 +91,5 @@ end group
 ' return status,\neigenPodAddress,\npubkey,\nsignature,\ndepositDataRoot,\nwithdrawalCredentials,\ndepositMessageRoot
 
 ' end group
-
-group Operator Stakes 32 ETH to new validator
-
-op -> dp : transferETHToNodeDelegator(\nndcIndex,\namount)
-activate dp
-dp -> nd : sendETHFromDepositPoolToNDC()
-note right : ETH from DepositPool\nis sent to NodeDelegator
-activate nd
-return
-return
-
-
-op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
-activate nd
-nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
-note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
-activate podMan
-podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
-activate pod
-pod -> dep : stake(\npubkey,\nsignature,\ndepositDataRoot)
-activate dep
-return
-return
-return
-return
-' man -> dep : deposit(\npubkey,\nsignature,\ndeposit_data_root)
-' activate dep
-' return
-
-end group
 
 @enduml
