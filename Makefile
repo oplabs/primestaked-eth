@@ -55,4 +55,4 @@ node-test-fork:; anvil --fork-url ${GOERLI_RPC_URL} --auto-impersonate ${BLOCK_P
 unit-test:; forge test --no-match-contract "(Skip|IntegrationTest|ForkTest)"
 int-test:; MAINNET_RPC_URL=localhost forge test --match-contract "IntegrationTest" --no-match-contract "Skip"
 fork-test:; IS_FORK=true forge test --match-contract "ForkTest" --no-match-contract "Skip" -vv
-fork-test-ci:; forge test --match-contract "ForkTest" --no-match-contract "Skip"
+fork-test-ci:; IS_FORK=true forge test --match-contract "ForkTest" --no-match-contract "Skip"
