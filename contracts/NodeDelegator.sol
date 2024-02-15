@@ -146,6 +146,18 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     {
         address lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
 
+        // Convert any ETH to WETH before transferring
+        // The WETH address is different between chains so reading from the config.
+        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (asset == WETH_TOKEN_ADDRESS) {
+            uint256 ethBalance = address(this).balance;
+            if (ethBalance > 0) {
+                // Convert any ETH into WETH
+                IWETH(WETH_TOKEN_ADDRESS).deposit{ value: ethBalance }();
+            }
+        }
+
         bool success = IERC20(asset).transfer(lrtDepositPool, amount);
 
         if (!success) {
