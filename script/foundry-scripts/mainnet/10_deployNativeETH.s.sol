@@ -16,7 +16,8 @@ import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
 
 contract DeployNativeETH is BaseMainnetScript {
     address newDepositPoolImpl;
-    NodeDelegator newNodeDelegator;
+    address newNodeDelegator1Impl;
+    NodeDelegator newNodeDelegator2;
     address wethOracleProxy;
 
     constructor() {
@@ -28,8 +29,11 @@ contract DeployNativeETH is BaseMainnetScript {
         // Deploy new LTRDepositPool implementation
         newDepositPoolImpl = DepositPoolLib.deploy();
 
+        // Deploy a new implementation of NodeDelegator
+        newNodeDelegator1Impl = NodeDelegatorLib.deploy();
+
         // Deploy new NodeDelegator with proxy and initialize it
-        newNodeDelegator = NodeDelegatorLib.deployInit();
+        newNodeDelegator2 = NodeDelegatorLib.deployInit();
 
         // Deploy new WETH oracle
         wethOracleProxy = OracleLib.deployInitWETHOracle();
@@ -40,6 +44,8 @@ contract DeployNativeETH is BaseMainnetScript {
         // Upgrade proxies
         vm.startPrank(Addresses.PROXY_OWNER);
         DepositPoolLib.upgrade(newDepositPoolImpl);
+        // Upgrade the old NodeDelegator to new implementation
+        NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegator1Impl);
         vm.stopPrank();
 
         vm.startPrank(Addresses.MANAGER_ROLE);
@@ -52,11 +58,11 @@ contract DeployNativeETH is BaseMainnetScript {
         LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.EIGEN_POD_MANAGER, Addresses.EIGEN_POD_MANAGER);
 
         // add new Node Delegator to the deposit pool
-        DepositPoolLib.addNodeDelegator(address(newNodeDelegator));
+        DepositPoolLib.addNodeDelegator(address(newNodeDelegator2));
         vm.stopPrank();
 
         vm.startPrank(Addresses.MANAGER_ROLE);
-        newNodeDelegator.createEigenPod();
+        newNodeDelegator2.createEigenPod();
         vm.stopPrank();
     }
 }

@@ -397,12 +397,14 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         // get asset balances in strategies
         (address[] memory assets, uint256[] memory assetBalances) = nodeDel.getAssetBalances();
 
-        assertEq(assets.length, 2, "Incorrect number of assets");
-        assertEq(assets[0], address(ethX), "Incorrect asset");
-        assertEq(assets[1], address(stETH), "Incorrect asset");
-        assertEq(assetBalances.length, 2, "Incorrect number of asset balances");
+        assertEq(assets.length, 3, "Incorrect number of assets");
+        assertEq(assets[0], address(ethX), "ethX not asset 0");
+        assertEq(assets[1], address(stETH), "stETH not asset 1");
+        assertEq(assets[2], address(weth), "WETH not asset 2");
+        assertEq(assetBalances.length, 3, "Incorrect number of asset balances");
         assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
         assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
+        assertEq(assetBalances[2], 0, "Incorrect asset balance for WETH");
     }
 }
 
@@ -427,9 +429,10 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
         vm.stopPrank();
 
         // get asset balances in strategies
-        (uint256 ethXNodeDelBalance) = nodeDel.getAssetBalance(address(ethX));
+        (uint256 ethXInNDC, uint256 ethXInEigenLayer) = nodeDel.getAssetBalance(address(ethX));
 
-        assertEq(ethXNodeDelBalance, mockUserUnderlyingViewBalance, "Incorrect asset balance");
+        assertEq(ethXInNDC, 0, "ETHx in NodeDelegator");
+        assertEq(ethXInEigenLayer, mockUserUnderlyingViewBalance, "ETHx in EigenLayer");
     }
 }
 
@@ -451,9 +454,10 @@ contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
         nodeDel.stakeEth(hex"", hex"", hex"");
     }
 
-    function test_GetETHEigenPodBalance() external {
-        uint256 ethEigenPodBalance = nodeDel.getETHEigenPodBalance();
-        assertEq(ethEigenPodBalance, 32 ether, "Incorrect ETH balance in EigenPod");
+    function test_GetWTHEigenPodBalance() external {
+        (uint256 wethInNDC, uint256 wethInEigenLayer) = nodeDel.getAssetBalance(address(weth));
+        assertEq(wethInNDC, 968 ether, "WETH in Node Delegator");
+        assertEq(wethInEigenLayer, 32 ether, "ETH in EigenPod");
     }
 }
 
@@ -481,18 +485,16 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
     }
 
     function test_stakeETH() external {
-        uint256 nodeDelWethBefore = weth.balanceOf(address(nodeDel));
-        uint256 ethEigenPodBalanceBefore = nodeDel.getETHEigenPodBalance();
+        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
 
         vm.prank(operator);
         nodeDel.stakeEth(hex"", hex"", hex"");
 
-        uint256 nodeDelWethAfter = weth.balanceOf(address(nodeDel));
+        (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
 
         assertLt(nodeDelWethAfter, nodeDelWethBefore, "NodeDelegator balance did not decrease");
         assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
 
-        uint256 ethEigenPodBalance = nodeDel.getETHEigenPodBalance();
         assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
 
         uint256 stakedButNotVerifiedEth = nodeDel.stakedButNotVerifiedEth();
@@ -535,7 +537,7 @@ contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
             BeaconChainProofs.ValidatorFieldsAndBalanceProofs(hex"", hex"", hex"");
         bytes32[] memory validatorFields = new bytes32[](0);
 
-        uint256 ethEigenPodBalance = nodeDel.getETHEigenPodBalance();
+        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
         uint256 stakeButNotVerifiedBefore = nodeDel.stakedButNotVerifiedEth();
         assertEq(stakeButNotVerifiedBefore, 32 ether, "Incorrect stakedButNotVerifiedEth");
 

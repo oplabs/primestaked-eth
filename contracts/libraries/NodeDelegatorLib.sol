@@ -38,9 +38,8 @@ library NodeDelegatorLib {
         console.log("Native staking node delegator (proxy) deployed at: ", nodeDelegatorProxy);
     }
 
-    function upgrade(address newImpl) internal returns (NodeDelegator) {
+    function upgrade(address proxyAddress, address newImpl) internal returns (NodeDelegator) {
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
-        address proxyAddress = block.chainid == 1 ? Addresses.NODE_DELEGATOR : AddressesGoerli.NODE_DELEGATOR;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
 

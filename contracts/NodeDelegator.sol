@@ -165,9 +165,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Fetches balance of all assets staked in eigen layer through this contract
-    /// @return assets the assets that the node delegator has deposited into strategies
-    /// @return assetBalances the balances of the assets that the node delegator has deposited into strategies
+    /// @notice Fetches balance of all assets staked in EigenLayer through this contract. This includes LSTs and WETH.
+    /// @return assets the assets that the node delegator has deposited into EigenLayer.
+    /// @return assetBalances the balances of the assets that the node delegator has deposited into EigenLayer
     function getAssetBalances()
         external
         view
@@ -180,37 +180,65 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             IEigenStrategyManager(eigenlayerStrategyManagerAddress).getDeposits(address(this));
 
         uint256 strategiesLength = strategies.length;
-        assets = new address[](strategiesLength);
-        assetBalances = new uint256[](strategiesLength);
+        // Add 1 to length to include WETH
+        assets = new address[](strategiesLength + 1);
+        assetBalances = new uint256[](strategiesLength + 1);
 
         for (uint256 i = 0; i < strategiesLength;) {
             assets[i] = address(IStrategy(strategies[i]).underlyingToken());
+            // Get LST balance in EigenLayer strategies
             assetBalances[i] = IStrategy(strategies[i]).userUnderlyingView(address(this));
+            // Get LST balance in this NodeDelegator contract
+            assetBalances[i] += IERC20(assets[i]).balanceOf(address(this));
             unchecked {
                 ++i;
             }
         }
-    }
 
-    /// @dev Returns the balance of an asset that the node delegator has deposited into the strategy
-    /// @param asset the asset to get the balance of
-    /// @return stakedBalance the balance of the asset
-    function getAssetBalance(address asset) external view override returns (uint256) {
-        address strategy = lrtConfig.assetStrategy(asset);
-        if (strategy == address(0)) {
-            return 0;
-        }
-
-        return IStrategy(strategy).userUnderlyingView(address(this));
-    }
-
-    /// @dev Returns the balance of an asset that the node delegator has deposited into its EigenPod strategy
-    function getETHEigenPodBalance() external view override returns (uint256 ethStaked) {
-        // TODO: Once withdrawals are enabled, allow this to handle pending withdraws and a potential negative share
-        // balance in the EigenPodManager ownershares
-        ethStaked = stakedButNotVerifiedEth;
+        // The WETH address is different between chains so reading from the config.
+        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
+        assets[strategiesLength] = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        // Sum up this NodeDelegator contract's WETH balance, ETH balance and ETH staked but not verified
+        assetBalances[strategiesLength] +=
+            IERC20(assets[strategiesLength]).balanceOf(address(this)) + address(this).balance + stakedButNotVerifiedEth;
         if (address(eigenPod) != address(0)) {
-            ethStaked += address(eigenPod).balance;
+            // Add verified ETH balances in the EigenPod
+            assetBalances[strategiesLength] += address(eigenPod).balance;
+        }
+    }
+
+    /// @dev Returns the balance of an asset that the node delegator has deposited into an EigenLayer strategy
+    /// or native ETH staked into an EigenPod.
+    /// @param asset the token address of the asset.
+    /// WETH will include any native ETH in this contract or staked in EigenLayer.
+    /// @return assetLyingInNDC assets lying in this NDC contract.
+    /// This includes any native ETH when the asset is WETH.
+    /// @return assetStakedInEigenLayer asset amount deposited in underlying EigenLayer strategy
+    /// or native ETH staked into an EigenPod.
+    function getAssetBalance(address asset)
+        external
+        view
+        override
+        returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer)
+    {
+        assetLyingInNDC += IERC20(asset).balanceOf(address(this));
+
+        // The WETH address is different between chains so reading from the config.
+        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (asset == WETH_TOKEN_ADDRESS) {
+            // Add any ETH in the NDC that was earned from EigenLayer
+            assetLyingInNDC += address(this).balance;
+
+            assetStakedInEigenLayer = stakedButNotVerifiedEth;
+            if (address(eigenPod) != address(0)) {
+                assetStakedInEigenLayer += address(eigenPod).balance;
+            }
+        } else {
+            address strategy = lrtConfig.assetStrategy(asset);
+            if (strategy != address(0)) {
+                assetStakedInEigenLayer = IStrategy(strategy).userUnderlyingView(address(this));
+            }
         }
     }
 

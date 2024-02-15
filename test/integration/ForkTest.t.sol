@@ -115,7 +115,7 @@ contract ForkTest is Test {
         (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
             lrtDepositPool.getAssetDistributionData(asset);
 
-        // Transfer from ETH to the Node Delegator to simulate ETH rewards
+        // Add ETH to the Node Delegator to simulate ETH rewards
         vm.deal(Addresses.NODE_DELEGATOR2, 0.01 ether);
 
         // Get after asset balances
@@ -152,6 +152,21 @@ contract ForkTest is Test {
         bytes32 depositDataRoot = 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b;
         // nodeDelegator2.stakeEth(pubkey, signature, depositDataRoot);
         vm.stopPrank();
+    }
+
+    function test_transferBackWETH() public {
+        // transferBackToLRTDepositPool
+        address asset = Addresses.WETH_TOKEN;
+        deposit(asset, wWhale, 20 ether);
+
+        vm.prank(Addresses.OPERATOR_ROLE);
+        lrtDepositPool.transferAssetToNodeDelegator(1, asset, 20 ether);
+
+        // Add some ETH to the Node Delegator to simulate ETH rewards
+        vm.deal(Addresses.NODE_DELEGATOR2, 10 ether);
+
+        vm.prank(Addresses.MANAGER_ROLE);
+        nodeDelegator2.transferBackToLRTDepositPool(asset, 30 ether);
     }
 
     function test_revertWhenSecondCreatePod() public {

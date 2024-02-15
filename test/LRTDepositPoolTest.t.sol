@@ -29,16 +29,17 @@ contract MockNodeDelegator {
         assetBalances = _assetBalances;
     }
 
-    function getAssetBalance(address) external pure returns (uint256) {
-        return 1e18;
+    function getAssetBalance(address)
+        external
+        pure
+        returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer)
+    {
+        assetLyingInNDC = 0;
+        assetStakedInEigenLayer = 1e18;
     }
 
     function getAssetBalances() external view returns (address[] memory, uint256[] memory) {
         return (assets, assetBalances);
-    }
-
-    function getETHEigenPodBalance() external pure returns (uint256) {
-        return 1e18;
     }
 
     function removeAssetBalance() external {

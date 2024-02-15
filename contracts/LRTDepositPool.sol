@@ -75,7 +75,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @return assetLyingInDepositPool asset amount lying in this LRTDepositPool contract
     /// @return assetLyingInNDCs asset amount sum lying in all NDC contracts.
     /// This includes any native ETH when the asset is WETH.
-    /// @return assetStakedInEigenLayer asset amount deposited in EigenLayer strategies through all NDCs.
+    /// @return assetStakedInEigenLayer asset amount deposited in EigenLayer through all NDCs.
     /// This is either LSTs in EigenLayer strategies or native ETH managed by EigenLayer pods.
     function getAssetDistributionData(address asset)
         public
@@ -86,20 +86,12 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     {
         assetLyingInDepositPool = IERC20(asset).balanceOf(address(this));
 
-        // The WETH address is different between chains so reading from the config.
-        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-
         uint256 ndcsCount = nodeDelegatorQueue.length;
         for (uint256 i; i < ndcsCount;) {
-            assetLyingInNDCs += IERC20(asset).balanceOf(nodeDelegatorQueue[i]);
-            if (asset == WETH_TOKEN_ADDRESS) {
-                // Add any ETH in the NDC that was earned from EigenLayer
-                assetLyingInNDCs += nodeDelegatorQueue[i].balance;
-                assetStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getETHEigenPodBalance();
-            } else {
-                assetStakedInEigenLayer += INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
-            }
+            (uint256 assetLyingInNDC, uint256 assetInEigenLayer) =
+                INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
+            assetLyingInNDCs += assetLyingInNDC;
+            assetStakedInEigenLayer += assetInEigenLayer;
             unchecked {
                 ++i;
             }
@@ -212,7 +204,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @dev only callable by LRT admin
     /// @param nodeDelegatorAddress NodeDelegator contract address
     function removeNodeDelegatorContractFromQueue(address nodeDelegatorAddress) public onlyLRTAdmin {
-        // revert if node delegator contract has assets lying in it or it has asset in eigenlayer asset strategies
+        // revert if node delegator contract has assets lying in it or it has asset in EigenLayer asset strategies
         (address[] memory assets, uint256[] memory assetBalances) =
             INodeDelegator(nodeDelegatorAddress).getAssetBalances();
 
@@ -220,10 +212,6 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         for (uint256 i; i < assetsLength;) {
             if (assetBalances[i] > 0) {
                 revert NodeDelegatorHasAssetBalance(assets[i], assetBalances[i]);
-            }
-
-            if (IERC20(assets[i]).balanceOf(nodeDelegatorAddress) > 0) {
-                revert NodeDelegatorHasAssetBalance(assets[i], IERC20(assets[i]).balanceOf(nodeDelegatorAddress));
             }
 
             unchecked {

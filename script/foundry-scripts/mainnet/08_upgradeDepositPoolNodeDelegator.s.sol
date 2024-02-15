@@ -35,7 +35,7 @@ contract UpgradeDepositPoolNodeDelegator is BaseMainnetScript {
 
         // Upgrade the proxies
         LRTDepositPool depositPool = DepositPoolLib.upgrade(newDepositPoolImpl);
-        NodeDelegator nodeDelegator = NodeDelegatorLib.upgrade(newNodeDelegatorLibImpl);
+        NodeDelegator nodeDelegator = NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorLibImpl);
 
         // Opt in for OETH rebasing
         depositPool.optIn(Addresses.OETH_TOKEN);

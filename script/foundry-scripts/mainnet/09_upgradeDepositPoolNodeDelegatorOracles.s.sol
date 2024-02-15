@@ -35,7 +35,7 @@ contract UpgradeDepositPoolNodeDelegatorOracles is BaseMainnetScript {
         vm.startPrank(Addresses.PROXY_OWNER);
         // Upgrade the proxies
         DepositPoolLib.upgrade(newDepositPoolImpl);
-        NodeDelegatorLib.upgrade(newNodeDelegatorImpl);
+        NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorImpl);
         OracleLib.upgradeLRTOracle(newOracleImpl);
         // OracleLib.upgradeChainlinkOracle(newChainlinkOracle);
         vm.stopPrank();

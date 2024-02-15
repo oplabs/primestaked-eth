@@ -25,6 +25,8 @@ interface INodeDelegator {
 
     function getAssetBalances() external view returns (address[] memory, uint256[] memory);
 
-    function getAssetBalance(address asset) external view returns (uint256);
-    function getETHEigenPodBalance() external view returns (uint256);
+    function getAssetBalance(address asset)
+        external
+        view
+        returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer);
 }
