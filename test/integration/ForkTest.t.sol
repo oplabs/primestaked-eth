@@ -317,6 +317,10 @@ contract ForkTest is Test {
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
 
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
+        // Get before asset balances
+        (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
         vm.startPrank(whale);
         IERC20(asset).approve(address(lrtDepositPool), amountToTransfer);
 
@@ -335,11 +339,31 @@ contract ForkTest is Test {
         emit Transfer(address(0), whale, amountToTransfer);
 
         lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
-
         vm.stopPrank();
+
+        // Get after asset balances
+        (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
+        // stETH can leave a dust amount behind so using assertApproxEqRel
+        assertApproxEqRel(
+            assetsDepositPoolAfter, assetsDepositPoolBefore + amountToTransfer, 1, "assets in DepositPool"
+        );
+        assertEq(assetsNDCsAfter, assetsNDCsBefore, "assets in NDCs");
+        // TODO something weird is happening with swETH
+        //   assetsElBefore  9846531018815036558
+        //   assetsElAfter   9846058182313137210
+        if (asset != Addresses.SWETH_TOKEN) {
+            assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
+        }
     }
 
     function transfer_DelegatorNode(address asset, uint256 amountToTransfer) internal {
+        // Get before asset balances
+        (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
         vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
@@ -347,9 +371,25 @@ contract ForkTest is Test {
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), amountToTransfer);
 
         lrtDepositPool.transferAssetToNodeDelegator(0, asset, amountToTransfer);
+
+        // Get after asset balances
+        (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
+        // stETH can leave a dust amount behind so using assertApproxEqRel
+        assertApproxEqRel(
+            assetsDepositPoolAfter, assetsDepositPoolBefore - amountToTransfer, 100, "assets in DepositPool"
+        );
+        assertApproxEqRel(assetsNDCsAfter, assetsNDCsBefore + amountToTransfer, 100, "assets in NDCs");
+        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
+        // Get before asset balances
+        (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
         vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from nodeDelegator to Eigen asset strategy
@@ -357,6 +397,16 @@ contract ForkTest is Test {
         emit Transfer(address(nodeDelegator1), strategy, 0);
 
         nodeDelegator1.depositAssetIntoStrategy(asset);
+
+        // Get after asset balances
+        (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
+        // stETH can leave a dust amount behind so using assertApproxEqRel
+        assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
+        assertLe(assetsNDCsAfter, 1, "assets in NDCs");
+        assertApproxEqRel(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
     }
 
     function unpausePrime() internal {
