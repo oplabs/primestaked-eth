@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 library Addresses {
+    address public constant INITIAL_DEPLOYER = 0x7fbd78ae99151A3cfE46824Cd6189F28c8C45168;
     address public constant ADMIN_MULTISIG = 0xEc574b7faCEE6932014EbfB1508538f6015DCBb0;
     address public constant RELAYER = 0x5De069482Ac1DB318082477B7B87D59dfB313f91;
 
@@ -75,12 +76,13 @@ library AddressesGoerli {
     address public constant PROXY_FACTORY = 0xe58F6e65dB9D82b668C480565e20024887850186;
     address public constant PROXY_ADMIN = 0x941B4A6C9F37A5e6E00a2c895467839F4dEDe048;
 
-    // address public constant PRIME_STAKED_ETH = ;
+    address public constant PRIME_STAKED_ETH = 0x2C40141Cd278746C9666288d12EbF434Eadef700;
 
     address public constant LRT_CONFIG = 0x4ABe68F6e0D6D23EEF42494CfaEaa6a3398cf0f2;
-    // address public constant LRT_ORACLE = ;
-    address public constant LRT_DEPOSIT_POOL = 0x2aC2754d8722F28319928d10e7C526bdc560A248;
-    // address public constant NODE_DELEGATOR = ;
+    address public constant LRT_ORACLE = 0xDc61880DD483AFBBAe3311573e731A601ae07680;
+    address public constant LRT_DEPOSIT_POOL = 0xb362ff73Ad3432096DF47419aE6D7bc6cC342F91;
+    address public constant NODE_DELEGATOR = 0x7f4A403f1bd6ed182a3ABd1F840e02B5A360a538;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0xff54d60e6e4F9d1d454b09B4Fc0f7C06977f22D9;
 
     // address public constant CHAINLINK_ORACLE_PROXY = ;
 

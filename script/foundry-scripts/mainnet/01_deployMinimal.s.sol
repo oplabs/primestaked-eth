@@ -1,15 +1,15 @@
-// SPDX-License-Identifier: UNLICENSED
-
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.21;
 
-import "forge-std/Script.sol";
+import "forge-std/console.sol";
 
+import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+
+import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
+import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
-
-import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 function getLSTs() view returns (address stETH, address ethx) {
     uint256 chainId = block.chainid;
@@ -27,31 +27,20 @@ function getLSTs() view returns (address stETH, address ethx) {
     }
 }
 
-contract DeployMinimal is Script {
-    address public deployerAddress;
-    ProxyAdmin public proxyAdmin;
-
-    ProxyFactory public proxyFactory;
-
+contract DeployMinimal is BaseMainnetScript {
     LRTConfig public lrtConfigProxy;
-    PrimeStakedETH public PRETHProxy;
 
-    function setUpByAdmin() private {
-        // ----------- callable by admin ----------------
-
-        // grant manager role to the deployer
-        lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
+    constructor() {
+        // Will only execute script before this block number
+        deployBlockNum = 19_138_974;
     }
 
-    function run() external {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
-
+    function _execute() internal override {
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked"));
-        proxyFactory = new ProxyFactory();
-        proxyAdmin = new ProxyAdmin(); // msg.sender becomes the owner of ProxyAdmin
+        ProxyFactory proxyFactory = new ProxyFactory();
+        ProxyAdmin proxyAdmin = new ProxyAdmin(); // msg.sender becomes the owner of ProxyAdmin
 
-        deployerAddress = proxyAdmin.owner();
+        address deployerAddress = proxyAdmin.owner();
 
         console.log("ProxyAdmin deployed at: ", address(proxyAdmin));
         console.log("Proxy factory deployed at: ", address(proxyFactory));
@@ -77,16 +66,20 @@ contract DeployMinimal is Script {
         // the initialize config supports only 2 LSTs. we will add the others post deployment
         lrtConfigProxy.initialize(deployerAddress, stETH, ethx, predictedPRETHAddress);
 
-        PRETHProxy = PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
+        PrimeStakedETH PRETHProxy =
+            PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));
         // init PrimeStakedETH
         PRETHProxy.initialize(address(lrtConfigProxy));
 
         console.log("LRTConfig proxy deployed at: ", address(lrtConfigProxy));
         console.log("PrimeStakedETH proxy deployed at: ", address(PRETHProxy));
 
-        // setup
-        setUpByAdmin();
+        // Called by the admin which at this time is the deployer
+        setUpByAdmin(deployerAddress);
+    }
 
-        vm.stopBroadcast();
+    function setUpByAdmin(address deployerAddress) private {
+        // add oracle to LRT config
+        lrtConfigProxy.grantRole(LRTConstants.MANAGER, deployerAddress);
     }
 }

@@ -1,30 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.21;
 
-import "forge-std/Script.sol";
+import "forge-std/console.sol";
 
 import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import { Addresses } from "contracts/utils/Addresses.sol";
+import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 
-contract TransferOwnership is Script {
-    function run() external {
-        if (block.chainid != 1) {
-            revert("Not Mainnet");
-        }
+contract TransferOwnership is BaseMainnetScript {
+    constructor() {
+        // Will only execute script before this block number
+        deployBlockNum = 19_152_491;
+    }
 
-        bool isFork = vm.envOr("IS_FORK", false);
-        if (isFork) {
-            address mainnetProxyOwner = Addresses.PROXY_OWNER;
-            console.log("Running deploy on fork impersonating: %s", mainnetProxyOwner);
-            vm.startPrank(mainnetProxyOwner);
-        } else {
-            console.log("Deploying on mainnet deployer: %s", msg.sender);
-            vm.startBroadcast();
-        }
-
+    function _execute() internal override {
         // Contracts that need to be transferred
         ProxyAdmin proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
         LRTConfig lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
@@ -57,11 +48,5 @@ contract TransferOwnership is Script {
          */
         proxyAdmin.transferOwnership(multisig);
         console.log("ProxyAdmin ownership transferred to: ", multisig);
-
-        if (isFork) {
-            vm.stopPrank();
-        } else {
-            vm.stopBroadcast();
-        }
     }
 }
