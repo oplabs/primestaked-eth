@@ -29,4 +29,13 @@ library DepositPoolLib {
 
         return LRTDepositPool(proxyAddress);
     }
+
+    function addNodeDelegator(address nodeDelegatorProxy) internal {
+        address depositPoolAddress = block.chainid == 1 ? Addresses.LRT_DEPOSIT_POOL : AddressesGoerli.LRT_DEPOSIT_POOL;
+        LRTDepositPool depositPool = LRTDepositPool(depositPoolAddress);
+
+        address[] memory nodeDelegatorContracts = new address[](1);
+        nodeDelegatorContracts[0] = nodeDelegatorProxy;
+        depositPool.addNodeDelegatorContractToQueue(nodeDelegatorContracts);
+    }
 }

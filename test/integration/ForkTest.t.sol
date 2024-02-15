@@ -27,6 +27,7 @@ contract ForkTest is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
+    NodeDelegator public nodeDelegator2;
 
     address public stWhale;
     address public xWhale;
@@ -35,6 +36,7 @@ contract ForkTest is Test {
     address public frxWhale;
     address public rWhale;
     address public swWhale;
+    address public wWhale;
 
     string public referralId = "1234";
 
@@ -51,10 +53,12 @@ contract ForkTest is Test {
         frxWhale = 0x46782D268FAD71DaC3383Ccf2dfc44C861fb4c7D;
         rWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
         swWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
+        wWhale = 0xF04a5cC80B1E94C69B48f5ee68a08CD2F09A7c3E;
 
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
+        nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR2));
 
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
@@ -65,6 +69,55 @@ contract ForkTest is Test {
 
         // Unpause all EigenLayer deposits
         unpauseAllStrategies();
+    }
+
+    function test_deposit_WETH() public {
+        deposit(Addresses.WETH_TOKEN, wWhale, 20 ether);
+    }
+
+    function test_transfer_del_node_WETH() public {
+        uint256 transferAmount = 18 ether;
+        address asset = Addresses.WETH_TOKEN;
+        deposit(asset, wWhale, 20 ether);
+
+        vm.prank(Addresses.OPERATOR_ROLE);
+
+        // Should transfer `asset` from DepositPool to the Delegator node
+        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
+
+        lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
+    }
+
+    function test_stakeETH() public {
+        uint256 transferAmount = 32 ether;
+        address asset = Addresses.WETH_TOKEN;
+        deposit(asset, wWhale, transferAmount);
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        // Should transfer `asset` from DepositPool to the Delegator node
+        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
+
+        lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
+
+        // TODO set once we have a mainnet validator
+        // example from block 19230613
+        bytes memory pubkey =
+            hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e";
+        bytes memory signature =
+            hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a";
+        bytes32 depositDataRoot = 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b;
+        // nodeDelegator2.stakeEth(pubkey, signature, depositDataRoot);
+        vm.stopPrank();
+    }
+
+    function test_revertWhenSecondCreatePod() public {
+        vm.startPrank(Addresses.ADMIN_ROLE);
+        vm.expectRevert("EigenPodManager.createPod: Sender already has a pod");
+        nodeDelegator2.createEigenPod();
+        vm.stopPrank();
     }
 
     function test_deposit_stETH() public {
