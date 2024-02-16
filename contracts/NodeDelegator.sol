@@ -29,6 +29,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
     uint256 internal constant DUST_AMOUNT = 10;
 
+    struct Validator {
+        bytes pubkey;
+        bytes signature;
+        bytes32 depositDataRoot;
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -243,13 +249,14 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Stake ETH from NDC into EigenLayer. it calls the stake function in the EigenPodManager
-    /// which in turn calls the stake function in the EigenPod
+    /// @notice Stake WETH or ETH in NDC in a validator connected to an EigenPod.
+    /// This function calls `stake` on the EigenPodManager which calls `stake` on the EigenPod contract which calls
+    /// `stake` on the Beacon DepositContract.
     /// @param pubkey The pubkey of the validator
     /// @param signature The signature of the validator
     /// @param depositDataRoot The deposit data root of the validator
-    /// @dev Only LRT Operator should call this function
-    /// @dev Exactly 32 ether is allowed, hence it is hardcoded
+    /// @dev Only accounts with the Operator role can call this function.
+    /// @dev Exactly 32 ether is allowed, hence it is hardcoded.
     function stakeEth(
         bytes calldata pubkey,
         bytes calldata signature,
@@ -261,6 +268,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         IWETH weth = IWETH(lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN));
+
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         if (ethBalance < 32 ether) {
@@ -273,6 +281,45 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             weth.withdraw(32 ether - ethBalance);
         }
 
+        _stakeEth(pubkey, signature, depositDataRoot);
+    }
+
+    /// @notice Stakes WETH or ETH in NDC in multiple validators connected to an EigenPod.
+    /// @param validators A list of Validator data needed to stake.
+    /// The Validator struct contains the pubkey, signature and depositDataRoot.
+    /// @dev Only accounts with the Operator role can call this function.
+    function bulkStakeEth(Validator[] calldata validators) external onlyLRTOperator {
+        // The WETH address is different between chains so reading from the config.
+        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
+        IWETH weth = IWETH(lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN));
+
+        // Yield from the validators will come as native ETH.
+        uint256 ethBalance = address(this).balance;
+        uint256 requiredETH = validators.length * 32 ether;
+        if (ethBalance < requiredETH) {
+            // If not enough native ETH, convert WETH to native ETH
+            uint256 wethBalance = weth.balanceOf(address(this));
+            if (wethBalance + ethBalance < requiredETH) {
+                revert InsufficientWETH(wethBalance + ethBalance);
+            }
+            // Convert WETH asset to native ETH
+            weth.withdraw(requiredETH - ethBalance);
+        }
+
+        // For each validator
+        for (uint256 i = 0; i < validators.length;) {
+            _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @dev Stake WETH and ETH in NDC in EigenLayer. It calls the `stake` function on the EigenPodManager
+    /// which calls `stake` on the EigenPod contract which calls `stake` on the Beacon DepositContract.
+    /// @dev The public functions that call this internal function are responsible for access control.
+    function _stakeEth(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot) internal {
         // Call the stake function in the EigenPodManager
         IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
         eigenPodManager.stake{ value: 32 ether }(pubkey, signature, depositDataRoot);

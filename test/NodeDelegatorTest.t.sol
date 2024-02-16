@@ -341,7 +341,6 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
 
         uint256 nodeDelBalanceAfter = ethX.balanceOf(address(nodeDel));
 
-        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not increase");
         assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not increase");
 
         assertEq(ethX.balanceOf(mockLRTDepositPool), amountToDeposit, "LRTDepositPool balance did not increase");
@@ -360,7 +359,6 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
 
         uint256 nodeDelBalanceAfter = weth.balanceOf(address(nodeDel));
 
-        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not decrease");
         assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not decrease");
 
         assertEq(
@@ -493,7 +491,56 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
 
         (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
 
-        assertLt(nodeDelWethAfter, nodeDelWethBefore, "NodeDelegator balance did not decrease");
+        assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
+
+        assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
+
+        uint256 stakedButNotVerifiedEth = nodeDel.stakedButNotVerifiedEth();
+        assertEq(stakedButNotVerifiedEth, amount, "Incorrect staked but not verified ETH");
+    }
+}
+
+contract NodeDelegatorBulkStakeETH is NodeDelegatorTest {
+    uint256 public amount;
+
+    function setUp() public override {
+        super.setUp();
+        nodeDel.initialize(address(lrtConfig));
+
+        vm.prank(manager);
+        nodeDel.createEigenPod();
+
+        // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
+        amount = 96 ether;
+        weth.mint(address(nodeDel), amount);
+        vm.deal(address(weth), amount);
+    }
+
+    function test_revertWhenCallerIsNotLRTOperator() external {
+        NodeDelegator.Validator[] memory validators = new NodeDelegator.Validator[](0);
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+        nodeDel.bulkStakeEth(validators);
+        vm.stopPrank();
+    }
+
+    function test_bulkStakeETH() external {
+        // add WETH to nodeDelegator so it can deposit it into 3 validators
+        weth.mint(address(nodeDel), amount);
+        vm.deal(address(weth), amount);
+
+        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
+
+        vm.prank(operator);
+        NodeDelegator.Validator memory blankValidator = NodeDelegator.Validator(hex"", hex"", hex"");
+        NodeDelegator.Validator[] memory validators = new NodeDelegator.Validator[](3);
+        validators[0] = blankValidator;
+        validators[1] = blankValidator;
+        validators[2] = blankValidator;
+        nodeDel.bulkStakeEth(validators);
+
+        (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
+
         assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
 
         assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
