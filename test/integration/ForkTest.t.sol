@@ -97,7 +97,7 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore - transferAmount, "assets in DepositPool");
         assertEq(assetsNDCsAfter, assetsNDCsBefore + transferAmount, "assets in NDCs");
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
@@ -122,8 +122,6 @@ contract ForkTest is Test {
         (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
             lrtDepositPool.getAssetDistributionData(asset);
 
-        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertEq(assetsNDCsAfter, assetsNDCsBefore + 0.01 ether, "assets in NDCs");
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
@@ -402,8 +400,8 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
-        assertApproxEqRel(
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
+        assertApproxEqAbs(
             assetsDepositPoolAfter, assetsDepositPoolBefore + amountToTransfer, 1, "assets in DepositPool"
         );
         assertEq(assetsNDCsAfter, assetsNDCsBefore, "assets in NDCs");
@@ -433,12 +431,15 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
-        assertApproxEqRel(
-            assetsDepositPoolAfter, assetsDepositPoolBefore - amountToTransfer, 100, "assets in DepositPool"
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
+        assertApproxEqAbs(
+            assetsDepositPoolAfter,
+            assetsDepositPoolBefore - amountToTransfer,
+            2,
+            "assets in DepositPool did not decrease"
         );
-        assertApproxEqRel(assetsNDCsAfter, assetsNDCsBefore + amountToTransfer, 100, "assets in NDCs");
-        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
+        assertApproxEqAbs(assetsNDCsAfter, assetsNDCsBefore + amountToTransfer, 2, "assets in NDCs did not increase");
+        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer should not change");
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
@@ -459,10 +460,10 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertLe(assetsNDCsAfter, 1, "assets in NDCs");
-        assertApproxEqRel(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
+        assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
     }
 
     function unpausePrime() internal {
