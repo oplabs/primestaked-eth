@@ -252,6 +252,8 @@ contract ForkTest is Test {
         deposit(Addresses.RETH_TOKEN, rWhale, 15 ether);
         deposit(Addresses.SWETH_TOKEN, swWhale, 16 ether);
 
+        (address[] memory balAssets, uint256[] memory assetBalancesBefore) = nodeDelegator1.getAssetBalances();
+
         address[] memory assets = new address[](7);
         assets[0] = Addresses.STETH_TOKEN;
         assets[1] = Addresses.OETH_TOKEN;
@@ -296,6 +298,22 @@ contract ForkTest is Test {
         // Run again with no assets
         nodeDelegator1.depositAssetsIntoStrategy(assets);
         vm.stopPrank();
+
+        // Check balance in NodeDelegator
+        (, uint256[] memory assetBalancesAfter) = nodeDelegator1.getAssetBalances();
+        assertEq(balAssets[3], Addresses.STETH_TOKEN, "incorrect asset at index 3");
+        assertApproxEqAbs(
+            assetBalancesAfter[3] - assetBalancesBefore[3], 10 ether, 2, "incorrect index 3 asset balance"
+        );
+        assertEq(balAssets[5], Addresses.SWETH_TOKEN, "incorrect asset at index 5");
+        assertApproxEqAbs(
+            assetBalancesAfter[5] - assetBalancesBefore[5], 16 ether, 2, "incorrect index 5 asset balance"
+        );
+        assertEq(balAssets[7], Addresses.WETH_TOKEN, "incorrect asset at index 7");
+        assertEq(assetBalancesAfter[7], 0, "incorrect index 6 asset balance");
+
+        // Get gas costs of calling a Node Delegator that only has native ETH
+        nodeDelegator2.getAssetBalances();
     }
 
     function test_bulk_transfer_some_eigen() public {
