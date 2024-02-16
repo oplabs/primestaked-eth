@@ -249,7 +249,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Stake WETH or ETH in NDC in a validator connected to an EigenPod.
+    /// @notice Stake WETH or ETH in NDC to a validator connected to an EigenPod.
     /// This function calls `stake` on the EigenPodManager which calls `stake` on the EigenPod contract which calls
     /// `stake` on the Beacon DepositContract.
     /// @param pubkey The pubkey of the validator
@@ -284,7 +284,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         _stakeEth(pubkey, signature, depositDataRoot);
     }
 
-    /// @notice Stakes WETH or ETH in NDC in multiple validators connected to an EigenPod.
+    /// @notice Stakes WETH or ETH in the NDC to multiple validators connected to an EigenPod.
     /// @param validators A list of Validator data needed to stake.
     /// The Validator struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
