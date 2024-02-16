@@ -197,10 +197,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        assets[strategiesLength] = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        assets[strategiesLength] = WETH_TOKEN_ADDRESS;
         // Sum up this NodeDelegator contract's WETH balance, ETH balance and ETH staked but not verified
         assetBalances[strategiesLength] +=
-            IERC20(assets[strategiesLength]).balanceOf(address(this)) + address(this).balance + stakedButNotVerifiedEth;
+            IERC20(WETH_TOKEN_ADDRESS).balanceOf(address(this)) + address(this).balance + stakedButNotVerifiedEth;
         if (address(eigenPod) != address(0)) {
             // Add verified ETH balances in the EigenPod
             assetBalances[strategiesLength] += address(eigenPod).balance;

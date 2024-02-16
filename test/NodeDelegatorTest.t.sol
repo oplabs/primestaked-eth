@@ -378,6 +378,7 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         vm.startPrank(bob);
         ethX.transfer(address(nodeDel), 10 ether);
         stETH.transfer(address(nodeDel), 5 ether);
+        weth.transfer(address(nodeDel), 2 ether);
         vm.stopPrank();
 
         // max approve nodeDelegator to deposit into strategy
@@ -404,7 +405,7 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         assertEq(assetBalances.length, 3, "Incorrect number of asset balances");
         assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
         assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
-        assertEq(assetBalances[2], 0, "Incorrect asset balance for WETH");
+        assertEq(assetBalances[2], 2e18, "Incorrect asset balance for WETH");
     }
 }
 
@@ -436,7 +437,7 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
     }
 }
 
-contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
+contract NodeDelegatorGetWETHEigenPodBalance is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
