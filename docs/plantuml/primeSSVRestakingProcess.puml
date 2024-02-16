@@ -31,17 +31,31 @@ return
 return
 return
 
-man -> nd : approveSSV()
-activate nd
-nd -> ssv : approve(\nSSV Network,\namount)
+
+man -> ssv : approve(\nSSV Network,\namount)
 activate ssv
-note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
+note right : Manger approves\nSSV Network to spend\nSSV tokens
 return
-nd -> ssvNet : setFeeRecipientAddress(\nrecipient)
+
+man -> ssvNet : deposit(\namount)
 activate ssvNet
-note right : NodeDelegator set as the fee recipient
+ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+activate ssv
+note right: transfer SSV tokens\nfrom Manager\nto SSV Network
 return
 return
+
+' man -> nd : approveSSV()
+' activate nd
+' nd -> ssv : approve(\nSSV Network,\namount)
+' activate ssv
+' note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
+' return
+' nd -> ssvNet : setFeeRecipientAddress(\nrecipient)
+' activate ssvNet
+' note right : NodeDelegator set as the fee recipient
+' return
+' return
 
 end
 
@@ -61,16 +75,14 @@ op -> api: status(uuid)
 activate api
 return status,\ndepositData[],\nvalidatorRegistration[],\nshareData[]
 
-op -> nd : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
-activate nd
-nd -> ssvNet : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
+op -> ssvNet : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
 activate ssvNet
+note right : amount 0 as SSV tokens already deposited
 ' note right : any account can register
-ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
-activate ssv
-note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
-return
-return
+' ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+' activate ssv
+' note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
+' return
 return
 
 end group
