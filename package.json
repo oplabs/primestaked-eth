@@ -16,10 +16,11 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/defender-autotask-client": "^1.54.1",
+    "@openzeppelin/defender-kvstore-client": "^1.54.1",
     "@openzeppelin/defender-sdk": "^1.9.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",

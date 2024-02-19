@@ -58,7 +58,7 @@ contract ForkTest is Test {
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
-        nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR2));
+        nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
 
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
@@ -116,7 +116,7 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Add ETH to the Node Delegator to simulate ETH rewards
-        vm.deal(Addresses.NODE_DELEGATOR2, 0.01 ether);
+        vm.deal(Addresses.NODE_DELEGATOR_NATIVE_STAKING, 0.01 ether);
 
         // Get after asset balances
         (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
@@ -163,7 +163,7 @@ contract ForkTest is Test {
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, 20 ether);
 
         // Add some ETH to the Node Delegator to simulate ETH rewards
-        vm.deal(Addresses.NODE_DELEGATOR2, 10 ether);
+        vm.deal(Addresses.NODE_DELEGATOR_NATIVE_STAKING, 10 ether);
 
         vm.prank(Addresses.MANAGER_ROLE);
         nodeDelegator2.transferBackToLRTDepositPool(asset, 30 ether);

@@ -21,7 +21,7 @@ library Addresses {
     address public constant LRT_DEPOSIT_POOL = 0xA479582c8b64533102F6F528774C536e354B8d32;
     address public constant NODE_DELEGATOR = 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2;
     // TODO update after deployment
-    address public constant NODE_DELEGATOR2 = 0x08c314E8CFb3588371415bffBE3900332BC6d6E9;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x08c314E8CFb3588371415bffBE3900332BC6d6E9;
 
     address public constant CHAINLINK_ORACLE_PROXY = 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09;
 

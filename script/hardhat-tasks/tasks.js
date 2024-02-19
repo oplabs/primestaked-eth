@@ -1,10 +1,13 @@
 const { subtask, task, types } = require("hardhat/config");
 
 const { depositAssetEL, depositAllEL } = require("./deposits");
+const { operateValidators } = require("./p2p");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const addresses = require("../utils/addresses");
+const localStore = require("../utils/localStore");
+const { abi: erc20Abi } = require("../../out/ERC20.sol/ERC20.json");
 
 // Prime Staked
 subtask("depositEL", "Deposit an asset to EigenLayer")
@@ -30,6 +33,35 @@ subtask("setActionVars", "Set environment variables on a Defender Actions. eg DE
   .addParam("id", "Identifier of the Defender Actions", undefined, types.string)
   .setAction(setActionVars);
 task("setActionVars").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// Defender
+subtask("operateValidators", "Spawns up the required amount of validators and sets them up")
+  //.addParam("id", "Identifier of the Defender Actions", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const store = localStore();
+    const signer = await getSigner();
+
+    const WETH = await hre.ethers.getContractAt(
+      erc20Abi, addresses.goerli.WETH
+    );
+    const nodeDelegator = await hre.ethers.getContractAt(
+      "NodeDelegator", addresses.goerli.NODE_DELEGATOR_NATIVE_STAKING
+    );
+
+    const contracts = {
+      nodeDelegator,
+      WETH,
+    };
+    await operateValidators({
+      signer,
+      contracts,
+      store,
+    });
+  });
+
+task("operateValidators").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
