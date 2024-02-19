@@ -31,29 +31,38 @@ return
 return
 return
 
-
-man -> ssv : approve(\nSSV Network,\namount)
+man -> nd : approveSSV()
+activate nd
+nd -> ssv : approve(\nSSV Network,\namount)
 activate ssv
-note right : Manger approves\nSSV Network to spend\nSSV tokens
+note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
 return
-
-man -> ssvNet : deposit(\namount)
-activate ssvNet
-ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
-activate ssv
-note right: transfer SSV tokens\nfrom Manager\nto SSV Network
-return
-return
-
-' man -> nd : approveSSV()
-' activate nd
-' nd -> ssv : approve(\nSSV Network,\namount)
-' activate ssv
-' note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
-' return
 ' nd -> ssvNet : setFeeRecipientAddress(\nrecipient)
 ' activate ssvNet
 ' note right : NodeDelegator set as the fee recipient
+' return
+return
+
+man -> ssv : transfer(\nfrom\nto\namount)
+activate ssv
+note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
+return
+
+' man -> ssv : approve(\nSSV Network,\namount)
+' activate ssv
+' note right : Manger approves\nSSV Network to spend\nSSV tokens
+' return
+
+' man -> ssvNet : deposit(clusterOwner,\noperatorIds,\namount,\ncluster)
+' activate ssvNet
+' note right
+' who is the clusterOwner?
+' is operatorIds the P2P ids?
+' cluster?
+' end note
+' ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+' activate ssv
+' note right: transfer SSV tokens\nfrom Manager\nto SSV Network
 ' return
 ' return
 
@@ -75,15 +84,32 @@ op -> api: status(uuid)
 activate api
 return status,\ndepositData[],\nvalidatorRegistration[],\nshareData[]
 
-op -> ssvNet : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
+op -> nd : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
+activate nd
+note right
+cluster data:
+The number of validators in the cluster
+The index of network fees related to this cluster
+The last index calculated for the cluster
+Flag indicating whether the cluster is active
+The SSV balance of the cluster
+end note
+loop For each validator
+nd -> ssvNet : registerValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
 activate ssvNet
-note right : amount 0 as SSV tokens already deposited
-' note right : any account can register
-' ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
-' activate ssv
-' note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
-' return
+ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+activate ssv
+note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
 return
+return
+end loop
+return
+
+
+' op -> ssvNet : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
+' activate ssvNet
+' note right : amount 0 as SSV tokens already deposited
+' return
 
 end group
 
@@ -144,5 +170,28 @@ end group
 ' return status,\neigenPodAddress,\npubkey,\nsignature,\ndepositDataRoot,\nwithdrawalCredentials,\ndepositMessageRoot
 
 ' end group
+
+
+group Manager deposits more SSV to SSV cluster
+
+
+man -> ssv : transfer(\nfrom\nto\namount)
+activate ssv
+note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
+return
+
+man -> nd : depositSSV(cluster)
+activate nd
+note right : cluster is latest cluster data. eg balance
+nd -> ssvNet : deposit(clusterOwner,\noperatorIds,\namount,\ncluster)
+activate ssvNet
+note right : clusterOwner is NodeDelegator
+ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+activate ssv
+note right: transfer SSV tokens\nfrom DelegatorNode\nto SSV Network
+return
+return
+return
+end group
 
 @enduml
