@@ -68,7 +68,7 @@ return
 
 end
 
-group Operator creates new SSV validators
+group Operator creates a new SSV validator
 
 op -> api: POST\neth/staking/ssv/request/create\nuuid,\nvalidatorsCount,\ntype,\nwithdrawalAddress,\nfeeRecipientAddress,\nssvOwnerAddress,\noperationPeriodInDays
 activate api
@@ -82,9 +82,10 @@ return
 
 op -> api: status(uuid)
 activate api
-return status,\ndepositData[],\nvalidatorRegistration[],\nshareData[]
+return status,\nvalidatorRegistration,\nshareData
+note right : validatorRegistration contains the pubkey and operatorIds
 
-op -> nd : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
+op -> nd : registerValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
 activate nd
 note right
 cluster data:
@@ -94,7 +95,6 @@ The last index calculated for the cluster
 Flag indicating whether the cluster is active
 The SSV balance of the cluster
 end note
-loop For each validator
 nd -> ssvNet : registerValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
 activate ssvNet
 ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
@@ -102,7 +102,6 @@ activate ssv
 note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
 return
 return
-end loop
 return
 
 
@@ -129,16 +128,12 @@ activate dp
 note right : WETH transfer\nfrom DepositPool\nto Node Delegator
 return
 
-
-op -> nd : bulkStakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
+op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
 activate nd
 nd -> weth : withdraw(\namount)
 activate weth
 note right : WETH burned for ETH
 return ETH
-
-loop For each validator
-
 nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
 note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
 activate podMan
@@ -149,13 +144,32 @@ activate dep
 return
 return
 return
-
-end loop
-
 return
-' man -> dep : deposit(\npubkey,\nsignature,\ndeposit_data_root)
+
+
+' op -> nd : bulkStakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
+' activate nd
+' nd -> weth : withdraw(\namount)
+' activate weth
+' note right : WETH burned for ETH
+' return ETH
+
+' loop For each validator
+
+' nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
+' note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
+' activate podMan
+' podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
+' activate pod
+' pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
 ' activate dep
 ' return
+' return
+' return
+
+' end loop
+' return
+
 end group
 
 ' group Manager adds another validator
