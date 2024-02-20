@@ -6,8 +6,10 @@ const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const addresses = require("../utils/addresses");
-const localStore = require("../utils/localStore");
 const { abi: erc20Abi } = require("../../out/ERC20.sol/ERC20.json");
+const { abi: nodeDelegatorAbi } = require("../../out/NodeDelegator.sol/NodeDelegator.json");
+const { KeyValueStoreClient } = require('defender-kvstore-client');
+
 
 // Prime Staked
 subtask("depositEL", "Deposit an asset to EigenLayer")
@@ -40,14 +42,17 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 subtask("operateValidators", "Spawns up the required amount of validators and sets them up")
   //.addParam("id", "Identifier of the Defender Actions", undefined, types.string)
   .setAction(async (taskArgs) => {
-    const store = localStore();
+    const storeFilePath = require('path')
+                            .join(__dirname, '..', '..', '.localKeyValueStorage');
+
+    const store = new KeyValueStoreClient({ path: storeFilePath});
     const signer = await getSigner();
 
     const WETH = await hre.ethers.getContractAt(
       erc20Abi, addresses.goerli.WETH
     );
     const nodeDelegator = await hre.ethers.getContractAt(
-      "NodeDelegator", addresses.goerli.NODE_DELEGATOR_NATIVE_STAKING
+      nodeDelegatorAbi, addresses.goerli.NODE_DELEGATOR_NATIVE_STAKING
     );
 
     const contracts = {
@@ -58,6 +63,7 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
       signer,
       contracts,
       store,
+      p2p_api_key: process.env.P2P_GOERLY_API_KEY,
     });
   });
 
