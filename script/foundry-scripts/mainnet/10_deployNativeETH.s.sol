@@ -43,16 +43,19 @@ contract DeployNativeETH is BaseMainnetScript {
         console.log("Current contract ", address(this));
         // Upgrade proxies
         vm.startPrank(Addresses.PROXY_OWNER);
+        console.log("Impersonating proxy admin owner: %s", Addresses.PROXY_OWNER);
         DepositPoolLib.upgrade(newDepositPoolImpl);
         // Upgrade the old NodeDelegator to new implementation
         NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegator1Impl);
         vm.stopPrank();
 
         vm.startPrank(Addresses.MANAGER_ROLE);
+        console.log("Impersonating Manager: %s", Addresses.MANAGER_ROLE);
         AddAssetsLib.addWETHManager();
         vm.stopPrank();
 
         vm.startPrank(Addresses.ADMIN_ROLE);
+        console.log("Impersonating Admin: %s", Addresses.ADMIN_ROLE);
         AddAssetsLib.addWETHAdmin(wethOracleProxy);
         // set EIGEN_POD_MANAGER address in LRTConfig
         LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.EIGEN_POD_MANAGER, Addresses.EIGEN_POD_MANAGER);
@@ -69,7 +72,10 @@ contract DeployNativeETH is BaseMainnetScript {
         vm.stopPrank();
 
         vm.startPrank(Addresses.MANAGER_ROLE);
+        console.log("Impersonating Manager: %s", Addresses.MANAGER_ROLE);
         newNodeDelegator2.createEigenPod();
         vm.stopPrank();
+
+        console.log("Completed fork function in deploy script");
     }
 }

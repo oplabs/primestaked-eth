@@ -41,7 +41,7 @@ deposit-limits-fork :; IS_FORK=true forge script script/foundry-scripts/UpdateDe
 
 # deploy restaking of Native ETH
 deploy-native-mainnet :; forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-deploy-native-local :; forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost --broadcast -vvv
+deploy-native-fork :; IS_FORK=true forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost --broadcast -vvv
 
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)
