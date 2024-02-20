@@ -550,7 +550,7 @@ contract NodeDelegatorBulkStakeETH is NodeDelegatorTest {
     }
 
     function test_revertWhenCallerIsNotLRTOperator() external {
-        NodeDelegator.Validator[] memory validators = new NodeDelegator.Validator[](0);
+        NodeDelegator.ValidatorStakeData[] memory validators = new NodeDelegator.ValidatorStakeData[](0);
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         nodeDel.bulkStakeEth(validators);
@@ -565,8 +565,8 @@ contract NodeDelegatorBulkStakeETH is NodeDelegatorTest {
         (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
 
         vm.prank(operator);
-        NodeDelegator.Validator memory blankValidator = NodeDelegator.Validator(hex"", hex"", hex"");
-        NodeDelegator.Validator[] memory validators = new NodeDelegator.Validator[](3);
+        NodeDelegator.ValidatorStakeData memory blankValidator = NodeDelegator.ValidatorStakeData(hex"", hex"", hex"");
+        NodeDelegator.ValidatorStakeData[] memory validators = new NodeDelegator.ValidatorStakeData[](3);
         validators[0] = blankValidator;
         validators[1] = blankValidator;
         validators[2] = blankValidator;

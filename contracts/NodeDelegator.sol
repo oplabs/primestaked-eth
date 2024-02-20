@@ -30,7 +30,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
     uint256 internal constant DUST_AMOUNT = 10;
 
-    struct Validator {
+    struct ValidatorStakeData {
         bytes pubkey;
         bytes signature;
         bytes32 depositDataRoot;
@@ -293,10 +293,10 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Stakes WETH or ETH in the NDC to multiple validators connected to an EigenPod.
-    /// @param validators A list of Validator data needed to stake.
-    /// The Validator struct contains the pubkey, signature and depositDataRoot.
+    /// @param validators A list of validator data needed to stake.
+    /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
-    function bulkStakeEth(Validator[] calldata validators) external onlyLRTOperator {
+    function bulkStakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
