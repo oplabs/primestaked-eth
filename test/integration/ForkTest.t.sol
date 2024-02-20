@@ -41,6 +41,7 @@ contract ForkTest is Test {
     string public referralId = "1234";
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -482,6 +483,21 @@ contract ForkTest is Test {
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertLe(assetsNDCsAfter, 1, "assets in NDCs");
         assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
+    }
+
+    function test_approveSSV() public {
+        vm.prank(Addresses.MANAGER_ROLE);
+
+        vm.expectEmit({
+            emitter: Addresses.SSV_TOKEN,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: true
+        });
+        emit Approval(address(nodeDelegator2), Addresses.SSV_NETWORK, type(uint256).max);
+
+        nodeDelegator2.approveSSV();
     }
 
     function unpausePrime() internal {

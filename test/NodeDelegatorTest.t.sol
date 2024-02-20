@@ -4,14 +4,16 @@ pragma solidity 0.8.21;
 
 import "forge-std/console.sol";
 
-import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
-import { IStrategy } from "contracts/interfaces/IStrategy.sol";
-import { NodeDelegator, INodeDelegator } from "contracts/NodeDelegator.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
+import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
+import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
+import { NodeDelegator, INodeDelegator } from "contracts/NodeDelegator.sol";
+import { MockToken } from "contracts/mocks/MockToken.sol";
+
 import { BeaconChainProofs } from "contracts/interfaces/IEigenPod.sol";
-import { MockWETH } from "contracts/mocks/MockWETH.sol";
 
 contract MockEigenStrategyManager {
     mapping(address depositor => mapping(address strategy => uint256 shares)) public depositorStrategyShareBalances;
@@ -40,6 +42,37 @@ contract MockEigenStrategyManager {
         }
 
         return (strategies_, shares);
+    }
+}
+
+contract MockSSVNetwork {
+    address public ssvToken;
+
+    constructor(address _ssvToken) {
+        ssvToken = _ssvToken;
+    }
+
+    function deposit(
+        address clusterOwner,
+        uint64[] memory operatorIds,
+        uint256 amount,
+        Cluster memory cluster
+    )
+        public
+    {
+        IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
+    }
+
+    function registerValidator(
+        bytes memory publicKey,
+        uint64[] memory operatorIds,
+        bytes memory sharesData,
+        uint256 amount,
+        Cluster memory cluster
+    )
+        external
+    {
+        IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
     }
 }
 
@@ -665,5 +698,85 @@ contract NodeDelegatorUnpause is NodeDelegatorTest {
         vm.stopPrank();
 
         assertFalse(nodeDel.paused(), "Contract is still paused");
+    }
+}
+
+contract NodeDelegatorSSV is NodeDelegatorTest {
+    MockToken ssvToken;
+    address ssvNetwork;
+    uint64[] operatorIds;
+    Cluster cluster;
+
+    function setUp() public override {
+        super.setUp();
+        nodeDel.initialize(address(lrtConfig));
+        ssvToken = new MockToken("SSV", "SSV");
+        ssvToken.mint(manager, 1000 ether);
+
+        ssvNetwork = address(new MockSSVNetwork(address(ssvToken)));
+
+        operatorIds = new uint64[](3);
+        operatorIds[0] = 10;
+        operatorIds[1] = 100;
+        operatorIds[2] = 200;
+        cluster = Cluster(0, 0, 0, false, 0);
+
+        vm.startPrank(admin);
+        lrtConfig.setContract(LRTConstants.SSV_TOKEN, address(ssvToken));
+        lrtConfig.setContract(LRTConstants.SSV_NETWORK, ssvNetwork);
+        vm.stopPrank();
+    }
+
+    function test_approveRevertWhenCallerIsNotLRTManager() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+        nodeDel.approveSSV();
+        vm.stopPrank();
+    }
+
+    function test_depositRevertWhenCallerIsNotLRTManager() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+
+        nodeDel.depositSSV(operatorIds, 10 ether, cluster);
+        vm.stopPrank();
+    }
+
+    function test_registerValidatorRevertWhenCallerIsNotLRTOperator() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+
+        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+        vm.stopPrank();
+    }
+
+    function test_approveSSV() external {
+        vm.prank(manager);
+
+        expectEmit();
+        emit IERC20.Approval(address(nodeDel), ssvNetwork, type(uint256).max);
+
+        nodeDel.approveSSV();
+    }
+
+    function test_depositSSV() external {
+        vm.startPrank(manager);
+
+        nodeDel.approveSSV();
+        ssvToken.transfer(address(nodeDel), 10 ether);
+
+        nodeDel.depositSSV(operatorIds, 10 ether, cluster);
+        vm.stopPrank();
+    }
+
+    function test_registerValidator() external {
+        vm.startPrank(manager);
+
+        nodeDel.approveSSV();
+        ssvToken.transfer(address(nodeDel), 10 ether);
+        vm.stopPrank();
+
+        vm.prank(operator);
+        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
     }
 }
