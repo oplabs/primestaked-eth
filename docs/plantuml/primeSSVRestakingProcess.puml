@@ -189,15 +189,15 @@ end group
 group Manager deposits more SSV to SSV cluster
 
 
-man -> ssv : transfer(\nfrom\nto\namount)
+man -> ssv : transfer(\nto\namount)
 activate ssv
 note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
 return
 
-man -> nd : depositSSV(cluster)
+man -> nd : depositSSV(\noperatorIds,\namount,\ncluster)
 activate nd
 note right : cluster is latest cluster data. eg balance
-nd -> ssvNet : deposit(clusterOwner,\noperatorIds,\namount,\ncluster)
+nd -> ssvNet : deposit(\nclusterOwner,\noperatorIds,\namount,\ncluster)
 activate ssvNet
 note right : clusterOwner is NodeDelegator
 ssvNet -> ssv : transferFrom(\nfrom\nto\namount)

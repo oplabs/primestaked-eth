@@ -10,6 +10,7 @@ import { IStrategy } from "./interfaces/IStrategy.sol";
 import { IEigenStrategyManager } from "./interfaces/IEigenStrategyManager.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
 import { IWETH } from "./interfaces/IWETH.sol";
+import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -156,6 +157,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         if (asset == WETH_TOKEN_ADDRESS) {
             uint256 ethBalance = address(this).balance;
             if (ethBalance > 0) {
@@ -204,6 +207,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         assets[strategiesLength] = WETH_TOKEN_ADDRESS;
         // Sum up this NodeDelegator contract's WETH balance, ETH balance and ETH staked but not verified
         assetBalances[strategiesLength] +=
@@ -233,6 +238,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         if (asset == WETH_TOKEN_ADDRESS) {
             // Add any ETH in the NDC that was earned from EigenLayer
             assetLyingInNDC += address(this).balance;
@@ -267,18 +274,19 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     {
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        IWETH weth = IWETH(lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN));
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
 
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         if (ethBalance < 32 ether) {
             // If not enough native ETH, convert WETH to native ETH
-            uint256 wethBalance = weth.balanceOf(address(this));
+            uint256 wethBalance = IWETH(WETH_TOKEN_ADDRESS).balanceOf(address(this));
             if (wethBalance + ethBalance < 32 ether) {
                 revert InsufficientWETH(wethBalance + ethBalance);
             }
             // Convert WETH asset to native ETH
-            weth.withdraw(32 ether - ethBalance);
+            IWETH(WETH_TOKEN_ADDRESS).withdraw(32 ether - ethBalance);
         }
 
         _stakeEth(pubkey, signature, depositDataRoot);
@@ -291,19 +299,20 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     function bulkStakeEth(Validator[] calldata validators) external onlyLRTOperator {
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        IWETH weth = IWETH(lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN));
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
 
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;
         if (ethBalance < requiredETH) {
             // If not enough native ETH, convert WETH to native ETH
-            uint256 wethBalance = weth.balanceOf(address(this));
+            uint256 wethBalance = IWETH(WETH_TOKEN_ADDRESS).balanceOf(address(this));
             if (wethBalance + ethBalance < requiredETH) {
                 revert InsufficientWETH(wethBalance + ethBalance);
             }
             // Convert WETH asset to native ETH
-            weth.withdraw(requiredETH - ethBalance);
+            IWETH(WETH_TOKEN_ADDRESS).withdraw(requiredETH - ethBalance);
         }
 
         // For each validator
@@ -369,6 +378,40 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @dev opts in for rebase so the asset's token balance will increase
     function optIn(address asset) external onlyLRTAdmin onlySupportedAsset(asset) {
         IOETH(asset).rebaseOptIn();
+    }
+
+    /// @dev Approves the SSV Network contract to transfer SSV tokens for deposits
+    function approveSSV() external onlyLRTManager {
+        address SSV_TOKEN_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_TOKEN);
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        if (SSV_TOKEN_ADDRESS == address(0)) revert NoSSVTokenConfig();
+        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
+
+        IERC20(SSV_TOKEN_ADDRESS).approve(SSV_NETWORK_ADDRESS, type(uint256).max);
+    }
+
+    /// @dev Deposits more SSV Tokens to the SSV Network contract which is used to pay the SSV Operators
+    function depositSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external onlyLRTManager {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
+    }
+
+    function registerSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds,
+        bytes calldata sharesData,
+        uint256 amount,
+        Cluster calldata cluster
+    )
+        external
+        onlyLRTOperator
+    {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
 
     /// @dev allow NodeDelegator to receive ETH rewards

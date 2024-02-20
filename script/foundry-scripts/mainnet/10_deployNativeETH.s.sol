@@ -57,6 +57,13 @@ contract DeployNativeETH is BaseMainnetScript {
         // set EIGEN_POD_MANAGER address in LRTConfig
         LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.EIGEN_POD_MANAGER, Addresses.EIGEN_POD_MANAGER);
 
+        // Set SSV contract addresses in LRTConfig
+        LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.SSV_TOKEN, Addresses.SSV_TOKEN);
+        LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.SSV_NETWORK, Addresses.SSV_NETWORK);
+
+        // Approve the SSV Network to transfer SSV tokens from the second NodeDelegator
+        NodeDelegator(newNodeDelegator2).approveSSV();
+
         // add new Node Delegator to the deposit pool
         DepositPoolLib.addNodeDelegator(address(newNodeDelegator2));
         vm.stopPrank();
