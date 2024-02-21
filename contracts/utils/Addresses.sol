@@ -21,7 +21,7 @@ library Addresses {
     address public constant LRT_DEPOSIT_POOL = 0xA479582c8b64533102F6F528774C536e354B8d32;
     address public constant NODE_DELEGATOR = 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2;
     // TODO update after deployment
-    address public constant NODE_DELEGATOR2 = 0x8f439dDb02f9d9162De067FF256D410AA8d18EF2;
+    address public constant NODE_DELEGATOR2 = 0x8737e6311d7428ad7fdC9F32c705a38D223f1DB9;
 
     address public constant CHAINLINK_ORACLE_PROXY = 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09;
 
@@ -57,8 +57,8 @@ library Addresses {
     address public constant STADER_STAKING_POOL_MANAGER = 0xcf5EA1b38380f6aF39068375516Daf40Ed70D299;
 
     address public constant WETH_TOKEN = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    // TODO add after oracle is deployed
-    address public constant WETH_ORACLE_PROXY = address(1);
+    // TODO update after oracle is deployed
+    address public constant WETH_ORACLE_PROXY = 0x0fD7f1d9557dfBCd154d6c87345e2c78e7Db0F6c;
 
     address public constant EIGEN_UNPAUSER = 0x369e6F597e22EaB55fFb173C6d9cD234BD699111;
     address public constant EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
