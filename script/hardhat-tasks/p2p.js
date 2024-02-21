@@ -63,16 +63,53 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
     if (currentState.state === 'validator_creation_confirmed') {
       await broadcastRegisterValidator(
         signer,
+        store,
         currentState.uuid,
-        currentState.metadata.validatorRegistrationTx.data,
+        currentState.metadata.validatorRegistrationRawTx.data,
         contracts.nodeDelegator
       )
+      currentState = await getState(store)
     }
 
-    // TODO: change to if deposit confirmed
-    if (true) {
+    if (currentState.state === 'register_transaction_broadcast') {
+      await waitForTransactionAndUpdateStateOnSuccess(
+        store,
+        currentState.uuid,
+        currentState.metadata.validatorRegistrationTx,
+        "registerSsvValidator", // name of transaction we are waiting for
+        "validator_registered" // new state when transaction confirmed
+      )
+
+      currentState = await getState(store)
+    }
+
+    if (currentState.state === 'validator_registered') {
+      await depositEth(
+        signer,
+        store,
+        currentState.uuid,
+        contracts.nodeDelegator
+        currentState.metadata.depositData,
+      )
+      currentState = await getState(store)
+    }
+
+    if (currentState.state === 'deposit_transaction_broadcast') {
+      await waitForTransactionAndUpdateStateOnSuccess(
+        store,
+        currentState.uuid,
+        currentState.metadata.depositTx,
+        "stakeEth", // name of transaction we are waiting for
+        "deposit_confirmed" // new state when transaction confirmed
+      )
+
+      currentState = await getState(store)
+    }
+
+    if (currentState.state === 'deposit_confirmed') {
       break;
     }
+    await sleep(1000)
   }
 };
 
@@ -99,10 +136,14 @@ const updateState = async (requestUUID, state, store, metadata = {}) => {
     throw new Error(`Unexpected state: ${state}`)
   }
 
+  const existingRequest = await store.get('currentRequest')
+  const existingMetadata = existingRequest && existingRequest.metadata ? 
+                           existingRequest.metadata : {}
+
   await store.put('currentRequest', JSON.stringify({
-    'uuid': requestUUID,
-    'state': state,
-    metadata
+    uuid: requestUUID,
+    state: state,
+    metadata: {...existingMetadata, ...metadata}
   }))
 };
 
@@ -196,7 +237,30 @@ const createValidatorRequest = async (p2p_api_key, p2p_base_url, nodeDelegatorAd
   await updateState(uuid, 'validator_creation_issued', store)
 };
 
-const broadcastRegisterValidator = async (signer, uuid, registerValidatorData, nodeDelegator) => {
+const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, tx, methodName, newState) => {
+  await logTxDetails(tx, methodName, true)
+  await updateState(uuid, newState, store)
+}
+
+const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
+  
+  const {pubkey, signature, depositDataRoot} = depositData
+  try {
+    const tx = await nodeDelegator
+      .connect(signer)
+      .stakeEth([[pubkey, signature, depositDataRoot]])
+
+    await updateState(uuid, 'deposit_transaction_broadcast', store, {
+      depositTx: tx
+    })
+  } catch (e) {
+    log(`Submitting transaction failed with: `, e)
+    //await clearState(uuid, store, `Transaction to deposit to validator fails`)
+    throw e
+  }
+}
+
+const broadcastRegisterValidator = async (signer, store, uuid, registerValidatorData, nodeDelegator) => {
   const registerTransactionParams = utils.defaultAbiCoder.decode(
     ['bytes', 'uint64[]', 'bytes', 'uint256', '"tuple(uint32, uint64, uint64, bool, uint256)'],
     utils.hexDataSlice(registerValidatorData, 4)
@@ -204,12 +268,19 @@ const broadcastRegisterValidator = async (signer, uuid, registerValidatorData, n
 
   const [publicKey, operatorIds, sharesData, amount, cluster] = registerTransactionParams
   
-  const tx = await nodeDelegator
-    .connect(signer)
-    .registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster)
+  try {
+    const tx = await nodeDelegator
+      .connect(signer)
+      .registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster)
 
-  await logTxDetails(tx, "transferAssetToNodeDelegator");
-  log(`tx`, tx)
+    await updateState(uuid, 'register_transaction_broadcast', store, {
+      validatorRegistrationTx: tx
+    })
+  } catch (e) {
+    log(`Submitting transaction failed with: `, e)
+    //await clearState(uuid, store, `Transaction to register SSV Validator fails`)
+    throw e
+  }
 }
 
 const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, store) => {
@@ -223,7 +294,8 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
       log(`Error processing request uuid: ${uuid} error: ${response}`)
     } else if (response.result.status === 'ready') {
       await updateState(uuid, 'validator_creation_confirmed', store, {
-        validatorRegistrationTx: response.result.validatorRegistrationTxs[0]
+        validatorRegistrationRawTx: response.result.validatorRegistrationTxs[0],
+        depositData: response.result.depositData
       })
       log(`Validator created using uuid: ${uuid} is ready`)
       return true
