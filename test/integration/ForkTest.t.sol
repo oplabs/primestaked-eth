@@ -12,7 +12,7 @@ import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
@@ -143,13 +143,17 @@ contract ForkTest is Test {
 
         // TODO set once we have a mainnet validator
         // example from block 19230613
-        bytes memory pubkey =
-            hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e";
-        bytes memory signature =
-        // solhint-disable-next-line max-line-length
-            hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a";
-        bytes32 depositDataRoot = 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b;
-        // nodeDelegator2.stakeEth(pubkey, signature, depositDataRoot);
+        ValidatorStakeData[] memory validatorStakeData = new ValidatorStakeData[](1);
+        validatorStakeData[0] = ValidatorStakeData({
+            pubkey: hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e",
+            signature: hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f"
+                hex"0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0"
+                hex"c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a",
+            depositDataRoot: 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b
+        });
+
+        // TODO uncomment once we have a mainnet validator
+        // nodeDelegator2.stakeEth(validatorStakeData);
         vm.stopPrank();
     }
 

@@ -10,7 +10,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
-import { NodeDelegator, INodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
 
 import { BeaconChainProofs } from "contracts/interfaces/IEigenPod.sol";
@@ -483,7 +483,9 @@ contract NodeDelegatorGetWETHEigenPodBalance is NodeDelegatorTest {
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
-        nodeDel.stakeEth(hex"", hex"", hex"");
+        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
+        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
+        nodeDel.stakeEth(blankValidator);
     }
 
     function test_GetWTHEigenPodBalance() external {
@@ -504,60 +506,20 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         nodeDel.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
-        amount = 32 ether;
-        weth.mint(address(nodeDel), amount);
-        vm.deal(address(weth), amount);
-    }
-
-    function test_revertWhenCallerIsNotLRTOperator() external {
-        vm.startPrank(alice);
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-        nodeDel.stakeEth(hex"", hex"", hex"");
-        vm.stopPrank();
-    }
-
-    function test_stakeETH() external {
-        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
-
-        vm.prank(operator);
-        nodeDel.stakeEth(hex"", hex"", hex"");
-
-        (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
-
-        assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
-
-        assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
-
-        uint256 stakedButNotVerifiedEth = nodeDel.stakedButNotVerifiedEth();
-        assertEq(stakedButNotVerifiedEth, amount, "Incorrect staked but not verified ETH");
-    }
-}
-
-contract NodeDelegatorBulkStakeETH is NodeDelegatorTest {
-    uint256 public amount;
-
-    function setUp() public override {
-        super.setUp();
-        nodeDel.initialize(address(lrtConfig));
-
-        vm.prank(manager);
-        nodeDel.createEigenPod();
-
-        // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
         amount = 96 ether;
         weth.mint(address(nodeDel), amount);
         vm.deal(address(weth), amount);
     }
 
     function test_revertWhenCallerIsNotLRTOperator() external {
-        NodeDelegator.ValidatorStakeData[] memory validators = new NodeDelegator.ValidatorStakeData[](0);
+        ValidatorStakeData[] memory validators = new ValidatorStakeData[](0);
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-        nodeDel.bulkStakeEth(validators);
+        nodeDel.stakeEth(validators);
         vm.stopPrank();
     }
 
-    function test_bulkStakeETH() external {
+    function test_stakeETH() external {
         // add WETH to nodeDelegator so it can deposit it into 3 validators
         weth.mint(address(nodeDel), amount);
         vm.deal(address(weth), amount);
@@ -565,12 +527,12 @@ contract NodeDelegatorBulkStakeETH is NodeDelegatorTest {
         (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
 
         vm.prank(operator);
-        NodeDelegator.ValidatorStakeData memory blankValidator = NodeDelegator.ValidatorStakeData(hex"", hex"", hex"");
-        NodeDelegator.ValidatorStakeData[] memory validators = new NodeDelegator.ValidatorStakeData[](3);
+        ValidatorStakeData memory blankValidator = ValidatorStakeData(hex"", hex"", hex"");
+        ValidatorStakeData[] memory validators = new ValidatorStakeData[](3);
         validators[0] = blankValidator;
         validators[1] = blankValidator;
         validators[2] = blankValidator;
-        nodeDel.bulkStakeEth(validators);
+        nodeDel.stakeEth(validators);
 
         (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
 
@@ -597,8 +559,11 @@ contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
         vm.deal(address(weth), amount);
 
         // stake ETH in EigenPodManager
+        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
+        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
+
         vm.prank(operator);
-        nodeDel.stakeEth(hex"", hex"", hex"");
+        nodeDel.stakeEth(blankValidator);
     }
 
     function test_RevertWhenCallerIsNotLRTOperator() external {

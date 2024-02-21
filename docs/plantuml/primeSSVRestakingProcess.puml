@@ -128,34 +128,12 @@ activate dp
 note right : WETH transfer\nfrom DepositPool\nto Node Delegator
 return
 
-op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
-activate nd
-nd -> weth : withdraw(\namount)
-activate weth
-note right : WETH burned for ETH
-return ETH
-nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
-note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
-activate podMan
-podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
-activate pod
-pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
-activate dep
-return
-return
-return
-return
-
-
-' op -> nd : bulkStakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
+' op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
 ' activate nd
 ' nd -> weth : withdraw(\namount)
 ' activate weth
 ' note right : WETH burned for ETH
 ' return ETH
-
-' loop For each validator
-
 ' nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
 ' note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
 ' activate podMan
@@ -166,9 +144,31 @@ return
 ' return
 ' return
 ' return
-
-' end loop
 ' return
+
+
+op -> nd : stakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
+activate nd
+nd -> weth : withdraw(\namount)
+activate weth
+note right : WETH burned for ETH
+return ETH
+
+loop For each validator
+
+nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
+note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
+activate podMan
+podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
+activate pod
+pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
+activate dep
+return
+return
+return
+
+end loop
+return
 
 end group
 

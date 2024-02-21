@@ -19,6 +19,12 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
 import { IEigenPod, BeaconChainProofs } from "./interfaces/IEigenPod.sol";
 
+struct ValidatorStakeData {
+    bytes pubkey;
+    bytes signature;
+    bytes32 depositDataRoot;
+}
+
 /// @title NodeDelegator Contract
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
@@ -29,12 +35,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     uint256 public stakedButNotVerifiedEth;
 
     uint256 internal constant DUST_AMOUNT = 10;
-
-    struct ValidatorStakeData {
-        bytes pubkey;
-        bytes signature;
-        bytes32 depositDataRoot;
-    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -256,52 +256,15 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Stake WETH or ETH in NDC to a validator connected to an EigenPod.
-    /// This function calls `stake` on the EigenPodManager which calls `stake` on the EigenPod contract which calls
-    /// `stake` on the Beacon DepositContract.
-    /// @param pubkey The pubkey of the validator
-    /// @param signature The signature of the validator
-    /// @param depositDataRoot The deposit data root of the validator
-    /// @dev Only accounts with the Operator role can call this function.
-    /// @dev Exactly 32 ether is allowed, hence it is hardcoded.
-    function stakeEth(
-        bytes calldata pubkey,
-        bytes calldata signature,
-        bytes32 depositDataRoot
-    )
-        external
-        onlyLRTOperator
-    {
-        // The WETH address is different between chains so reading from the config.
-        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
-
-        // Yield from the validators will come as native ETH.
-        uint256 ethBalance = address(this).balance;
-        if (ethBalance < 32 ether) {
-            // If not enough native ETH, convert WETH to native ETH
-            uint256 wethBalance = IWETH(WETH_TOKEN_ADDRESS).balanceOf(address(this));
-            if (wethBalance + ethBalance < 32 ether) {
-                revert InsufficientWETH(wethBalance + ethBalance);
-            }
-            // Convert WETH asset to native ETH
-            IWETH(WETH_TOKEN_ADDRESS).withdraw(32 ether - ethBalance);
-        }
-
-        _stakeEth(pubkey, signature, depositDataRoot);
-    }
-
     /// @notice Stakes WETH or ETH in the NDC to multiple validators connected to an EigenPod.
     /// @param validators A list of validator data needed to stake.
     /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
-    function bulkStakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
+    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
         if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
-
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;
