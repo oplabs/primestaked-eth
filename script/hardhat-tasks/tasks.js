@@ -35,10 +35,12 @@ task("depositEL").setAction(async (_, __, runSuper) => {
 // SSV
 subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeDelegator")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addOptionalParam("networkid", "Network chain id", 1, types.int)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
+    const networkAddresses = taskArgs.networkid === 1 ? addresses.mainnet : addresses.goerli
     const nodeDelegatorAddress =
-      taskArgs.index === 1 ? addresses.mainnet.NODE_DELEGATOR_NATIVE_STAKING : addresses.mainnet.NODE_DELEGATOR;
+      taskArgs.index === 1 ? networkAddresses.NODE_DELEGATOR_NATIVE_STAKING : networkAddresses.NODE_DELEGATOR;
     const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await approveSSV({ signer, nodeDelegator, ...taskArgs });
@@ -59,6 +61,24 @@ subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
     await depositSSV({ signer, nodeDelegator, ...taskArgs });
   });
 task("depositSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("fundSSVToNodeDelagator", "Send SSV tokens from configured account to NodeDelegator")
+  .addParam("amount", "Amount of SSV tokens to transfer", undefined, types.float)
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addOptionalParam("networkid", "Network chain id", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const networkAddresses = taskArgs.networkid === 1 ? addresses.mainnet : addresses.goerli
+    const nodeDelegatorAddress =
+      taskArgs.index === 1 ? networkAddresses.NODE_DELEGATOR_NATIVE_STAKING : networkAddresses.NODE_DELEGATOR;
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const ssv = await hre.ethers.getContractAt(erc20Abi, );
+
+    await depositSSV({ signer, nodeDelegator, ssv, ...taskArgs });
+  });
+task("fundSSVToNodeDelagator").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
@@ -101,19 +121,19 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 
 // Defender
 subtask("operateValidators", "Spawns up the required amount of validators and sets them up")
-  //.addParam("id", "Identifier of the Defender Actions", undefined, types.string)
+  .addOptionalParam("networkid", "Network chain id", 1, types.int)
   .setAction(async (taskArgs) => {
     const storeFilePath = require('path')
                             .join(__dirname, '..', '..', '.localKeyValueStorage');
 
     const store = new KeyValueStoreClient({ path: storeFilePath});
     const signer = await getSigner();
-
+    const networkAddresses = taskArgs.networkid === 1 ? addresses.mainnet : addresses.goerli
     const WETH = await hre.ethers.getContractAt(
-      erc20Abi, addresses.goerli.WETH
+      erc20Abi, networkAddresses.WETH
     );
     const nodeDelegator = await hre.ethers.getContractAt(
-      nodeDelegatorAbi, addresses.goerli.NODE_DELEGATOR_NATIVE_STAKING
+      "NodeDelegator", networkAddresses.NODE_DELEGATOR_NATIVE_STAKING
     );
 
     const contracts = {
@@ -123,9 +143,10 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
 
     const config = {
       p2p_api_key: process.env.P2P_GOERLY_API_KEY,
+      p2p_base_url: 'api-test.p2p.org',
       // how much SSV (expressed in days of runway) gets deposited into SSV
       // network contract on validator registration.
-      validatorSpawnOperationalPeriodInDays: 90
+      validatorSpawnOperationalPeriodInDays: 90,
     };
 
     await operateValidators({

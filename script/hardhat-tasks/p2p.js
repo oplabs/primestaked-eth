@@ -2,6 +2,8 @@ const fetch = require('node-fetch');
 const log = require("../utils/logger")("task:p2p");
 const { v4: uuidv4 } = require('uuid');
 const { BigNumber, utils } = require('ethers')
+const { sleep } = require("../utils/time")
+const { logTxDetails } = require("../utils/txLogger")
 
 /*
  * Spawns and maintains the required amount of validators throughout 
@@ -21,9 +23,13 @@ const { BigNumber, utils } = require('ethers')
  *     and start over.
  */
 const operateValidators = async ({ store, signer, contracts, config }) => {
-  const { p2p_api_key, validatorSpawnOperationalPeriodInDays } = config
+  const {
+    p2p_api_key,
+    validatorSpawnOperationalPeriodInDays,
+    p2p_base_url
+  } = config
   let currentState = await getState(store)
-  log("currentState", currentState);
+  //log("currentState", currentState);
 
   // TODO: uncomment lines below
   // if (!(await nodeDelegatorHas32Eth(contracts))) {
@@ -35,6 +41,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
     if (currentState === undefined) {
       await createValidatorRequest(
         p2p_api_key, // api key
+        p2p_base_url,
         contracts.nodeDelegator.address, // node delegator address
         contracts.nodeDelegator.address, // eigenPod address
         validatorSpawnOperationalPeriodInDays,
@@ -46,8 +53,19 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
     if (currentState.state === 'validator_creation_issued') {
       await confirmValidatorCreatedRequest(
         p2p_api_key,
+        p2p_base_url,
         currentState.uuid,
         store
+      )
+      currentState = await getState(store)
+    }
+
+    if (currentState.state === 'validator_creation_confirmed') {
+      await broadcastRegisterValidator(
+        signer,
+        currentState.uuid,
+        currentState.metadata.validatorRegistrationTx.data,
+        contracts.nodeDelegator
       )
     }
 
@@ -87,6 +105,15 @@ const updateState = async (requestUUID, state, store, metadata = {}) => {
     metadata
   }))
 };
+
+const clearState = async (uuid, store, error = false) => {
+  if (error) {
+    log(`Clearing state tracking of ${uuid} request because of an error: ${error}`)
+  } else {
+    log(`Clearing state tracking of ${uuid} request as it has completed its spawn cycle`)
+  }
+  await store.del('currentRequest')
+}
 
 /* Fetches the state of the current/ongoing cluster creation if there is any
  * returns either:
@@ -128,7 +155,7 @@ const p2pRequest = async (url, api_key, method, body) => {
   }
 
   const bodyString = JSON.stringify(body);
-  log(`Creating a P2P ${method} request with body: ${bodyString}`)
+  log(`Creating a P2P ${method} request with ${url} `, body != undefined ? ` and body: ${bodyString}` : '')
 
   const rawResponse = await fetch(url,
     {
@@ -150,11 +177,10 @@ const p2pRequest = async (url, api_key, method, body) => {
 };
 
 
-const createValidatorRequest = async (p2p_api_key, nodeDelegatorAddress, eigenPodAddress, validatorSpawnOperationalPeriodInDays, store) => {
+const createValidatorRequest = async (p2p_api_key, p2p_base_url, nodeDelegatorAddress, eigenPodAddress, validatorSpawnOperationalPeriodInDays, store) => {
   const uuid = uuidv4()
   await p2pRequest(
-    // TODO these should be mainnet configurable
-    'https://api-test.p2p.org/api/v1/eth/staking/ssv/request/create',
+    `https://${p2p_base_url}/api/v1/eth/staking/ssv/request/create`,
     p2p_api_key,
       'POST', {
       "validatorsCount": 1,
@@ -170,17 +196,58 @@ const createValidatorRequest = async (p2p_api_key, nodeDelegatorAddress, eigenPo
   await updateState(uuid, 'validator_creation_issued', store)
 };
 
-
-const confirmValidatorCreatedRequest = async (p2p_api_key, uuid, store) => {
-  const response = await p2pRequest(
-    // TODO these should be mainnet configurable
-    `https://api-test.p2p.org/api/v1/eth/staking/ssv/request/status/${uuid}`,
-    p2p_api_key,
-    'GET'
+const broadcastRegisterValidator = async (signer, uuid, registerValidatorData, nodeDelegator) => {
+  const registerTransactionParams = utils.defaultAbiCoder.decode(
+    ['bytes', 'uint64[]', 'bytes', 'uint256', '"tuple(uint32, uint64, uint64, bool, uint256)'],
+    utils.hexDataSlice(registerValidatorData, 4)
   )
 
-  log("response", response)
-  //await updateState(uuid, 'validator_creation_issued', store)
+  const [publicKey, operatorIds, sharesData, amount, cluster] = registerTransactionParams
+  
+  const tx = await nodeDelegator
+    .connect(signer)
+    .registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster)
+
+  await logTxDetails(tx, "transferAssetToNodeDelegator");
+  log(`tx`, tx)
+}
+
+const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, store) => {
+  const doConfirmation = async () => {
+    const response = await p2pRequest(
+      `https://${p2p_base_url}/api/v1/eth/staking/ssv/request/status/${uuid}`,
+      p2p_api_key,
+      'GET'
+    )
+    if (response.error != null) {
+      log(`Error processing request uuid: ${uuid} error: ${response}`)
+    } else if (response.result.status === 'ready') {
+      await updateState(uuid, 'validator_creation_confirmed', store, {
+        validatorRegistrationTx: response.result.validatorRegistrationTxs[0]
+      })
+      log(`Validator created using uuid: ${uuid} is ready`)
+      return true
+    } else {
+      log(`Validator created using uuid: ${uuid} not yet ready. State: ${response.result.status}`)
+      return false
+    }
+  }
+
+  let counter = 0
+  const attempts = 20
+  while (true) {
+    if (await doConfirmation()) {
+      break;
+    }
+    counter++;
+
+    if (counter > attempts) {
+      log(`Tried validating the validator formation with ${attempts} but failed`)
+      await clearState(uuid, store, `Too may attempts(${attempts}) to waiting for validator to be ready.`)
+      break;
+    }
+    await sleep(3000)
+  }
 };
 
 
