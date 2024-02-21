@@ -8,16 +8,15 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import { LRTConfig } from "contracts/LRTConfig.sol";
-import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
-import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
-library PrimeStakedETHLib {
+library ConfigLib {
     function deployImpl() internal returns (address implementation) {
-        // Deploy the new contract
-        implementation = address(new PrimeStakedETH());
-        console.log("PrimeStakedETH implementation deployed at: %s", implementation);
+        // Deploy new implementation contract
+        implementation = address(new LRTConfig());
+        console.log("LRTConfig implementation deployed at: %s", implementation);
     }
 
     function deployProxy(
@@ -26,27 +25,30 @@ library PrimeStakedETHLib {
         ProxyFactory proxyFactory
     )
         internal
-        returns (PrimeStakedETH primeETH)
+        returns (LRTConfig config)
     {
         address proxy = proxyFactory.create(implementation, address(proxyAdmin), LRTConstants.SALT);
-        console.log("PrimeStakedETH proxy deployed at: ", proxy);
+        console.log("LRTConfig proxy deployed at: ", proxy);
 
-        primeETH = PrimeStakedETH(proxy);
+        config = LRTConfig(proxy);
     }
 
-    function initialize(PrimeStakedETH primeETH, LRTConfig config) internal {
-        primeETH.initialize(address(config));
+    function initialize(LRTConfig config, address adminAddress, address primeETHAddress) internal {
+        // initialize new LRTConfig contract
+        address stETH = block.chainid == 1 ? Addresses.STETH_TOKEN : AddressesGoerli.STETH_TOKEN;
+        address ethx = block.chainid == 1 ? Addresses.ETHX_TOKEN : AddressesGoerli.ETHX_TOKEN;
+
+        config.initialize(adminAddress, stETH, ethx, primeETHAddress);
     }
 
-    function upgrade(address newImpl) internal returns (PrimeStakedETH) {
+    function upgrade(address proxyAddress, address newImpl) internal returns (LRTConfig) {
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
-        address proxyAddress = block.chainid == 1 ? Addresses.PRIME_STAKED_ETH : AddressesGoerli.PRIME_STAKED_ETH;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
 
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(proxyAddress), newImpl);
-        console.log("Upgraded PrimeStakedETH proxy %s to new implementation %s", proxyAddress, newImpl);
+        console.log("Upgraded LRTConfig proxy %s to new implementation %s", proxyAddress, newImpl);
 
-        return PrimeStakedETH(proxyAddress);
+        return LRTConfig(payable(proxyAddress));
     }
 }

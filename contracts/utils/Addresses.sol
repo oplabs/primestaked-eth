@@ -21,7 +21,7 @@ library Addresses {
     address public constant LRT_DEPOSIT_POOL = 0xA479582c8b64533102F6F528774C536e354B8d32;
     address public constant NODE_DELEGATOR = 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2;
     // TODO update after deployment
-    address public constant NODE_DELEGATOR2 = 0x08c314E8CFb3588371415bffBE3900332BC6d6E9;
+    address public constant NODE_DELEGATOR2 = 0x8f439dDb02f9d9162De067FF256D410AA8d18EF2;
 
     address public constant CHAINLINK_ORACLE_PROXY = 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09;
 
@@ -76,11 +76,11 @@ library AddressesGoerli {
     address public constant DEPLOYER = 0xFD9E6005187F448957a0972a7d0C0A6dA2911236;
     address public constant RELAYER = 0x41738Cf30cc59e00f090B2C1af57dBf60316AfED;
 
-    address public constant ADMIN_ROLE = DEPLOYER;
-    address public constant MANAGER_ROLE = DEPLOYER;
-    address public constant OPERATOR_ROLE = DEPLOYER;
+    address public constant ADMIN_ROLE = RELAYER;
+    address public constant MANAGER_ROLE = RELAYER;
+    address public constant OPERATOR_ROLE = RELAYER;
 
-    // address public constant PROXY_OWNER = ADMIN_MULTISIG;
+    address public constant PROXY_OWNER = RELAYER;
     address public constant PROXY_FACTORY = 0xe58F6e65dB9D82b668C480565e20024887850186;
     address public constant PROXY_ADMIN = 0x941B4A6C9F37A5e6E00a2c895467839F4dEDe048;
 
@@ -108,4 +108,8 @@ library AddressesGoerli {
     address public constant EIGEN_UNPAUSER = 0x3d9C2c2B40d890ad53E27947402e977155CD2808;
     address public constant EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
     address public constant EIGEN_POD_MANAGER = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
+
+    // SSV contracts
+    address public constant SSV_TOKEN = 0x3a9f01091C446bdE031E39ea8354647AFef091E7;
+    address public constant SSV_NETWORK = 0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D;
 }

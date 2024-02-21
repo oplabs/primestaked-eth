@@ -3,6 +3,8 @@ pragma solidity 0.8.21;
 
 import "forge-std/console.sol";
 
+import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
@@ -10,9 +12,10 @@ import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
 import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
-import { OracleLib } from "contracts/libraries/OracleLib.sol";
+import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
+import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 contract DeployNativeETH is BaseMainnetScript {
     address newDepositPoolImpl;
@@ -27,16 +30,17 @@ contract DeployNativeETH is BaseMainnetScript {
 
     function _execute() internal override {
         // Deploy new LTRDepositPool implementation
-        newDepositPoolImpl = DepositPoolLib.deploy();
+        newDepositPoolImpl = DepositPoolLib.deployImpl();
 
         // Deploy a new implementation of NodeDelegator
-        newNodeDelegator1Impl = NodeDelegatorLib.deploy();
+        newNodeDelegator1Impl = NodeDelegatorLib.deployImpl();
 
         // Deploy new NodeDelegator with proxy and initialize it
         newNodeDelegator2 = NodeDelegatorLib.deployInit();
 
         // Deploy new WETH oracle
-        wethOracleProxy = OracleLib.deployInitWETHOracle();
+        wethOracleProxy =
+            OraclesLib.deployInitWETHOracle(ProxyAdmin(Addresses.PROXY_ADMIN), ProxyFactory(Addresses.PROXY_FACTORY));
     }
 
     function _fork() internal override {

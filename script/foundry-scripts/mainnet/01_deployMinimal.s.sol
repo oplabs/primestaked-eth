@@ -9,23 +9,7 @@ import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
-
-function getLSTs() view returns (address stETH, address ethx) {
-    uint256 chainId = block.chainid;
-
-    if (chainId == 1) {
-        // mainnet
-        stETH = Addresses.STETH_TOKEN;
-        ethx = Addresses.ETHX_TOKEN;
-    } else if (chainId == 5) {
-        // goerli
-        stETH = AddressesGoerli.STETH_TOKEN;
-        ethx = AddressesGoerli.ETHX_TOKEN;
-    } else {
-        revert("Unsupported network");
-    }
-}
+import { Addresses } from "contracts/utils/Addresses.sol";
 
 contract DeployMinimal is BaseMainnetScript {
     LRTConfig public lrtConfigProxy;
@@ -59,12 +43,11 @@ contract DeployMinimal is BaseMainnetScript {
         lrtConfigProxy = LRTConfig(proxyFactory.create(address(lrtConfigImplementation), address(proxyAdmin), salt));
 
         // set up LRTConfig init params
-        (address stETH, address ethx) = getLSTs();
         address predictedPRETHAddress = proxyFactory.computeAddress(primeETHImplementation, address(proxyAdmin), salt);
         console.log("predictedPRETHAddress: ", predictedPRETHAddress);
         // init LRTConfig
         // the initialize config supports only 2 LSTs. we will add the others post deployment
-        lrtConfigProxy.initialize(deployerAddress, stETH, ethx, predictedPRETHAddress);
+        lrtConfigProxy.initialize(deployerAddress, Addresses.STETH_TOKEN, Addresses.ETHX_TOKEN, predictedPRETHAddress);
 
         PrimeStakedETH PRETHProxy =
             PrimeStakedETH(proxyFactory.create(address(primeETHImplementation), address(proxyAdmin), salt));

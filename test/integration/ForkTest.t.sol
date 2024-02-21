@@ -88,7 +88,7 @@ contract ForkTest is Test {
         vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
-        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        vm.expectEmit(asset);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
 
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
@@ -136,7 +136,7 @@ contract ForkTest is Test {
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
-        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        vm.expectEmit(asset);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
 
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
@@ -274,22 +274,10 @@ contract ForkTest is Test {
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
         uint256 oethBalanceBefore = IERC20(Addresses.OETH_TOKEN).balanceOf(address(lrtDepositPool));
 
-        vm.expectEmit({
-            emitter: Addresses.STETH_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.STETH_TOKEN);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), stEthBalanceBefore);
 
-        vm.expectEmit({
-            emitter: Addresses.OETH_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.OETH_TOKEN);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), oethBalanceBefore);
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
@@ -324,13 +312,7 @@ contract ForkTest is Test {
     function test_bulk_transfer_some_eigen() public {
         // Should transfer `asset` from DepositPool to the Delegator node
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
-        vm.expectEmit({
-            emitter: Addresses.STETH_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.STETH_TOKEN);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), stEthBalanceBefore);
 
         address[] memory assets = new address[](3);
@@ -492,13 +474,7 @@ contract ForkTest is Test {
     function test_approveSSV() public {
         vm.prank(Addresses.MANAGER_ROLE);
 
-        vm.expectEmit({
-            emitter: Addresses.SSV_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.SSV_TOKEN);
         emit Approval(address(nodeDelegator2), Addresses.SSV_NETWORK, type(uint256).max);
 
         nodeDelegator2.approveSSV();

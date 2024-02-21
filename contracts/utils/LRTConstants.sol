@@ -46,4 +46,6 @@ library LRTConstants {
 
     // Operator Role
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
+
+    bytes32 internal constant SALT = keccak256(abi.encodePacked("Prime-Staked"));
 }
