@@ -174,48 +174,26 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Fetches balance of all assets staked in EigenLayer through this contract. This includes LSTs and WETH.
-    /// @return assets the assets that the node delegator has deposited into EigenLayer.
-    /// @return assetBalances the balances of the assets that the node delegator has deposited into EigenLayer
+    /// @notice Fetches the balance of all supported assets in this NodeDelegator and the underlying EigenLayer.
+    /// This includes LSTs and WETH.
+    /// @return assets a list of assets addresses
+    /// @return assetBalances the balances of the assets in the node delegator and EigenLayer
     function getAssetBalances()
         external
         view
         override
         returns (address[] memory assets, uint256[] memory assetBalances)
     {
-        address eigenlayerStrategyManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER);
+        assets = lrtConfig.getSupportedAssetList();
+        assetBalances = new uint256[](assets.length);
 
-        (IStrategy[] memory strategies,) =
-            IEigenStrategyManager(eigenlayerStrategyManagerAddress).getDeposits(address(this));
+        for (uint256 i = 0; i < assets.length;) {
+            (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer) = getAssetBalance(assets[i]);
+            assetBalances[i] = assetLyingInNDC + assetStakedInEigenLayer;
 
-        uint256 strategiesLength = strategies.length;
-        // Add 1 to length to include WETH
-        assets = new address[](strategiesLength + 1);
-        assetBalances = new uint256[](strategiesLength + 1);
-
-        for (uint256 i = 0; i < strategiesLength;) {
-            assets[i] = address(IStrategy(strategies[i]).underlyingToken());
-            // Get LST balance in EigenLayer strategies
-            assetBalances[i] = IStrategy(strategies[i]).userUnderlyingView(address(this));
-            // Get LST balance in this NodeDelegator contract
-            assetBalances[i] += IERC20(assets[i]).balanceOf(address(this));
             unchecked {
                 ++i;
             }
-        }
-
-        // The WETH address is different between chains so reading from the config.
-        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
-
-        assets[strategiesLength] = WETH_TOKEN_ADDRESS;
-        // Sum up this NodeDelegator contract's WETH balance, ETH balance and ETH staked but not verified
-        assetBalances[strategiesLength] +=
-            IERC20(WETH_TOKEN_ADDRESS).balanceOf(address(this)) + address(this).balance + stakedButNotVerifiedEth;
-        if (address(eigenPod) != address(0)) {
-            // Add verified ETH balances in the EigenPod
-            assetBalances[strategiesLength] += address(eigenPod).balance;
         }
     }
 
@@ -228,7 +206,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @return assetStakedInEigenLayer asset amount deposited in underlying EigenLayer strategy
     /// or native ETH staked into an EigenPod.
     function getAssetBalance(address asset)
-        external
+        public
         view
         override
         returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer)
