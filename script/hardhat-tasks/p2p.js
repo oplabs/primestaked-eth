@@ -20,10 +20,12 @@ const { BigNumber, utils } = require('ethers')
  *     recover in X amount of times (e.g. 5 times). Mark the process as failed 
  *     and start over.
  */
-const operateValidators = async ({ store, signer, contracts, p2p_api_key }) => {
+const operateValidators = async ({ store, signer, contracts, config }) => {
+  const { p2p_api_key, validatorSpawnOperationalPeriodInDays } = config
   let currentState = await getState(store)
   log("currentState", currentState);
 
+  // TODO: uncomment lines below
   // if (!(await nodeDelegatorHas32Eth(contracts))) {
   //   log(`Node delegator doesn't have enough ETH, exiting`)
   //   return
@@ -33,14 +35,20 @@ const operateValidators = async ({ store, signer, contracts, p2p_api_key }) => {
     if (currentState === undefined) {
       await createValidatorRequest(
         p2p_api_key, // api key
-        contracts.nodeDelegator.address, // eigenpod owner address
+        contracts.nodeDelegator.address, // node delegator address
+        contracts.nodeDelegator.address, // eigenPod address
+        validatorSpawnOperationalPeriodInDays,
         store
       )
       currentState = await getState(store)
     }
 
-    if (currentState === 'validator_creation_issued') {
-
+    if (currentState.state === 'validator_creation_issued') {
+      await confirmValidatorCreatedRequest(
+        p2p_api_key,
+        currentState.uuid,
+        store
+      )
     }
 
     // TODO: change to if deposit confirmed
@@ -109,7 +117,7 @@ const nodeDelegatorHas32Eth = async (contracts) => {
  * @param method: http method that can either be POST or GET
  * @param body: body object in case of a POST request 
  */
-const p2pRequest = async (api_key, method, body) => {
+const p2pRequest = async (url, api_key, method, body) => {
   const headers = {
     'Accept': 'application/json',
     'Authorization': `Bearer ${api_key}`
@@ -122,7 +130,7 @@ const p2pRequest = async (api_key, method, body) => {
   const bodyString = JSON.stringify(body);
   log(`Creating a P2P ${method} request with body: ${bodyString}`)
 
-  const rawResponse = await fetch('https://api-test.p2p.org/api/v1/eth/staking/direct/nodes-request/create',
+  const rawResponse = await fetch(url,
     {
       method,
       headers,
@@ -142,21 +150,38 @@ const p2pRequest = async (api_key, method, body) => {
 };
 
 
-const createValidatorRequest = async (p2p_api_key, eigenPodOwnerAddress, store) => {
+const createValidatorRequest = async (p2p_api_key, nodeDelegatorAddress, eigenPodAddress, validatorSpawnOperationalPeriodInDays, store) => {
   const uuid = uuidv4()
-  await p2pRequest(p2p_api_key, 'POST', {
-    "validatorsCount": 1,
-    "nodesOptions": {
-      "location": "any"
-    },
-    "id": uuid,
-    "type": "RESTAKING",
-    "eigenPodOwnerAddress": eigenPodOwnerAddress
-  })
+  await p2pRequest(
+    // TODO these should be mainnet configurable
+    'https://api-test.p2p.org/api/v1/eth/staking/ssv/request/create',
+    p2p_api_key,
+      'POST', {
+      "validatorsCount": 1,
+      "id": uuid,
+      "withdrawalAddress": eigenPodAddress,
+      "feeRecipientAddress": nodeDelegatorAddress,
+      "ssvOwnerAddress": nodeDelegatorAddress,
+      "type": "without-encrypt-key",
+      "operationPeriodInDays": validatorSpawnOperationalPeriodInDays
+
+    })
 
   await updateState(uuid, 'validator_creation_issued', store)
 };
 
+
+const confirmValidatorCreatedRequest = async (p2p_api_key, uuid, store) => {
+  const response = await p2pRequest(
+    // TODO these should be mainnet configurable
+    `https://api-test.p2p.org/api/v1/eth/staking/ssv/request/status/${uuid}`,
+    p2p_api_key,
+    'GET'
+  )
+
+  log("response", response)
+  //await updateState(uuid, 'validator_creation_issued', store)
+};
 
 
 module.exports = {

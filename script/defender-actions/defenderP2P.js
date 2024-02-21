@@ -25,10 +25,19 @@ const handler = async (event) => {
     nodeDelegator,
     WETH,
   }
+
+  const config = {
+      p2p_api_key: process.env.P2P_MAINNET_API_KEY,
+      // how much SSV (expressed in days of runway) gets deposited into SSV
+      // network contract on validator registration.
+      validatorSpawnOperationalPeriodInDays: 90
+    };
+
   await operateValidators({
     signer,
     contracts,
     store,
+    config
   });
 };
 
