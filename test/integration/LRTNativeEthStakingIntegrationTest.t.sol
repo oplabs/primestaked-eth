@@ -7,10 +7,9 @@ import { LRTConfig, ILRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { OneETHPriceOracle } from "contracts/oracles/OneETHPriceOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
-import { getLSTs } from "script/foundry-scripts/goerli/DeployLRT.s.sol";
 
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -147,16 +146,17 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         assertEq(eigenPod, 0xf7483e448c1B94Ea557A53d99ebe7b4feE0c91df, "Wrong eigenPod address");
 
         // stake 32 eth for validator1
-        bytes memory pubkey =
-            hex"8ff0088bf2bc73a41c74d1b1c6c997e4963ceffde55a09fef27596016d919b74b45372e8aa69fda5aac38a0c1a38dfd5";
-        bytes memory signature = hex"95e07ee28de0316ecdf9b528c222d81242898ee0095e284582bb453d331b7760"
-            hex"6d8dca23ab8980459ea8a9b9710e2f740fceb1a1c221a7fd75eb3ef4a6b68809"
-            hex"f3e76387f01f5d31718e6306375b20b29cb08d1374c7fb125d50c1b2f5a5cc0b";
-
-        bytes32 depositDataRoot = hex"6f30f44f0d8dada6ba5d8fd617c727020c01c697587d1a04ff6661be656198bc";
+        ValidatorStakeData[] memory singleValidators = new ValidatorStakeData[](1);
+        singleValidators[0] = ValidatorStakeData({
+            pubkey: hex"8ff0088bf2bc73a41c74d1b1c6c997e4963ceffde55a09fef27596016d919b74b45372e8aa69fda5aac38a0c1a38dfd5",
+            signature: hex"95e07ee28de0316ecdf9b528c222d81242898ee0095e284582bb453d331b7760"
+                hex"6d8dca23ab8980459ea8a9b9710e2f740fceb1a1c221a7fd75eb3ef4a6b68809"
+                hex"f3e76387f01f5d31718e6306375b20b29cb08d1374c7fb125d50c1b2f5a5cc0b",
+            depositDataRoot: hex"6f30f44f0d8dada6ba5d8fd617c727020c01c697587d1a04ff6661be656198bc"
+        });
 
         vm.prank(operator);
-        nodeDelegator1.stakeEth(pubkey, signature, depositDataRoot);
+        nodeDelegator1.stakeEth(singleValidators);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
             lrtDepositPool.getAssetDistributionData(WETHAddress);
@@ -169,15 +169,16 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         );
 
         // stake 32 eth for validator2
-        pubkey = hex"8f943ad38a85397243a5b2805cad3956f6bc46bcf001f58415ec9a14260fa449b1597a917393560f4a21d59852df30cc";
-        signature = hex"88fda50f5197b4d3fc497bcabcd86f5d3c76ad67ff8e752bec96b74fc589ad27"
-            hex"3eee3aa72e836a26447680966f5d70900eff7eaaa4d047fe6da5c3d6093aa63c"
-            hex"614b443a82c74c9ebc1837efe2bef59e600e3f8008c7aac6bd2eacbffdbae6c4";
-
-        depositDataRoot = hex"fb0f1cf653ff793cd5973b3847e2f91c8cbab3dd22d1c59a8cf86fc5879dc592";
+        singleValidators[0] = ValidatorStakeData({
+            pubkey: hex"8f943ad38a85397243a5b2805cad3956f6bc46bcf001f58415ec9a14260fa449b1597a917393560f4a21d59852df30cc",
+            signature: hex"88fda50f5197b4d3fc497bcabcd86f5d3c76ad67ff8e752bec96b74fc589ad27"
+                hex"3eee3aa72e836a26447680966f5d70900eff7eaaa4d047fe6da5c3d6093aa63c"
+                hex"614b443a82c74c9ebc1837efe2bef59e600e3f8008c7aac6bd2eacbffdbae6c4",
+            depositDataRoot: hex"fb0f1cf653ff793cd5973b3847e2f91c8cbab3dd22d1c59a8cf86fc5879dc592"
+        });
 
         vm.prank(operator);
-        nodeDelegator1.stakeEth(pubkey, signature, depositDataRoot);
+        nodeDelegator1.stakeEth(singleValidators);
 
         (assetLyingInDepositPoolNow, assetLyingInNDCsNow, assetStakedInEigenLayerNow) =
             lrtDepositPool.getAssetDistributionData(WETHAddress);

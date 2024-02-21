@@ -24,6 +24,9 @@ contract BaseTest is Test {
 
     uint256 public oneThousand = 1000 ** 18;
 
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
     function setUp() public virtual {
         stETH = new MockToken("Lido ETH", "stETH");
         ethX = new MockToken("ETHX", "ethX");

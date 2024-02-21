@@ -4,14 +4,16 @@ pragma solidity 0.8.21;
 
 import "forge-std/console.sol";
 
-import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
-import { IStrategy } from "contracts/interfaces/IStrategy.sol";
-import { NodeDelegator, INodeDelegator } from "contracts/NodeDelegator.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
+import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
+import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
+import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
+import { MockToken } from "contracts/mocks/MockToken.sol";
+
 import { BeaconChainProofs } from "contracts/interfaces/IEigenPod.sol";
-import { MockWETH } from "contracts/mocks/MockWETH.sol";
 
 contract MockEigenStrategyManager {
     mapping(address depositor => mapping(address strategy => uint256 shares)) public depositorStrategyShareBalances;
@@ -40,6 +42,37 @@ contract MockEigenStrategyManager {
         }
 
         return (strategies_, shares);
+    }
+}
+
+contract MockSSVNetwork {
+    address public ssvToken;
+
+    constructor(address _ssvToken) {
+        ssvToken = _ssvToken;
+    }
+
+    function deposit(
+        address clusterOwner,
+        uint64[] memory operatorIds,
+        uint256 amount,
+        Cluster memory cluster
+    )
+        public
+    {
+        IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
+    }
+
+    function registerValidator(
+        bytes memory publicKey,
+        uint64[] memory operatorIds,
+        bytes memory sharesData,
+        uint256 amount,
+        Cluster memory cluster
+    )
+        external
+    {
+        IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
     }
 }
 
@@ -341,7 +374,6 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
 
         uint256 nodeDelBalanceAfter = ethX.balanceOf(address(nodeDel));
 
-        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not increase");
         assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not increase");
 
         assertEq(ethX.balanceOf(mockLRTDepositPool), amountToDeposit, "LRTDepositPool balance did not increase");
@@ -360,7 +392,6 @@ contract NodeDelegatorTransferBackToLRTDepositPool is NodeDelegatorTest {
 
         uint256 nodeDelBalanceAfter = weth.balanceOf(address(nodeDel));
 
-        assertLt(nodeDelBalanceAfter, nodeDelBalanceBefore, "NodeDelegator balance did not decrease");
         assertEq(nodeDelBalanceAfter, nodeDelBalanceBefore - amountToDeposit, "NodeDelegator balance did not decrease");
 
         assertEq(
@@ -378,6 +409,7 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         vm.startPrank(bob);
         ethX.transfer(address(nodeDel), 10 ether);
         stETH.transfer(address(nodeDel), 5 ether);
+        weth.transfer(address(nodeDel), 2 ether);
         vm.stopPrank();
 
         // max approve nodeDelegator to deposit into strategy
@@ -404,7 +436,7 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         assertEq(assetBalances.length, 3, "Incorrect number of asset balances");
         assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
         assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
-        assertEq(assetBalances[2], 0, "Incorrect asset balance for WETH");
+        assertEq(assetBalances[2], 2e18, "Incorrect asset balance for WETH");
     }
 }
 
@@ -436,7 +468,7 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
     }
 }
 
-contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
+contract NodeDelegatorGetWETHEigenPodBalance is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
         nodeDel.initialize(address(lrtConfig));
@@ -451,7 +483,9 @@ contract NodeDelegatorGetETHEigenPodBalance is NodeDelegatorTest {
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
-        nodeDel.stakeEth(hex"", hex"", hex"");
+        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
+        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
+        nodeDel.stakeEth(blankValidator);
     }
 
     function test_GetWTHEigenPodBalance() external {
@@ -472,27 +506,36 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         nodeDel.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
-        amount = 32 ether;
+        amount = 96 ether;
         weth.mint(address(nodeDel), amount);
         vm.deal(address(weth), amount);
     }
 
     function test_revertWhenCallerIsNotLRTOperator() external {
+        ValidatorStakeData[] memory validators = new ValidatorStakeData[](0);
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-        nodeDel.stakeEth(hex"", hex"", hex"");
+        nodeDel.stakeEth(validators);
         vm.stopPrank();
     }
 
     function test_stakeETH() external {
+        // add WETH to nodeDelegator so it can deposit it into 3 validators
+        weth.mint(address(nodeDel), amount);
+        vm.deal(address(weth), amount);
+
         (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
 
         vm.prank(operator);
-        nodeDel.stakeEth(hex"", hex"", hex"");
+        ValidatorStakeData memory blankValidator = ValidatorStakeData(hex"", hex"", hex"");
+        ValidatorStakeData[] memory validators = new ValidatorStakeData[](3);
+        validators[0] = blankValidator;
+        validators[1] = blankValidator;
+        validators[2] = blankValidator;
+        nodeDel.stakeEth(validators);
 
         (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
 
-        assertLt(nodeDelWethAfter, nodeDelWethBefore, "NodeDelegator balance did not decrease");
         assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
 
         assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
@@ -516,8 +559,11 @@ contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
         vm.deal(address(weth), amount);
 
         // stake ETH in EigenPodManager
+        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
+        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
+
         vm.prank(operator);
-        nodeDel.stakeEth(hex"", hex"", hex"");
+        nodeDel.stakeEth(blankValidator);
     }
 
     function test_RevertWhenCallerIsNotLRTOperator() external {
@@ -617,5 +663,85 @@ contract NodeDelegatorUnpause is NodeDelegatorTest {
         vm.stopPrank();
 
         assertFalse(nodeDel.paused(), "Contract is still paused");
+    }
+}
+
+contract NodeDelegatorSSV is NodeDelegatorTest {
+    MockToken ssvToken;
+    address ssvNetwork;
+    uint64[] operatorIds;
+    Cluster cluster;
+
+    function setUp() public override {
+        super.setUp();
+        nodeDel.initialize(address(lrtConfig));
+        ssvToken = new MockToken("SSV", "SSV");
+        ssvToken.mint(manager, 1000 ether);
+
+        ssvNetwork = address(new MockSSVNetwork(address(ssvToken)));
+
+        operatorIds = new uint64[](3);
+        operatorIds[0] = 10;
+        operatorIds[1] = 100;
+        operatorIds[2] = 200;
+        cluster = Cluster(0, 0, 0, false, 0);
+
+        vm.startPrank(admin);
+        lrtConfig.setContract(LRTConstants.SSV_TOKEN, address(ssvToken));
+        lrtConfig.setContract(LRTConstants.SSV_NETWORK, ssvNetwork);
+        vm.stopPrank();
+    }
+
+    function test_approveRevertWhenCallerIsNotLRTManager() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+        nodeDel.approveSSV();
+        vm.stopPrank();
+    }
+
+    function test_depositRevertWhenCallerIsNotLRTManager() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+
+        nodeDel.depositSSV(operatorIds, 10 ether, cluster);
+        vm.stopPrank();
+    }
+
+    function test_registerValidatorRevertWhenCallerIsNotLRTOperator() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+
+        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+        vm.stopPrank();
+    }
+
+    function test_approveSSV() external {
+        vm.prank(manager);
+
+        expectEmit();
+        emit IERC20.Approval(address(nodeDel), ssvNetwork, type(uint256).max);
+
+        nodeDel.approveSSV();
+    }
+
+    function test_depositSSV() external {
+        vm.startPrank(manager);
+
+        nodeDel.approveSSV();
+        ssvToken.transfer(address(nodeDel), 10 ether);
+
+        nodeDel.depositSSV(operatorIds, 10 ether, cluster);
+        vm.stopPrank();
+    }
+
+    function test_registerValidator() external {
+        vm.startPrank(manager);
+
+        nodeDel.approveSSV();
+        ssvToken.transfer(address(nodeDel), 10 ether);
+        vm.stopPrank();
+
+        vm.prank(operator);
+        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
     }
 }

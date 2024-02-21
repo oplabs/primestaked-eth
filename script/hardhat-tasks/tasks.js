@@ -2,6 +2,8 @@ const { subtask, task, types } = require("hardhat/config");
 
 const { depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators } = require("./p2p");
+const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator } = require("./ssv");
+
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -27,6 +29,65 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
     }
   });
 task("depositEL").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// SSV
+subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeDelegator")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress =
+      taskArgs.index === 1 ? addresses.mainnet.NODE_DELEGATOR_NATIVE_STAKING : addresses.mainnet.NODE_DELEGATOR;
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await approveSSV({ signer, nodeDelegator, ...taskArgs });
+  });
+task("approveSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeDelegator")
+  .addParam("amount", "Amount of SSV tokens to deposit", undefined, types.float)
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress =
+      taskArgs.index === 1 ? addresses.mainnet.NODE_DELEGATOR_NATIVE_STAKING : addresses.mainnet.NODE_DELEGATOR;
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await depositSSV({ signer, nodeDelegator, ...taskArgs });
+  });
+task("depositSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// Prime Management
+subtask("pauseDelegator", "Manager pause a NodeDelegator")
+  .addOptionalParam("index", "Index of Node Delegator", 0, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress =
+      taskArgs.index === 0 ? addresses.mainnet.NODE_DELEGATOR : addresses.mainnet.NODE_DELEGATOR_NATIVE_STAKING;
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await pauseDelegator({ signer, nodeDelegator, ...taskArgs });
+  });
+task("pauseDelegator").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("unpauseDelegator", "Admin unpause a NodeDelegator")
+  .addOptionalParam("index", "Index of Node Delegator", 0, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress =
+      taskArgs.index === 0 ? addresses.mainnet.NODE_DELEGATOR : addresses.mainnet.NODE_DELEGATOR_NATIVE_STAKING;
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await unpauseDelegator({ signer, nodeDelegator, ...taskArgs });
+  });
+task("unpauseDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

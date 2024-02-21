@@ -7,14 +7,35 @@ import "forge-std/console.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
+import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
+import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 library DepositPoolLib {
-    function deploy() internal returns (address newImpl) {
+    function deployImpl() internal returns (address implementation) {
         // Deploy the new contract
-        newImpl = address(new LRTDepositPool());
-        console.log("LRTDepositPool implementation deployed at: %s", newImpl);
+        implementation = address(new LRTDepositPool());
+        console.log("LRTDepositPool implementation deployed at: %s", implementation);
+    }
+
+    function deployProxy(
+        address implementation,
+        ProxyAdmin proxyAdmin,
+        ProxyFactory proxyFactory
+    )
+        internal
+        returns (LRTDepositPool depositPool)
+    {
+        address proxy = proxyFactory.create(implementation, address(proxyAdmin), LRTConstants.SALT);
+        console.log("LRTDepositPool proxy deployed at: ", proxy);
+
+        depositPool = LRTDepositPool(proxy);
+    }
+
+    function initialize(LRTDepositPool depositPool, LRTConfig config) internal {
+        depositPool.initialize(address(config));
     }
 
     function upgrade(address newImpl) internal returns (LRTDepositPool) {

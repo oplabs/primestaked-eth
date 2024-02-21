@@ -12,7 +12,7 @@ import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
@@ -41,6 +41,7 @@ contract ForkTest is Test {
     string public referralId = "1234";
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -87,7 +88,7 @@ contract ForkTest is Test {
         vm.prank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
-        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        vm.expectEmit(asset);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
 
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
@@ -97,7 +98,7 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore - transferAmount, "assets in DepositPool");
         assertEq(assetsNDCsAfter, assetsNDCsBefore + transferAmount, "assets in NDCs");
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
@@ -122,8 +123,6 @@ contract ForkTest is Test {
         (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
             lrtDepositPool.getAssetDistributionData(asset);
 
-        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertEq(assetsNDCsAfter, assetsNDCsBefore + 0.01 ether, "assets in NDCs");
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
@@ -137,20 +136,24 @@ contract ForkTest is Test {
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
         // Should transfer `asset` from DepositPool to the Delegator node
-        vm.expectEmit({ emitter: asset, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        vm.expectEmit(asset);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
 
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
 
         // TODO set once we have a mainnet validator
         // example from block 19230613
-        bytes memory pubkey =
-            hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e";
-        bytes memory signature =
-        // solhint-disable-next-line max-line-length
-            hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a";
-        bytes32 depositDataRoot = 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b;
-        // nodeDelegator2.stakeEth(pubkey, signature, depositDataRoot);
+        ValidatorStakeData[] memory validatorStakeData = new ValidatorStakeData[](1);
+        validatorStakeData[0] = ValidatorStakeData({
+            pubkey: hex"a01db1511b1eda57efff93b72dbdcc4b59d498128cb1ec3bc9cd4feae00ece6085db328e62076783fe35e3db95c9820e",
+            signature: hex"9689c71f8e9d146e1060f9c6a63f62b62c078b1254c0a8c36422c3ab8a9fa16f"
+                hex"0c5bef3a2b0ca236c6eb09d1c7ab1016139be26747fb8e70324df3bfa4746fa0"
+                hex"c5fd15a0601ad92a91346a180edce8101a8761aa7e4fe2cfc15274e58559b96a",
+            depositDataRoot: 0x414008be8f8c3ef14b7a8fb4cb155f3d036f61440e0c84ba41173fdb3ff5e04b
+        });
+
+        // TODO uncomment once we have a mainnet validator
+        // nodeDelegator2.stakeEth(validatorStakeData);
         vm.stopPrank();
     }
 
@@ -254,6 +257,8 @@ contract ForkTest is Test {
         deposit(Addresses.RETH_TOKEN, rWhale, 15 ether);
         deposit(Addresses.SWETH_TOKEN, swWhale, 16 ether);
 
+        (address[] memory balAssets, uint256[] memory assetBalancesBefore) = nodeDelegator1.getAssetBalances();
+
         address[] memory assets = new address[](7);
         assets[0] = Addresses.STETH_TOKEN;
         assets[1] = Addresses.OETH_TOKEN;
@@ -269,22 +274,10 @@ contract ForkTest is Test {
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
         uint256 oethBalanceBefore = IERC20(Addresses.OETH_TOKEN).balanceOf(address(lrtDepositPool));
 
-        vm.expectEmit({
-            emitter: Addresses.STETH_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.STETH_TOKEN);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), stEthBalanceBefore);
 
-        vm.expectEmit({
-            emitter: Addresses.OETH_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.OETH_TOKEN);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), oethBalanceBefore);
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
@@ -298,18 +291,28 @@ contract ForkTest is Test {
         // Run again with no assets
         nodeDelegator1.depositAssetsIntoStrategy(assets);
         vm.stopPrank();
+
+        // Check balance in NodeDelegator
+        (, uint256[] memory assetBalancesAfter) = nodeDelegator1.getAssetBalances();
+        assertEq(balAssets[3], Addresses.STETH_TOKEN, "incorrect asset at index 3");
+        assertApproxEqAbs(
+            assetBalancesAfter[3] - assetBalancesBefore[3], 10 ether, 2, "incorrect index 3 asset balance"
+        );
+        assertEq(balAssets[5], Addresses.SWETH_TOKEN, "incorrect asset at index 5");
+        assertApproxEqAbs(
+            assetBalancesAfter[5] - assetBalancesBefore[5], 16 ether, 2, "incorrect index 5 asset balance"
+        );
+        assertEq(balAssets[7], Addresses.WETH_TOKEN, "incorrect asset at index 7");
+        assertEq(assetBalancesAfter[7], 0, "incorrect index 6 asset balance");
+
+        // Get gas costs of calling a Node Delegator that only has native ETH
+        nodeDelegator2.getAssetBalances();
     }
 
     function test_bulk_transfer_some_eigen() public {
         // Should transfer `asset` from DepositPool to the Delegator node
         uint256 stEthBalanceBefore = IERC20(Addresses.STETH_TOKEN).balanceOf(address(lrtDepositPool));
-        vm.expectEmit({
-            emitter: Addresses.STETH_TOKEN,
-            checkTopic1: true,
-            checkTopic2: true,
-            checkTopic3: true,
-            checkData: true
-        });
+        vm.expectEmit(Addresses.STETH_TOKEN);
         emit Transfer(address(lrtDepositPool), address(nodeDelegator1), stEthBalanceBefore);
 
         address[] memory assets = new address[](3);
@@ -402,8 +405,8 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
-        assertApproxEqRel(
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
+        assertApproxEqAbs(
             assetsDepositPoolAfter, assetsDepositPoolBefore + amountToTransfer, 1, "assets in DepositPool"
         );
         assertEq(assetsNDCsAfter, assetsNDCsBefore, "assets in NDCs");
@@ -433,12 +436,15 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
-        assertApproxEqRel(
-            assetsDepositPoolAfter, assetsDepositPoolBefore - amountToTransfer, 100, "assets in DepositPool"
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
+        assertApproxEqAbs(
+            assetsDepositPoolAfter,
+            assetsDepositPoolBefore - amountToTransfer,
+            2,
+            "assets in DepositPool did not decrease"
         );
-        assertApproxEqRel(assetsNDCsAfter, assetsNDCsBefore + amountToTransfer, 100, "assets in NDCs");
-        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
+        assertApproxEqAbs(assetsNDCsAfter, assetsNDCsBefore + amountToTransfer, 2, "assets in NDCs did not increase");
+        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer should not change");
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
@@ -459,10 +465,19 @@ contract ForkTest is Test {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Check the asset distribution across the DepositPool, NDCs and EigenLayer
-        // stETH can leave a dust amount behind so using assertApproxEqRel
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertLe(assetsNDCsAfter, 1, "assets in NDCs");
-        assertApproxEqRel(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
+        assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
+    }
+
+    function test_approveSSV() public {
+        vm.prank(Addresses.MANAGER_ROLE);
+
+        vm.expectEmit(Addresses.SSV_TOKEN);
+        emit Approval(address(nodeDelegator2), Addresses.SSV_NETWORK, type(uint256).max);
+
+        nodeDelegator2.approveSSV();
     }
 
     function unpausePrime() internal {

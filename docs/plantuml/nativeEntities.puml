@@ -30,7 +30,7 @@ entity "Pod" as pod <<EigenLayer>> {
 ' entity "Slasher" as slash <<EigenLayer>> {
 ' }
 
-entity "Validator" as val <<P2P>> {
+entity "Validator" as val {
 }
 
 entity "Deposit" as bdep <<Beacon>> {
@@ -38,7 +38,11 @@ entity "Deposit" as bdep <<Beacon>> {
 entity "Delayed\nWithdraw\nRouter" as withdraw <<EigenLayer>> {
 }
 
+entity "Cluster" as cluster <<SSV>> {
+}
 
+entity "Operator" as ssvOp <<SSV>> {
+}
 
 staker }o..o| dep
 
@@ -55,8 +59,14 @@ del ||...|| pod
 
 pod |o..o{ val
 
-pod }o...|| bdep
+pod }o....|| bdep
 ' withdraw ||..o{ pod
+
+del |o....o| cluster
+cluster |o..{ ssvOp
+cluster |o..o{ val
+' ssvOp |o.|o{val
+val }o.{ ssvOp
 
 @enduml
 
