@@ -186,10 +186,46 @@ $ forge test --gas-report
 
 ## Deploy
 
-### Deploy to testnet
+### Deploy to Goerli testnet
+
+Set `GOERLI_DEPLOYER_PRIVATE_KEY` in the `.env` file.
 
 ```bash
-make deploy-lrt-testnet
+make deploy-testnet
+```
+
+### Test Goerli deployment against a local Anvil fork of Goerli
+
+The runs the Goerli deployment in a fork and does not broadcast the transactions to the local Anvil node. The contracts
+will NOT be deployed to the local Anvil node.
+
+In one terminal run
+
+```bash
+make make node-test-fork
+```
+
+In another terminal run
+
+```bash
+make deploy-testnet-fork
+```
+
+### Run Goerli deployment against a local Anvil fork of Goerli
+
+The runs the Goerli deployment broadcasting the transactions to the local Anvil node. The contracts will be deployed to
+the local Anvil node.
+
+In one terminal run
+
+```bash
+make make node-test-fork
+```
+
+In another terminal run
+
+```bash
+make deploy-testnet-local
 ```
 
 ### For tests (mainnet) using Anvil:

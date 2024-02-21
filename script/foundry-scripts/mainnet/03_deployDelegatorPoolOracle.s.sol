@@ -87,9 +87,8 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
     }
 
     function maxApproveToEigenStrategyManager(address nodeDel) private {
-        (address stETH, address ethx) = getLSTs();
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(stETH);
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(ethx);
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(Addresses.STETH_TOKEN);
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(Addresses.ETHX_TOKEN);
     }
 
     function getAssetStrategies()
@@ -116,9 +115,6 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
     }
 
     function setUpByAdmin() private {
-        (address stETH, address ethx) = getLSTs();
-        // ----------- callable by admin ----------------
-
         // add oracle to LRT config
         lrtConfigProxy.setContract(LRTConstants.LRT_ORACLE, address(lrtOracleProxy));
         // add deposit pool to LRT config
@@ -127,8 +123,8 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         // call updateAssetStrategy for each asset in LRTConfig
         (address strategyManager, address stETHStrategy, address ethXStrategy,) = getAssetStrategies();
         lrtConfigProxy.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, strategyManager);
-        lrtConfigProxy.updateAssetStrategy(stETH, stETHStrategy);
-        lrtConfigProxy.updateAssetStrategy(ethx, ethXStrategy);
+        lrtConfigProxy.updateAssetStrategy(Addresses.STETH_TOKEN, stETHStrategy);
+        lrtConfigProxy.updateAssetStrategy(Addresses.ETHX_TOKEN, ethXStrategy);
 
         // add minter role to lrtDepositPool so it mints primeETH
         lrtConfigProxy.grantRole(LRTConstants.MINTER_ROLE, address(lrtDepositPoolProxy));
@@ -145,21 +141,5 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         // --------- callable by manager -----------
         // maxApproveToEigenStrategyManager in each NodeDelegator to transfer to strategy
         maxApproveToEigenStrategyManager(address(nodeDelegatorProxy1));
-    }
-}
-
-function getLSTs() view returns (address stETH, address ethx) {
-    uint256 chainId = block.chainid;
-
-    if (chainId == 1) {
-        // mainnet
-        stETH = Addresses.STETH_TOKEN;
-        ethx = Addresses.ETHX_TOKEN;
-    } else if (chainId == 5) {
-        // goerli
-        stETH = AddressesGoerli.STETH_TOKEN;
-        ethx = AddressesGoerli.ETHX_TOKEN;
-    } else {
-        revert("Unsupported network");
     }
 }

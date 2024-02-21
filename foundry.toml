@@ -29,5 +29,3 @@ wrap_comments = true
 
 [rpc_endpoints]
 localhost = "http://localhost:8545"
-goerli = "https://eth-goerli.nodereal.io/v1/${API_KEY_NODE_REAL}"
-mainnet = "https://eth-mainnet.nodereal.io/v1/${API_KEY_NODE_REAL}"

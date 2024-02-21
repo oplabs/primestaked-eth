@@ -21,7 +21,7 @@ library Addresses {
     address public constant LRT_DEPOSIT_POOL = 0xA479582c8b64533102F6F528774C536e354B8d32;
     address public constant NODE_DELEGATOR = 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2;
     // TODO update after deployment
-    address public constant NODE_DELEGATOR2 = 0x08c314E8CFb3588371415bffBE3900332BC6d6E9;
+    address public constant NODE_DELEGATOR2 = 0x8f439dDb02f9d9162De067FF256D410AA8d18EF2;
 
     address public constant CHAINLINK_ORACLE_PROXY = 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09;
 
@@ -64,6 +64,10 @@ library Addresses {
     address public constant EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
     address public constant EIGEN_POD_MANAGER = 0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338;
 
+    // SSV contracts
+    address public constant SSV_TOKEN = 0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54;
+    address public constant SSV_NETWORK = 0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1;
+
     address public constant BEACON_DEPOSIT = 0x00000000219ab540356cBB839Cbe05303d7705Fa;
 }
 
@@ -72,31 +76,31 @@ library AddressesGoerli {
     address public constant DEPLOYER = 0xFD9E6005187F448957a0972a7d0C0A6dA2911236;
     address public constant RELAYER = 0x41738Cf30cc59e00f090B2C1af57dBf60316AfED;
 
-    address public constant ADMIN_ROLE = DEPLOYER;
-    address public constant MANAGER_ROLE = DEPLOYER;
-    address public constant OPERATOR_ROLE = DEPLOYER;
+    address public constant ADMIN_ROLE = RELAYER;
+    address public constant MANAGER_ROLE = RELAYER;
+    address public constant OPERATOR_ROLE = RELAYER;
 
-    // address public constant PROXY_OWNER = ADMIN_MULTISIG;
-    address public constant PROXY_FACTORY = 0xe58F6e65dB9D82b668C480565e20024887850186;
-    address public constant PROXY_ADMIN = 0x941B4A6C9F37A5e6E00a2c895467839F4dEDe048;
+    address public constant PROXY_OWNER = RELAYER;
+    address public constant PROXY_FACTORY = 0x03007483eE29Aa07D892b9719AaDCB09d54a2A6F;
+    address public constant PROXY_ADMIN = 0x6f419231E5eA97d3e29f5475d9ADe9ad7fa4a564;
 
-    address public constant PRIME_STAKED_ETH = 0x2C40141Cd278746C9666288d12EbF434Eadef700;
+    address public constant PRIME_STAKED_ETH = 0x63157a0E98FDa05F46c5055E9a20631c4F70D0C4;
 
-    address public constant LRT_CONFIG = 0x4ABe68F6e0D6D23EEF42494CfaEaa6a3398cf0f2;
-    address public constant LRT_ORACLE = 0xDc61880DD483AFBBAe3311573e731A601ae07680;
-    address public constant LRT_DEPOSIT_POOL = 0xb362ff73Ad3432096DF47419aE6D7bc6cC342F91;
-    address public constant NODE_DELEGATOR = 0x7f4A403f1bd6ed182a3ABd1F840e02B5A360a538;
-    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0xff54d60e6e4F9d1d454b09B4Fc0f7C06977f22D9;
+    address public constant LRT_CONFIG = 0xf7fbb2EcCfbb8f7553402259C3465B685c0d51b3;
+    address public constant LRT_ORACLE = 0xED14e189cc536372Bf2Ccf181a0689Af23276718;
+    address public constant LRT_DEPOSIT_POOL = 0xFEBd0cDE4444A4Ca2F38cb91800a80B47A7c5097;
+    address public constant NODE_DELEGATOR = 0x9727A47Db9cE4246138028dc0348069B160B97fb;
+    address public constant NODE_DELEGATOR2 = 0x0AaF4B174F1f75542E3BD85030eD9C4a002F9dB9;
 
     // address public constant CHAINLINK_ORACLE_PROXY = ;
 
     address public constant STETH_TOKEN = 0x2C40141Cd278746C9666288d12EbF434Eadef700;
     address public constant STETH_EIGEN_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
-    // address public constant STETH_ORACLE = ;
+    address public constant STETH_ORACLE = 0xb0A929010afdE41bbe786a01742f451592618c75;
 
     address public constant ETHX_TOKEN = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
     address public constant ETHX_EIGEN_STRATEGY = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
-    // address public constant ETHX_ORACLE_PROXY = ;
+    address public constant ETHX_ORACLE_PROXY = 0x7D799C93DCC012B10809CFa3B43799aBbFa17aBD;
     address public constant STADER_STAKING_POOL_MANAGER = 0xd0e400Ec6Ed9C803A9D9D3a602494393E806F823;
 
     address public constant WETH_TOKEN = 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
@@ -104,4 +108,8 @@ library AddressesGoerli {
     address public constant EIGEN_UNPAUSER = 0x3d9C2c2B40d890ad53E27947402e977155CD2808;
     address public constant EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
     address public constant EIGEN_POD_MANAGER = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
+
+    // SSV contracts
+    address public constant SSV_TOKEN = 0x3a9f01091C446bdE031E39ea8354647AFef091E7;
+    address public constant SSV_NETWORK = 0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D;
 }

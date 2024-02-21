@@ -24,6 +24,10 @@ library LRTConstants {
     // WETH token
     bytes32 public constant WETH_TOKEN = keccak256("WETH_TOKEN");
 
+    // SSV
+    bytes32 public constant SSV_TOKEN = keccak256("SSV_TOKEN");
+    bytes32 public constant SSV_NETWORK = keccak256("SSV_NETWORK");
+
     //contracts
     bytes32 public constant LRT_ORACLE = keccak256("LRT_ORACLE");
     bytes32 public constant LRT_DEPOSIT_POOL = keccak256("LRT_DEPOSIT_POOL");
@@ -42,4 +46,6 @@ library LRTConstants {
 
     // Operator Role
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
+
+    bytes32 internal constant SALT = keccak256(abi.encodePacked("Prime-Staked"));
 }

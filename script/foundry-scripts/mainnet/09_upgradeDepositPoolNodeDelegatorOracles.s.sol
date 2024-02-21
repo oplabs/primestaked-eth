@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
 import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
-import { OracleLib } from "contracts/libraries/OracleLib.sol";
+import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
@@ -25,10 +25,10 @@ contract UpgradeDepositPoolNodeDelegatorOracles is BaseMainnetScript {
     address newChainlinkOracle;
 
     function _execute() internal override {
-        newDepositPoolImpl = DepositPoolLib.deploy();
-        newNodeDelegatorImpl = NodeDelegatorLib.deploy();
-        newOracleImpl = OracleLib.deployLRTOracle();
-        newChainlinkOracle = OracleLib.deployChainlinkOracle();
+        newDepositPoolImpl = DepositPoolLib.deployImpl();
+        newNodeDelegatorImpl = NodeDelegatorLib.deployImpl();
+        newOracleImpl = OraclesLib.deployLRTOracleImpl();
+        newChainlinkOracle = OraclesLib.deployChainlinkOracle();
     }
 
     function _fork() internal override {
@@ -36,8 +36,8 @@ contract UpgradeDepositPoolNodeDelegatorOracles is BaseMainnetScript {
         // Upgrade the proxies
         DepositPoolLib.upgrade(newDepositPoolImpl);
         NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorImpl);
-        OracleLib.upgradeLRTOracle(newOracleImpl);
-        // OracleLib.upgradeChainlinkOracle(newChainlinkOracle);
+        OraclesLib.upgradeLRTOracle(newOracleImpl);
+        // OraclesLib.upgradeChainlinkOracle(newChainlinkOracle);
         vm.stopPrank();
 
         vm.startPrank(Addresses.ADMIN_ROLE);

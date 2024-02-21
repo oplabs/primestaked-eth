@@ -7,7 +7,7 @@ import "forge-std/console.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
+import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { OETHPriceOracle } from "contracts/oracles/OETHPriceOracle.sol";
@@ -15,35 +15,61 @@ import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { MEthPriceOracle } from "contracts/oracles/MEthPriceOracle.sol";
 import { SfrxETHPriceOracle } from "contracts/oracles/SfrxETHPriceOracle.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
-import { Addresses } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
+import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
-library OracleLib {
-    function deployLRTOracle() internal returns (address newImpl) {
+library OraclesLib {
+    function deployLRTOracleImpl() internal returns (address implementation) {
         // Deploy the new contract
-        newImpl = address(new LRTOracle());
-        console.log("LRTOracle implementation deployed at: %s", newImpl);
+        implementation = address(new LRTOracle());
+        console.log("LRTOracle implementation deployed at: %s", implementation);
     }
 
-    function upgradeLRTOracle(address newImpl) internal {
+    function deployLRTOracleProxy(
+        address implementation,
+        ProxyAdmin proxyAdmin,
+        ProxyFactory proxyFactory
+    )
+        internal
+        returns (LRTOracle oracle)
+    {
+        address proxy = proxyFactory.create(implementation, address(proxyAdmin), LRTConstants.SALT);
+        console.log("LRTOracle proxy deployed at: ", proxy);
+
+        oracle = LRTOracle(proxy);
+    }
+
+    function upgradeLRTOracle(address implementation) internal {
         ProxyAdmin proxyAdmin = ProxyAdmin(Addresses.PROXY_ADMIN);
 
-        proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.LRT_ORACLE), newImpl);
+        proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.LRT_ORACLE), implementation);
     }
 
-    function deployInitChainlinkOracle() internal returns (address proxy) {
-        ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
-        address proxyAdmin = Addresses.PROXY_ADMIN;
+    function initializeLRTOracle(LRTOracle oracle, LRTConfig config) internal {
+        oracle.initialize(address(config));
+    }
 
+    function deployInitChainlinkOracle(
+        ProxyAdmin proxyAdmin,
+        ProxyFactory proxyFactory,
+        LRTConfig config
+    )
+        internal
+        returns (address proxy)
+    {
         // Deploy ChainlinkPriceOracle
         address implContract = address(new ChainlinkPriceOracle());
         console.log("ChainlinkPriceOracle deployed at: %s", implContract);
 
         // Deploy ChainlinkPriceOracle proxy
-        proxy = proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("ChainlinkPriceOracleProxy")));
+        proxy = proxyFactory.create(
+            implContract, address(proxyAdmin), keccak256(abi.encodePacked("ChainlinkPriceOracleProxy"))
+        );
         console.log("ChainlinkPriceOracleProxy deployed at: %s", proxy);
 
         // Initialize ChainlinkPriceOracleProxy
-        ChainlinkPriceOracle(proxy).initialize(Addresses.LRT_CONFIG);
+        ChainlinkPriceOracle(proxy).initialize(address(config));
         console.log("Initialized ChainlinkPriceOracleProxy");
     }
 
@@ -59,33 +85,39 @@ library OracleLib {
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(Addresses.CHAINLINK_ORACLE_PROXY), newImpl);
     }
 
-    function deployInitOETHOracle() internal returns (address proxy) {
-        ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
-        address proxyAdmin = Addresses.PROXY_ADMIN;
+    function deployInitOETHOracle(ProxyAdmin proxyAdmin, ProxyFactory proxyFactory) internal returns (address proxy) {
+        require(block.chainid == 1, "OETH does is only on mainnet");
 
         // Deploy OETHPriceOracle
         address implContract = address(new OETHPriceOracle(Addresses.OETH_TOKEN));
         console.log("OETHPriceOracle deployed at: %s", implContract);
 
         // Deploy OETHPriceOracle proxy
-        proxy = proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("OETHPriceOracleProxy")));
+        proxy =
+            proxyFactory.create(implContract, address(proxyAdmin), keccak256(abi.encodePacked("OETHPriceOracleProxy")));
         console.log("OETHPriceOracleProxy deployed at: %s", proxy);
     }
 
-    function deployInitEthXPriceOracle() internal returns (address proxy) {
-        ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
-        address proxyAdmin = Addresses.PROXY_ADMIN;
-
+    function deployInitEthXPriceOracle(
+        ProxyAdmin proxyAdmin,
+        ProxyFactory proxyFactory
+    )
+        internal
+        returns (address proxy)
+    {
         // Deploy EthXPriceOracle
         address implContract = address(new EthXPriceOracle());
         console.log("EthXPriceOracle deployed at: %s", implContract);
 
         // Deploy EthXPriceOracle proxy
-        proxy = proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("EthXPriceOracleProxy")));
+        proxy =
+            proxyFactory.create(implContract, address(proxyAdmin), keccak256(abi.encodePacked("EthXPriceOracleProxy")));
         console.log("EthXPriceOracleProxy deployed at: %s", proxy);
 
         // Initialize the proxy
-        EthXPriceOracle(proxy).initialize(Addresses.STADER_STAKING_POOL_MANAGER);
+        address staderStakingPoolManager =
+            block.chainid == 1 ? Addresses.STADER_STAKING_POOL_MANAGER : AddressesGoerli.STADER_STAKING_POOL_MANAGER;
+        EthXPriceOracle(proxy).initialize(staderStakingPoolManager);
         console.log("Initialized EthXPriceOracleProxy");
     }
 
@@ -115,16 +147,16 @@ library OracleLib {
         console.log("SfrxETHPriceOracleProxy deployed at: %s", proxy);
     }
 
-    function deployInitWETHOracle() internal returns (address proxy) {
-        ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
-        address proxyAdmin = Addresses.PROXY_ADMIN;
+    function deployInitWETHOracle(ProxyAdmin proxyAdmin, ProxyFactory proxyFactory) internal returns (address proxy) {
+        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesGoerli.WETH_TOKEN;
 
         // Deploy WETHPriceOracle
-        address implContract = address(new WETHPriceOracle(Addresses.WETH_TOKEN));
+        address implContract = address(new WETHPriceOracle(wethAddress));
         console.log("WETHPriceOracle deployed at: %s", implContract);
 
         // Deploy WETHPriceOracle proxy
-        proxy = proxyFactory.create(implContract, proxyAdmin, keccak256(abi.encodePacked("WETHPriceOracleProxy")));
+        proxy =
+            proxyFactory.create(implContract, address(proxyAdmin), keccak256(abi.encodePacked("WETHPriceOracleProxy")));
         console.log("WETHPriceOracleProxy deployed at: %s", proxy);
     }
 }

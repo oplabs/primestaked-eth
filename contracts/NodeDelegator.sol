@@ -10,6 +10,7 @@ import { IStrategy } from "./interfaces/IStrategy.sol";
 import { IEigenStrategyManager } from "./interfaces/IEigenStrategyManager.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
 import { IWETH } from "./interfaces/IWETH.sol";
+import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -17,6 +18,12 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 
 import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
 import { IEigenPod, BeaconChainProofs } from "./interfaces/IEigenPod.sol";
+
+struct ValidatorStakeData {
+    bytes pubkey;
+    bytes signature;
+    bytes32 depositDataRoot;
+}
 
 /// @title NodeDelegator Contract
 /// @notice The contract that handles the depositing of assets into strategies
@@ -150,6 +157,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         if (asset == WETH_TOKEN_ADDRESS) {
             uint256 ethBalance = address(this).balance;
             if (ethBalance > 0) {
@@ -198,6 +207,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         assets[strategiesLength] = WETH_TOKEN_ADDRESS;
         // Sum up this NodeDelegator contract's WETH balance, ETH balance and ETH staked but not verified
         assetBalances[strategiesLength] +=
@@ -227,6 +238,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         if (asset == WETH_TOKEN_ADDRESS) {
             // Add any ETH in the NDC that was earned from EigenLayer
             assetLyingInNDC += address(this).balance;
@@ -243,36 +256,42 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Stake ETH from NDC into EigenLayer. it calls the stake function in the EigenPodManager
-    /// which in turn calls the stake function in the EigenPod
-    /// @param pubkey The pubkey of the validator
-    /// @param signature The signature of the validator
-    /// @param depositDataRoot The deposit data root of the validator
-    /// @dev Only LRT Operator should call this function
-    /// @dev Exactly 32 ether is allowed, hence it is hardcoded
-    function stakeEth(
-        bytes calldata pubkey,
-        bytes calldata signature,
-        bytes32 depositDataRoot
-    )
-        external
-        onlyLRTOperator
-    {
+    /// @notice Stakes WETH or ETH in the NDC to multiple validators connected to an EigenPod.
+    /// @param validators A list of validator data needed to stake.
+    /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
+    /// @dev Only accounts with the Operator role can call this function.
+    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        IWETH weth = IWETH(lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN));
+        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
+        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
-        if (ethBalance < 32 ether) {
+        uint256 requiredETH = validators.length * 32 ether;
+        if (ethBalance < requiredETH) {
             // If not enough native ETH, convert WETH to native ETH
-            uint256 wethBalance = weth.balanceOf(address(this));
-            if (wethBalance + ethBalance < 32 ether) {
+            uint256 wethBalance = IWETH(WETH_TOKEN_ADDRESS).balanceOf(address(this));
+            if (wethBalance + ethBalance < requiredETH) {
                 revert InsufficientWETH(wethBalance + ethBalance);
             }
             // Convert WETH asset to native ETH
-            weth.withdraw(32 ether - ethBalance);
+            IWETH(WETH_TOKEN_ADDRESS).withdraw(requiredETH - ethBalance);
         }
 
+        // For each validator
+        for (uint256 i = 0; i < validators.length;) {
+            _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @dev Stake WETH and ETH in NDC in EigenLayer. It calls the `stake` function on the EigenPodManager
+    /// which calls `stake` on the EigenPod contract which calls `stake` on the Beacon DepositContract.
+    /// @dev The public functions that call this internal function are responsible for access control.
+    function _stakeEth(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot) internal {
         // Call the stake function in the EigenPodManager
         IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
         eigenPodManager.stake{ value: 32 ether }(pubkey, signature, depositDataRoot);
@@ -322,6 +341,40 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @dev opts in for rebase so the asset's token balance will increase
     function optIn(address asset) external onlyLRTAdmin onlySupportedAsset(asset) {
         IOETH(asset).rebaseOptIn();
+    }
+
+    /// @dev Approves the SSV Network contract to transfer SSV tokens for deposits
+    function approveSSV() external onlyLRTManager {
+        address SSV_TOKEN_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_TOKEN);
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        if (SSV_TOKEN_ADDRESS == address(0)) revert NoSSVTokenConfig();
+        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
+
+        IERC20(SSV_TOKEN_ADDRESS).approve(SSV_NETWORK_ADDRESS, type(uint256).max);
+    }
+
+    /// @dev Deposits more SSV Tokens to the SSV Network contract which is used to pay the SSV Operators
+    function depositSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external onlyLRTManager {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
+    }
+
+    function registerSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds,
+        bytes calldata sharesData,
+        uint256 amount,
+        Cluster calldata cluster
+    )
+        external
+        onlyLRTOperator
+    {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
 
     /// @dev allow NodeDelegator to receive ETH rewards

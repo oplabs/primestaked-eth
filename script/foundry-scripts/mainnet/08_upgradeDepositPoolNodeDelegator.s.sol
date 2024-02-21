@@ -25,8 +25,8 @@ contract UpgradeDepositPoolNodeDelegator is BaseMainnetScript {
     address newNodeDelegatorLibImpl;
 
     function _execute() internal override {
-        newDepositPoolImpl = DepositPoolLib.deploy();
-        newNodeDelegatorLibImpl = NodeDelegatorLib.deploy();
+        newDepositPoolImpl = DepositPoolLib.deployImpl();
+        newNodeDelegatorLibImpl = NodeDelegatorLib.deployImpl();
     }
 
     function _fork() internal override {
