@@ -2,7 +2,7 @@ const { subtask, task, types } = require("hardhat/config");
 
 const { depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator } = require("./ssv");
+const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelagator } = require("./ssv");
 
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
@@ -74,9 +74,9 @@ subtask("fundSSVToNodeDelagator", "Send SSV tokens from configured account to No
     const nodeDelegatorAddress =
       taskArgs.index === 1 ? networkAddresses.NODE_DELEGATOR_NATIVE_STAKING : networkAddresses.NODE_DELEGATOR;
     const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
-    const ssv = await hre.ethers.getContractAt(erc20Abi, );
+    const ssv = await hre.ethers.getContractAt(erc20Abi, networkAddresses.SSV);
 
-    await depositSSV({ signer, nodeDelegator, ssv, ...taskArgs });
+    await fundSSVToNodeDelagator({ signer, nodeDelegator, ssv, ...taskArgs });
   });
 task("fundSSVToNodeDelagator").setAction(async (_, __, runSuper) => {
   return runSuper();

@@ -19,6 +19,7 @@ addresses.mainnet.rETH = "0xae78736Cd615f374D3085123A210448E74Fc6393";
 addresses.mainnet.swETH = "0xf951E335afb289353dc249e82926178EaC7DEd78";
 addresses.mainnet.ETHx = "0xA35b1B31Ce002FBF2058D22F30f95D405200A15b";
 addresses.mainnet.WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+addresses.mainnet.SSV = "0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54";
 
 // Prime Staked contracts
 
@@ -38,4 +39,5 @@ addresses.mainnet.RELAYER = "0x5De069482Ac1DB318082477B7B87D59dfB313f91";
 addresses.goerli.NODE_DELEGATOR = "0x7f4A403f1bd6ed182a3ABd1F840e02B5A360a538";
 addresses.goerli.NODE_DELEGATOR_NATIVE_STAKING = "0xff54d60e6e4F9d1d454b09B4Fc0f7C06977f22D9";
 addresses.goerli.WETH = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+addresses.goerli.SSV = "0x3a9f01091c446bde031e39ea8354647afef091e7";
 module.exports = addresses;

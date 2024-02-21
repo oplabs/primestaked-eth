@@ -39,4 +39,4 @@ const unpauseDelegator = async ({ signer, nodeDelegator }) => {
   await logTxDetails(tx2, "unpause");
 };
 
-module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator };
+module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelagator };
