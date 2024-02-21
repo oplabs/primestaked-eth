@@ -9,10 +9,10 @@
 
 coverage :; forge coverage --report lcov && lcov --remove lcov.info  -o lcov.info 'test/*' 'script/*'
 
-# deployment commands
-deploy-lrt-testnet :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-deploy-lrt-local-test :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost --broadcast -vvv
-deploy-lrt-local-fork :; IS_FORK=true forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost --broadcast -vvv
+# Deploy to Goerli testnet
+deploy-testnet :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify --slow -vvv
+deploy-testnet-local :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost --broadcast --slow -vvv
+deploy-testnet-fork :; IS_FORK=true forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost -vvv
 
 # deployment commands:PRETHRate
 deploy-preth-rate-provider :; forge script script/foundry-scripts/cross-chain/PRETHRate.s.sol:DeployPRETHRateProvider --rpc-url ${MAINNET_RPC_URL}   --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv

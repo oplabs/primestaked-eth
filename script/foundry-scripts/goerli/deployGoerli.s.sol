@@ -122,12 +122,13 @@ contract DeployGoerli is Script {
         isForked = vm.envOr("IS_FORK", false);
         if (isForked) {
             address mainnetProxyOwner = AddressesGoerli.PROXY_OWNER;
-            console.log("Running script on fork impersonating: %s", mainnetProxyOwner);
+            console.log("Running script on Goerli fork impersonating: %s", mainnetProxyOwner);
             vm.startPrank(mainnetProxyOwner);
         } else {
-            console.log("Deploying on mainnet deployer: %s", msg.sender);
             uint256 deployerPrivateKey = vm.envUint("GOERLI_DEPLOYER_PRIVATE_KEY");
-            vm.startBroadcast(deployerPrivateKey);
+            address deployer = vm.rememberKey(deployerPrivateKey);
+            vm.startBroadcast(deployer);
+            console.log("Deploying on Goerli with deployer: %s", deployer);
         }
 
         proxyFactory = new ProxyFactory();

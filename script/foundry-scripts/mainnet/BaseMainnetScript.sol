@@ -23,12 +23,13 @@ abstract contract BaseMainnetScript is Script {
         isForked = vm.envOr("IS_FORK", false);
         if (isForked) {
             address mainnetProxyOwner = Addresses.PROXY_OWNER;
-            console.log("Running script on fork impersonating: %s", mainnetProxyOwner);
+            console.log("Running script on mainnet fork impersonating: %s", mainnetProxyOwner);
             vm.startPrank(mainnetProxyOwner);
         } else {
-            console.log("Deploying on mainnet deployer: %s", msg.sender);
             uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-            vm.startBroadcast(deployerPrivateKey);
+            address deployer = vm.rememberKey(deployerPrivateKey);
+            vm.startBroadcast(deployer);
+            console.log("Deploying on mainnet with deployer: %s", deployer);
         }
 
         _execute();
