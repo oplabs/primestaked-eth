@@ -294,13 +294,13 @@ contract ForkTest is Test {
 
         // Check balance in NodeDelegator
         (, uint256[] memory assetBalancesAfter) = nodeDelegator1.getAssetBalances();
-        assertEq(balAssets[3], Addresses.STETH_TOKEN, "incorrect asset at index 3");
+        assertEq(balAssets[0], Addresses.STETH_TOKEN, "incorrect asset at index 0");
         assertApproxEqAbs(
-            assetBalancesAfter[3] - assetBalancesBefore[3], 10 ether, 2, "incorrect index 3 asset balance"
+            assetBalancesAfter[0] - assetBalancesBefore[0], 10 ether, 2, "incorrect index 0 asset balance"
         );
-        assertEq(balAssets[5], Addresses.SWETH_TOKEN, "incorrect asset at index 5");
+        assertEq(balAssets[6], Addresses.SWETH_TOKEN, "incorrect asset at index 6");
         assertApproxEqAbs(
-            assetBalancesAfter[5] - assetBalancesBefore[5], 16 ether, 2, "incorrect index 5 asset balance"
+            assetBalancesAfter[6] - assetBalancesBefore[6], 16 ether, 2, "incorrect index 5 asset balance"
         );
         assertEq(balAssets[7], Addresses.WETH_TOKEN, "incorrect asset at index 7");
         assertEq(assetBalancesAfter[7], 0, "incorrect index 6 asset balance");
