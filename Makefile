@@ -10,14 +10,9 @@
 coverage :; forge coverage --report lcov && lcov --remove lcov.info  -o lcov.info 'test/*' 'script/*'
 
 # Deploy to Goerli testnet
-deploy-testnet :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify --slow -vvv
+deploy-testnet :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url ${GOERLI_RPC_URL}  --broadcast --etherscan-api-key ${GOERLI_ETHERSCAN_API_KEY} --verify --slow -vvv
 deploy-testnet-local :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost --broadcast --slow -vvv
 deploy-testnet-fork :; IS_FORK=true forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost -vvv
-
-# deployment commands:PRETHRate
-deploy-preth-rate-provider :; forge script script/foundry-scripts/cross-chain/PRETHRate.s.sol:DeployPRETHRateProvider --rpc-url ${MAINNET_RPC_URL}   --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-deploy-preth-rate-receiver :; forge script script/foundry-scripts/cross-chain/PRETHRate.s.sol:DeployPRETHRateReceiver --rpc-url ${POLYGON_ZKEVM_RPC_URL}  --broadcast --etherscan-api-key ${POLYSCAN_ZKEVM_API_KEY} --verify -vvv
-deploy-preth-rate-local-test :; forge script script/foundry-scripts/cross-chain/PRETHRate.s.sol:DeployPRETHRateReceiver --rpc-url localhost --broadcast -vvv
 
 # verify commands
 ## example: contractAddress=<contractAddress> contractPath=<contract-path> make verify-lrt-proxy-testnet
@@ -26,12 +21,12 @@ verify-lrt-proxy-testnet :; forge verify-contract --chain-id 5 --watch --ethersc
 verify-lrt-proxy-mainnet :; forge verify-contract --chain-id 1 --watch --etherscan-api-key ${ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
 
 # transfer the ownership of the contracts to Multisig
-transfer-ownership-testnet :; forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url goerli  --broadcast -vvv
+transfer-ownership-testnet :; forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url ${GOERLI_RPC_URL}  --broadcast -vvv
 transfer-ownership-mainnet :; forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url ${MAINNET_RPC_URL}  --broadcast -vvv -resume
 transfer-ownership-fork :; IS_FORK=true forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url localhost --broadcast -vvv
 
 # deploy minimal setup
-minimal-deploy-testnet :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url goerli  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+minimal-deploy-testnet :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url ${GOERLI_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 minimal-deploy-mainnet :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 minimal-deploy-local-test :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url localhost --broadcast -vvv
 
