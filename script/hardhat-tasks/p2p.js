@@ -88,7 +88,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
         signer,
         store,
         currentState.uuid,
-        contracts.nodeDelegator
+        contracts.nodeDelegator,
         currentState.metadata.depositData,
       )
       currentState = await getState(store)
