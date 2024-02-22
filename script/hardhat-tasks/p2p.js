@@ -70,16 +70,22 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
       await waitForTransactionAndUpdateStateOnSuccess(
         store,
         currentState.uuid,
+        contracts.nodeDelegator.provider,
         currentState.metadata.validatorRegistrationTx,
         "registerSsvValidator", // name of transaction we are waiting for
         "validator_registered", // new state when transaction confirmed
       );
-
       currentState = await getState(store);
     }
 
     if (currentState.state === "validator_registered") {
-      await depositEth(signer, store, currentState.uuid, contracts.nodeDelegator, currentState.metadata.depositData);
+      await depositEth(
+        signer,
+        store,
+        currentState.uuid,
+        contracts.nodeDelegator,
+        currentState.metadata.depositData[0]
+      );
       currentState = await getState(store);
     }
 
@@ -87,6 +93,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
       await waitForTransactionAndUpdateStateOnSuccess(
         store,
         currentState.uuid,
+        contracts.nodeDelegator.provider,
         currentState.metadata.depositTx,
         "stakeEth", // name of transaction we are waiting for
         "deposit_confirmed", // new state when transaction confirmed
@@ -96,6 +103,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
     }
 
     if (currentState.state === "deposit_confirmed") {
+      await clearState(currentState.uuid, store)
       break;
     }
     await sleep(1000);
@@ -127,8 +135,8 @@ const updateState = async (requestUUID, state, store, metadata = {}) => {
     throw new Error(`Unexpected state: ${state}`);
   }
 
-  const existingRequest = await store.get("currentRequest");
-  const existingMetadata = existingRequest && existingRequest.metadata ? existingRequest.metadata : {};
+  const existingRequest = await getState(store)
+  const existingMetadata = existingRequest !== undefined && existingRequest.hasOwnProperty('metadata') ? existingRequest.metadata : {}
 
   await store.put(
     "currentRequest",
@@ -230,21 +238,33 @@ const createValidatorRequest = async (
   await updateState(uuid, "validator_creation_issued", store);
 };
 
-const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, tx, methodName, newState) => {
-  await logTxDetails(tx, methodName, true);
-  await updateState(uuid, newState, store);
+const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, txHash, methodName, newState) => {
+  const tx = await provider.getTransaction(txHash)
+  await logTxDetails(tx, methodName, true)
+  await updateState(uuid, newState, store)
 };
 
 const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
-  const { pubkey, signature, depositDataRoot } = depositData;
+  const { pubkey, signature, depositDataRoot } = depositData
   try {
-    const tx = await nodeDelegator.connect(signer).stakeEth([[pubkey, signature, depositDataRoot]]);
+    log(`About to stake ETH with:`);
+    log(`pubkey: ${pubkey}`);
+    log(`signature: ${signature}`);
+    log(`depositDataRoot: ${depositDataRoot}`);
+    const tx = await nodeDelegator
+      .connect(signer)
+      .stakeEth([{
+        pubkey,
+        signature,
+        depositDataRoot
+      }]);
+    console.log("HERE 1")
 
     await updateState(uuid, "deposit_transaction_broadcast", store, {
-      depositTx: tx,
+      depositTx: tx.hash,
     });
   } catch (e) {
-    log(`Submitting transaction failed with: `, e);
+    log(`Submitting transaction failed with: `, e)
     //await clearState(uuid, store, `Transaction to deposit to validator fails`)
     throw e;
   }
@@ -270,7 +290,7 @@ const broadcastRegisterValidator = async (signer, store, uuid, registerValidator
       .registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
 
     await updateState(uuid, "register_transaction_broadcast", store, {
-      validatorRegistrationTx: tx,
+      validatorRegistrationTx: tx.hash,
     });
   } catch (e) {
     log(`Submitting transaction failed with: `, e);
