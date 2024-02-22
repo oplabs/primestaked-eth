@@ -10,6 +10,7 @@ const { getSigner } = require("../utils/signers");
 const { parseAddress } = require("../utils/addressParser");
 const { abi: erc20Abi } = require("../../out/ERC20.sol/ERC20.json");
 const { depositWETH, withdrawWETH } = require("./weth");
+const { resolveAsset } = require("../utils/assets");
 
 const log = require("../utils/logger")("task");
 
@@ -127,8 +128,7 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
     const store = new KeyValueStoreClient({ path: storeFilePath });
     const signer = await getSigner();
 
-    const wethAddress = await parseAddress("WETH_TOKEN");
-    const WETH = await hre.ethers.getContractAt(erc20Abi, wethAddress);
+    const WETH = await resolveAsset("WETH", signer);
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
@@ -139,9 +139,16 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
       WETH,
     };
 
+    const network = await hre.ethers.provider.getNetwork();
+    const p2p_api_key = network.chainId === 1 ? process.env.P2P_MAINNET_API_KEY : process.env.P2P_GOERLI_API_KEY;
+    if (!p2p_api_key) {
+      throw new Error("P2P API key environment variable is not set. P2P_MAINNET_API_KEY or P2P_GOERLI_API_KEY");
+    }
+    p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test.p2p.org";
+
     const config = {
-      p2p_api_key: process.env.P2P_GOERLY_API_KEY,
-      p2p_base_url: "api-test.p2p.org",
+      p2p_api_key,
+      p2p_base_url,
       // how much SSV (expressed in days of runway) gets deposited into SSV
       // network contract on validator registration.
       validatorSpawnOperationalPeriodInDays: 90,
