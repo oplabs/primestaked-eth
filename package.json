@@ -29,7 +29,6 @@
     "defender-kvstore-client": "^1.44.0",
     "ethers": "^5.7.2",
     "hardhat": "^2.18.3",
-    "hardhat-tracer": "^2.8.0",
     "prettier": "^3.0.3",
     "rollup": "^4.9.1",
     "solhint": "^4.0.0",

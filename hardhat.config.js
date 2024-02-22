@@ -2,7 +2,6 @@ require("dotenv").config();
 
 require("@nomiclabs/hardhat-ethers");
 require("@nomicfoundation/hardhat-foundry");
-require("hardhat-tracer");
 
 require("./script/hardhat-tasks/tasks");
 
@@ -37,8 +36,5 @@ module.exports = {
     local: {
       url: "http://localhost:8545",
     },
-  },
-  tracer: {
-    tasks: ["operateValidators", "stakeEth"],
   },
 };
