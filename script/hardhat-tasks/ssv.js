@@ -15,7 +15,7 @@ const depositSSV = async ({ signer, nodeDelegator, amount }) => {
   // TODO get operatorIds and Cluster details
   log(`About to deposit more SSV tokens to the SSV Network from NodeDelegator ${nodeDelegator.address}`);
   const tx2 = await nodeDelegator.connect(signer).depositSSV(amountBN);
-  await logTxDetails(tx2, "approveSSV");
+  await logTxDetails(tx2, "depositSSV");
 };
 
 const pauseDelegator = async ({ signer, nodeDelegator }) => {

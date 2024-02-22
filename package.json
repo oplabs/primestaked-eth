@@ -16,20 +16,24 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/defender-autotask-client": "^1.54.1",
+    "@openzeppelin/defender-kvstore-client": "^1.54.1",
     "@openzeppelin/defender-sdk": "^1.9.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@solidity-parser/parser": "^0.18.0",
+    "defender-kvstore-client": "^1.44.0",
     "ethers": "^5.7.2",
     "hardhat": "^2.18.3",
     "prettier": "^3.0.3",
     "rollup": "^4.9.1",
     "solhint": "^4.0.0",
-    "solidity-code-metrics": "^0.0.25"
+    "solidity-code-metrics": "^0.0.25",
+    "uuid": "^9.0.1"
   },
   "dependencies": {
     "dotenv": "^16.3.1"
