@@ -1,10 +1,8 @@
 const { ethers } = require("ethers");
 
-const addresses = require("./addresses");
-const { ethereumAddress } = require("./regex");
-
-const { abi: ecr20Abi } = require("../../out/IERC20Metadata.sol/IERC20Metadata.json");
 const { parseAddress } = require("./addressParser");
+const { ethereumAddress } = require("./regex");
+const { abi: ecr20Abi } = require("../../out/IERC20Metadata.sol/IERC20Metadata.json");
 
 const log = require("../utils/logger")("utils:assets");
 
