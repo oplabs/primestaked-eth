@@ -1,10 +1,20 @@
 const { formatUnits, parseEther } = require("ethers").utils;
 
 const { logTxDetails } = require("../utils/txLogger");
-const { resolveAsset } = require("../utils/assets");
+const { resolveAsset, resolveAddress } = require("../utils/assets");
 const { parseAddress } = require("../utils/addressParser");
 
 const log = require("../utils/logger")("task:deposits");
+
+const depositPrime = async ({ signer, depositPool, amount, symbol }) => {
+  const assetAddress = await resolveAddress(symbol);
+
+  const assetUnits = parseEther(amount.toString());
+
+  log(`About to deposit ${symbol} to Prime Staked ETH`);
+  const tx = await depositPool.connect(signer).depositAsset(assetAddress, assetUnits, 0, "");
+  await logTxDetails(tx, "deposit");
+};
 
 const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minDeposit, index }) => {
   const asset = await resolveAsset(symbol, signer);
@@ -70,4 +80,4 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
   }
 };
 
-module.exports = { depositAssetEL, depositAllEL };
+module.exports = { depositPrime, depositAssetEL, depositAllEL };

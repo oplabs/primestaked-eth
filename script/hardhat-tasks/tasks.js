@@ -1,9 +1,9 @@
 const { subtask, task, types } = require("hardhat/config");
 const { KeyValueStoreClient } = require("defender-kvstore-client");
 
-const { depositAssetEL, depositAllEL } = require("./deposits");
+const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelagator } = require("./ssv");
+const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelegator } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -14,6 +14,20 @@ const { depositWETH, withdrawWETH } = require("./weth");
 const log = require("../utils/logger")("task");
 
 // Prime Staked
+subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
+  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or WETH", "OETH", types.string)
+  .addParam("amount", "Deposit amount", undefined, types.float)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
+    const depositPool = await hre.ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+
+    await depositPrime({ signer, depositPool, ...taskArgs });
+  });
+task("depositPrime").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "ALL", types.string)
   .addParam("index", "Index of Node Delegator", 0, types.int)
@@ -66,7 +80,7 @@ task("depositSSV").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("fundSSVToNodeDelagator", "Send SSV tokens from configured account to NodeDelegator")
+subtask("fundSSVToNodeDelegator", "Send SSV tokens from configured account to NodeDelegator")
   .addParam("amount", "Amount of SSV tokens to transfer", undefined, types.float)
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .setAction(async (taskArgs) => {
@@ -79,9 +93,9 @@ subtask("fundSSVToNodeDelagator", "Send SSV tokens from configured account to No
     const ssvTokenAddress = await parseAddress("SSV_TOKEN");
     const ssv = await hre.ethers.getContractAt(erc20Abi, ssvTokenAddress);
 
-    await fundSSVToNodeDelagator({ signer, nodeDelegator, ssv, ...taskArgs });
+    await fundSSVToNodeDelegator({ signer, nodeDelegator, ssv, ...taskArgs });
   });
-task("fundSSVToNodeDelagator").setAction(async (_, __, runSuper) => {
+task("fundSSVToNodeDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

@@ -10,7 +10,7 @@ const approveSSV = async ({ signer, nodeDelegator }) => {
 };
 
 // send SSV tokens from deployer to node delegator. Used for testing
-const fundSSVToNodeDelagator = async ({ signer, nodeDelegator, ssv, amount }) => {
+const fundSSVToNodeDelegator = async ({ signer, nodeDelegator, ssv, amount }) => {
   const amountBN = parseEther(amount.toString());
 
   log(`About to send SSV tokens to the NodeDelegator ${nodeDelegator.address}`);
@@ -39,4 +39,4 @@ const unpauseDelegator = async ({ signer, nodeDelegator }) => {
   await logTxDetails(tx2, "unpause");
 };
 
-module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelagator };
+module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelegator };

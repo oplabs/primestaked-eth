@@ -40,10 +40,10 @@ const parseAddress = async (name) => {
   const variable = library.subNodes.find((node) => node.variables[0].name === name);
 
   if (!variable) {
-    throw new Error(`Failed to find address variable ${name} in ${libraryName}".`);
+    throw new Error(`Failed to find address variable ${name} in ${libraryName}.`);
   }
 
-  log(`Found address ${variable.initialValue.number} for variable ${name} in ${libraryName}".`);
+  log(`Found address ${variable.initialValue.number} for variable ${name} in ${libraryName}.`);
 
   return variable.initialValue.number;
 };
