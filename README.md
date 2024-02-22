@@ -249,14 +249,26 @@ make add-assets-fork
 make deploy-lrt-local-test
 ```
 
-### General Deploy Script Instructions
+### General Mainnet Deploy Script Instructions
 
-Create a Deploy script in `script/Deploy.s.sol`:
+Create a new ordered deploy script in `script/foundry-scripts/mainnet`. For example, `10_deployNativeETH.s.sol`
 
-and run the script:
+To run the script as a dry-run against a local forked node, start an Anvil node in one terminal:
 
 ```bash
-forge script script/Deploy.s.sol --broadcast --fork-url http://localhost:8545
+make node-fork
+```
+
+And run the following in a new terminal:
+
+```bash
+IS_FORK=true forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost --broadcast -vvv
+```
+
+To run the script against mainnet, set `DEPLOYER_PRIVATE_KEY` in your `.env` file and following command:
+
+```bash
+forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 ```
 
 For instructions on how to deploy to a testnet or mainnet, check out the

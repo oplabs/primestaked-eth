@@ -39,13 +39,13 @@ library NodeDelegatorLib {
         nodeDelegator.initialize(address(config));
     }
 
-    function deployInit() internal returns (NodeDelegator nodeDelegator) {
+    function deployInit(uint256 index) internal returns (NodeDelegator nodeDelegator) {
         // Deploy the new contract
         address nodeDelegatorImpl = address(new NodeDelegator());
         console.log("NodeDelegator implementation deployed at: %s", nodeDelegatorImpl);
 
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
-        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator"));
+        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", index));
 
         address proxyFactoryAddress = block.chainid == 1 ? Addresses.PROXY_FACTORY : AddressesGoerli.PROXY_FACTORY;
         address nodeDelegatorProxy =

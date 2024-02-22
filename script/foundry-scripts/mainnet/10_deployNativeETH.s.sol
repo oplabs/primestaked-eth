@@ -36,7 +36,7 @@ contract DeployNativeETH is BaseMainnetScript {
         newNodeDelegator1Impl = NodeDelegatorLib.deployImpl();
 
         // Deploy new NodeDelegator with proxy and initialize it
-        newNodeDelegator2 = NodeDelegatorLib.deployInit();
+        newNodeDelegator2 = NodeDelegatorLib.deployInit(1);
 
         // Deploy new WETH oracle
         wethOracleProxy =

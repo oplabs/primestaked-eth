@@ -430,12 +430,12 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         (address[] memory assets, uint256[] memory assetBalances) = nodeDel.getAssetBalances();
 
         assertEq(assets.length, 3, "Incorrect number of assets");
-        assertEq(assets[0], address(ethX), "ethX not asset 0");
-        assertEq(assets[1], address(stETH), "stETH not asset 1");
+        assertEq(assets[0], address(stETH), "stETH not asset 0");
+        assertEq(assets[1], address(ethX), "ethX not asset 1");
         assertEq(assets[2], address(weth), "WETH not asset 2");
         assertEq(assetBalances.length, 3, "Incorrect number of asset balances");
-        assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
-        assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
+        assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
+        assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
         assertEq(assetBalances[2], 2e18, "Incorrect asset balance for WETH");
     }
 }
