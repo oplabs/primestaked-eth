@@ -29,9 +29,11 @@ const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minD
     const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(0, assetAddress, balance);
     await logTxDetails(tx1, "transferAssetToNodeDelegator");
 
-    log(`About to deposit ${symbol} to EigenLayer`);
-    const tx2 = await nodeDelegator.connect(signer).depositAssetIntoStrategy(assetAddress);
-    await logTxDetails(tx2, "depositAssetIntoStrategy");
+    if (symbol != "WETH") {
+      log(`About to deposit ${symbol} to EigenLayer`);
+      const tx2 = await nodeDelegator.connect(signer).depositAssetIntoStrategy(assetAddress);
+      await logTxDetails(tx2, "depositAssetIntoStrategy");
+    }
   } else {
     log(`Skipping deposit of ${await asset.symbol()} as the balance is ${formatUnits(balance)}`);
   }
