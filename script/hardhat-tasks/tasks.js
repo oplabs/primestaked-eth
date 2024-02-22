@@ -9,6 +9,7 @@ const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransfer
 const { getSigner } = require("../utils/signers");
 const { parseAddress } = require("../utils/addressParser");
 const { abi: erc20Abi } = require("../../out/ERC20.sol/ERC20.json");
+const { depositWETH, withdrawWETH } = require("./weth");
 
 const log = require("../utils/logger")("task");
 
@@ -209,5 +210,34 @@ subtask("transferFrom", "Transfer tokens from an account or contract")
   .addOptionalParam("to", "Destination address. Default to signer", undefined, types.string)
   .setAction(tokenTransferFrom);
 task("transferFrom").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// WETH tasks
+subtask("depositWETH", "Deposit ETH into WETH")
+  .addParam("amount", "Amount of ETH to deposit", undefined, types.float)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const wethAddress = await parseAddress("WETH_TOKEN");
+    const weth = await hre.ethers.getContractAt("IWETH", wethAddress);
+
+    await depositWETH({ weth, signer, ...taskArgs });
+  });
+task("depositWETH").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("withdrawWETH", "Withdraw ETH from WETH")
+  .addParam("amount", "Amount of ETH to withdraw", undefined, types.float)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const wethAddress = await parseAddress("WETH_TOKEN");
+    const weth = await hre.ethers.getContractAt("IWETH", wethAddress);
+
+    await withdrawWETH({ weth, signer, ...taskArgs });
+  });
+task("withdrawWETH").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
