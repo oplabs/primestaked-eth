@@ -1,14 +1,15 @@
+const { formatUnits, parseEther } = require("ethers").utils;
+
 const { logTxDetails } = require("../utils/txLogger");
 const { resolveAsset } = require("../utils/assets");
-const addresses = require("../utils/addresses");
-const { formatUnits, parseEther } = require("ethers").utils;
+const { parseAddress } = require("../utils/addressParser");
 
 const log = require("../utils/logger")("task:deposits");
 
 const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minDeposit, index }) => {
   const asset = await resolveAsset(symbol, signer);
 
-  const balance = await asset.balanceOf(addresses.mainnet.LRT_DEPOSIT_POOL);
+  const balance = await asset.balanceOf(await parseAddress("LRT_DEPOSIT_POOL"));
   const minDepositBN = parseEther(minDeposit.toString());
 
   if (balance.gte(minDepositBN)) {
@@ -28,13 +29,13 @@ const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minD
 
 const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, index }) => {
   const assetAddresses = [
-    addresses.mainnet.OETH,
-    addresses.mainnet.sfrxETH,
-    addresses.mainnet.mETH,
-    addresses.mainnet.stETH,
-    addresses.mainnet.rETH,
-    addresses.mainnet.swETH,
-    addresses.mainnet.ETHx,
+    await parseAddress("OETH_TOKEN"),
+    await parseAddress("SFRXETH_TOKEN"),
+    await parseAddress("METH_TOKEN"),
+    await parseAddress("STETH_TOKEN"),
+    await parseAddress("RETH_TOKEN"),
+    await parseAddress("SWETH_TOKEN"),
+    await parseAddress("ETHX_TOKEN"),
   ];
 
   const minDepositBN = parseEther(minDeposit.toString());
@@ -46,7 +47,7 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
     const asset = await resolveAsset(assetAddress, signer);
     const symbol = await asset.symbol();
 
-    const balance = await asset.balanceOf(addresses.mainnet.LRT_DEPOSIT_POOL);
+    const balance = await asset.balanceOf(await parseAddress("LRT_DEPOSIT_POOL"));
     if (balance.gte(minDepositBN)) {
       log(`Will deposit ${formatUnits(balance)} ${symbol}`);
       depositAssets.push(assetAddress);

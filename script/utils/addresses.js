@@ -11,15 +11,15 @@ addresses.goerli = {};
 // TODO read the addresses from the Solidity Addresses library
 
 // LSTs
-addresses.mainnet.OETH = "0x856c4Efb76C1D1AE02e20CEB03A2A6a08b0b8dC3";
-addresses.mainnet.sfrxETH = "0xac3E018457B222d93114458476f3E3416Abbe38F";
-addresses.mainnet.mETH = "0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa";
-addresses.mainnet.stETH = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
-addresses.mainnet.rETH = "0xae78736Cd615f374D3085123A210448E74Fc6393";
-addresses.mainnet.swETH = "0xf951E335afb289353dc249e82926178EaC7DEd78";
-addresses.mainnet.ETHx = "0xA35b1B31Ce002FBF2058D22F30f95D405200A15b";
-addresses.mainnet.WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-addresses.mainnet.SSV = "0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54";
+addresses.mainnet.OETH_TOKEN = "0x856c4Efb76C1D1AE02e20CEB03A2A6a08b0b8dC3";
+addresses.mainnet.SFRXETH_TOKEN = "0xac3E018457B222d93114458476f3E3416Abbe38F";
+addresses.mainnet.METH_TOKEN = "0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa";
+addresses.mainnet.STETH_TOKEN = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
+addresses.mainnet.RETH_TOKEN = "0xae78736Cd615f374D3085123A210448E74Fc6393";
+addresses.mainnet.SWETH_TOKEN = "0xf951E335afb289353dc249e82926178EaC7DEd78";
+addresses.mainnet.ETHX_TOKEN = "0xA35b1B31Ce002FBF2058D22F30f95D405200A15b";
+addresses.mainnet.WETH_TOKEN = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+addresses.mainnet.SSV_TOKEN = "0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54";
 
 // Prime Staked contracts
 
@@ -38,6 +38,6 @@ addresses.mainnet.RELAYER = "0x5De069482Ac1DB318082477B7B87D59dfB313f91";
 
 addresses.goerli.NODE_DELEGATOR = "0x9727A47Db9cE4246138028dc0348069B160B97fb";
 addresses.goerli.NODE_DELEGATOR_NATIVE_STAKING = "0x0AaF4B174F1f75542E3BD85030eD9C4a002F9dB9";
-addresses.goerli.WETH = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
-addresses.goerli.SSV = "0x3a9f01091c446bde031e39ea8354647afef091e7";
+addresses.goerli.WETH_TOKEN = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+addresses.goerli.SSV_TOKEN = "0x3a9f01091c446bde031e39ea8354647afef091e7";
 module.exports = addresses;

@@ -12,7 +12,7 @@ const log = require("../utils/logger")("utils:assets");
  * @param {string} symbol token symbol of the asset. eg OUSD, USDT, stETH, CRV...
  */
 const resolveAddress = (symbol) => {
-  const assetAddr = addresses.mainnet[symbol] || addresses.mainnet[symbol + "Proxy"] || symbol;
+  const assetAddr = addresses.mainnet[symbol] || addresses.mainnet[symbol.toUpperCase() + "_TOKEN"] || symbol;
   if (!assetAddr) {
     throw Error(`Failed to resolve symbol "${symbol}" to an address`);
   }
@@ -25,14 +25,14 @@ const resolveAddress = (symbol) => {
  * @param {string} symbol token symbol of the asset. eg OUSD, USDT, stETH, CRV...
  */
 const resolveAsset = async (symbol, signer) => {
-  const assetAddr = addresses.mainnet[symbol] || addresses.mainnet[symbol + "Proxy"] || symbol;
+  const assetAddr = addresses.mainnet[symbol] || addresses.mainnet[symbol.toUpperCase() + "_TOKEN"] || symbol;
   if (!assetAddr) {
     throw Error(`Failed to resolve symbol "${symbol}" to an address`);
   }
   if (!symbol.match(ethereumAddress)) {
     log(`Resolved ${symbol} to ${assetAddr}`);
   }
-  
+
   const asset = new ethers.Contract(assetAddr, ecr20Abi, signer);
 
   if (symbol.match(ethereumAddress)) {

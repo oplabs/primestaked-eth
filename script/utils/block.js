@@ -1,4 +1,4 @@
-const log = require("../utils/logger")("task:block");
+const log = require("../utils/logger")("utils:block");
 
 // Get the block details like number and timestamp
 const getBlock = async (block) => {
