@@ -3,7 +3,7 @@ const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, fundSSVToNodeDelegator } = require("./ssv");
+const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -77,25 +77,6 @@ subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
     await depositSSV({ signer, nodeDelegator, ...taskArgs });
   });
 task("depositSSV").setAction(async (_, __, runSuper) => {
-  return runSuper();
-});
-
-subtask("fundSSVToNodeDelegator", "Send SSV tokens from configured account to NodeDelegator")
-  .addParam("amount", "Amount of SSV tokens to transfer", undefined, types.float)
-  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
-  .setAction(async (taskArgs) => {
-    const signer = await getSigner();
-
-    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
-    const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
-
-    const ssvTokenAddress = await parseAddress("SSV_TOKEN");
-    const ssv = await hre.ethers.getContractAt(erc20Abi, ssvTokenAddress);
-
-    await fundSSVToNodeDelegator({ signer, nodeDelegator, ssv, ...taskArgs });
-  });
-task("fundSSVToNodeDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
