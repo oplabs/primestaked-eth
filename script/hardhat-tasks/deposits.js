@@ -26,7 +26,7 @@ const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minD
     const assetAddress = await asset.address;
 
     log(`About to transfer ${formatUnits(balance)} ${symbol} to Node Delegator with index ${index}`);
-    const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(0, assetAddress, balance);
+    const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(index, assetAddress, balance);
     await logTxDetails(tx1, "transferAssetToNodeDelegator");
 
     if (symbol != "WETH") {
@@ -71,7 +71,7 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, minDeposit, in
 
   if (depositAssets.length > 0) {
     console.log(`About to transfer assets ${symbols} to Node Delegator with index ${index}`);
-    const tx1 = await depositPool.connect(signer).transferAssetsToNodeDelegator(0, depositAssets);
+    const tx1 = await depositPool.connect(signer).transferAssetsToNodeDelegator(index, depositAssets);
     await logTxDetails(tx1, "transferAssetToNodeDelegator");
 
     log(`About to deposit assets to EigenLayer`);

@@ -39,6 +39,6 @@ module.exports = {
     },
   },
   tracer: {
-    tasks: ["operateValidators"],
+    tasks: ["operateValidators", "stakeEth"],
   },
 };
