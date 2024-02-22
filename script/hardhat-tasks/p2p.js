@@ -8,6 +8,10 @@ const { logTxDetails } = require("../utils/txLogger");
 
 const log = require("../utils/logger")("task:p2p");
 
+/* When same UUID experiences and error threshold amount of times it is
+ * discarded. 
+ */
+const ERROR_THRESHOLD = 5
 /*
  * Spawns and maintains the required amount of validators throughout
  * their setup cycle which consists of:
@@ -27,6 +31,7 @@ const log = require("../utils/logger")("task:p2p");
  */
 const operateValidators = async ({ store, signer, contracts, config }) => {
   const { p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url } = config;
+  const eigenPodAddress = await parseAddress("EIGEN_POD");
   let currentState = await getState(store);
   log("currentState", currentState);
 
@@ -35,80 +40,119 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
     return;
   }
 
-  const eigenPodAddress = await parseAddress("EIGEN_POD");
+  const executeOperateLoop = async () => {
+    while (true) {
+      if (currentState === undefined) {
+        await createValidatorRequest(
+          p2p_api_key, // api key
+          p2p_base_url,
+          contracts.nodeDelegator.address, // node delegator address
+          eigenPodAddress, // eigenPod address
+          validatorSpawnOperationalPeriodInDays,
+          store,
+        );
+        currentState = await getState(store);
+      }
 
-  while (true) {
-    if (currentState === undefined) {
-      await createValidatorRequest(
-        p2p_api_key, // api key
-        p2p_base_url,
-        contracts.nodeDelegator.address, // node delegator address
-        eigenPodAddress, // eigenPod address
-        validatorSpawnOperationalPeriodInDays,
-        store,
-      );
-      currentState = await getState(store);
+      if (currentState.state === "validator_creation_issued") {
+        await confirmValidatorCreatedRequest(p2p_api_key, p2p_base_url, currentState.uuid, store);
+        currentState = await getState(store);
+      }
+
+      if (currentState.state === "validator_creation_confirmed") {
+        await broadcastRegisterValidator(
+          signer,
+          store,
+          currentState.uuid,
+          currentState.metadata.validatorRegistrationRawTx.data,
+          contracts.nodeDelegator,
+        );
+        currentState = await getState(store);
+      }
+
+      if (currentState.state === "register_transaction_broadcast") {
+        await waitForTransactionAndUpdateStateOnSuccess(
+          store,
+          currentState.uuid,
+          contracts.nodeDelegator.provider,
+          currentState.metadata.validatorRegistrationTx,
+          "registerSsvValidator", // name of transaction we are waiting for
+          "validator_registered", // new state when transaction confirmed
+        );
+        currentState = await getState(store);
+      }
+
+      if (currentState.state === "validator_registered") {
+        await depositEth(
+          signer,
+          store,
+          currentState.uuid,
+          contracts.nodeDelegator,
+          currentState.metadata.depositData[0]
+        );
+        currentState = await getState(store);
+      }
+
+      if (currentState.state === "deposit_transaction_broadcast") {
+        await waitForTransactionAndUpdateStateOnSuccess(
+          store,
+          currentState.uuid,
+          contracts.nodeDelegator.provider,
+          currentState.metadata.depositTx,
+          "stakeEth", // name of transaction we are waiting for
+          "deposit_confirmed", // new state when transaction confirmed
+        );
+
+        currentState = await getState(store);
+      }
+
+      if (currentState.state === "deposit_confirmed") {
+        await clearState(currentState.uuid, store)
+        break;
+      }
+      await sleep(1000);
     }
+  }
 
-    if (currentState.state === "validator_creation_issued") {
-      await confirmValidatorCreatedRequest(p2p_api_key, p2p_base_url, currentState.uuid, store);
-      currentState = await getState(store);
+  try {
+    if (await getErrorCount(store) >= ERROR_THRESHOLD) {
+      await clearState(currentState.uuid, store, `Errors have reached the threshold(${ERROR_THRESHOLD}) discarding attempt`)
+      return
     }
-
-    if (currentState.state === "validator_creation_confirmed") {
-      await broadcastRegisterValidator(
-        signer,
-        store,
-        currentState.uuid,
-        currentState.metadata.validatorRegistrationRawTx.data,
-        contracts.nodeDelegator,
-      );
-      currentState = await getState(store);
-    }
-
-    if (currentState.state === "register_transaction_broadcast") {
-      await waitForTransactionAndUpdateStateOnSuccess(
-        store,
-        currentState.uuid,
-        contracts.nodeDelegator.provider,
-        currentState.metadata.validatorRegistrationTx,
-        "registerSsvValidator", // name of transaction we are waiting for
-        "validator_registered", // new state when transaction confirmed
-      );
-      currentState = await getState(store);
-    }
-
-    if (currentState.state === "validator_registered") {
-      await depositEth(
-        signer,
-        store,
-        currentState.uuid,
-        contracts.nodeDelegator,
-        currentState.metadata.depositData[0]
-      );
-      currentState = await getState(store);
-    }
-
-    if (currentState.state === "deposit_transaction_broadcast") {
-      await waitForTransactionAndUpdateStateOnSuccess(
-        store,
-        currentState.uuid,
-        contracts.nodeDelegator.provider,
-        currentState.metadata.depositTx,
-        "stakeEth", // name of transaction we are waiting for
-        "deposit_confirmed", // new state when transaction confirmed
-      );
-
-      currentState = await getState(store);
-    }
-
-    if (currentState.state === "deposit_confirmed") {
-      await clearState(currentState.uuid, store)
-      break;
-    }
-    await sleep(1000);
+    await executeOperateLoop()
+  } catch (e){
+    await increaseErrorCount(
+      currentState !== undefined ? currentState.uuid : '',
+      store,
+      e
+    )
+    throw e
   }
 };
+
+const getErrorCount = async (store) => {
+  const existingRequest = await getState(store)
+  return existingRequest !== undefined && existingRequest.hasOwnProperty('errorCount') ? existingRequest.errorCount : 0
+}
+
+const increaseErrorCount = async (requestUUID, store, error) => {
+  if (!requestUUID) {
+    return
+  }
+
+  const existingRequest = await getState(store)
+  const existingErrorCount = existingRequest.hasOwnProperty('errorCount') ? existingRequest.errorCount : 0
+  const newErrorCount = existingErrorCount + 1
+
+  await store.put(
+    "currentRequest",
+    JSON.stringify({
+      ...existingRequest, 
+      errorCount: newErrorCount
+    }),
+  );
+  log(`Operate validators loop uuid: ${requestUUID} encountered an error ${newErrorCount} times. Error: `, error)
+} 
 
 /* Each P2P request has a life cycle that results in the following states stored
  * in the shared Defender key-value storage memory.
@@ -258,7 +302,6 @@ const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
         signature,
         depositDataRoot
       }]);
-    console.log("HERE 1")
 
     await updateState(uuid, "deposit_transaction_broadcast", store, {
       depositTx: tx.hash,
