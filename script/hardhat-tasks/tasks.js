@@ -2,7 +2,7 @@ const { subtask, task, types } = require("hardhat/config");
 const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
-const { operateValidators } = require("./p2p");
+const { operateValidators, registerVal, stakeEth } = require("./p2p");
 const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
@@ -31,7 +31,7 @@ task("depositPrime").setAction(async (_, __, runSuper) => {
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "ALL", types.string)
-  .addParam("index", "Index of Node Delegator", 0, types.int)
+  .addParam("index", "Index of Node Delegator", 1, types.int)
   .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 1, types.float)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
@@ -121,8 +121,9 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 });
 
 // Defender
-subtask("operateValidators", "Spawns up the required amount of validators and sets them up").setAction(
-  async (taskArgs) => {
+subtask("operateValidators", "Spawns up the required amount of validators and sets them up")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
     const storeFilePath = require("path").join(__dirname, "..", "..", ".localKeyValueStorage");
 
     const store = new KeyValueStoreClient({ path: storeFilePath });
@@ -160,10 +161,38 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
       store,
       config,
     });
-  },
-);
-
+  });
 task("operateValidators").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("registerVal", "Register a validator for testing purposes")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await registerVal({ signer, nodeDelegator });
+  });
+task("registerVal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("stakeEth", "Stake ETH into validator")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await stakeEth({ signer, nodeDelegator });
+  });
+task("stakeEth").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
