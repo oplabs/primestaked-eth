@@ -25,6 +25,7 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@solidity-parser/parser": "^0.18.0",
     "defender-kvstore-client": "^1.44.0",
     "ethers": "^5.7.2",
     "hardhat": "^2.18.3",

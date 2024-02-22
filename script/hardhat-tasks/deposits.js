@@ -9,7 +9,7 @@ const log = require("../utils/logger")("task:deposits");
 const depositAssetEL = async ({ signer, depositPool, nodeDelegator, symbol, minDeposit, index }) => {
   const asset = await resolveAsset(symbol, signer);
 
-  const balance = await asset.balanceOf(await parseAddress("LRT_DEPOSIT_POOL"));
+  const balance = await asset.balanceOf(depositPool.address);
   const minDepositBN = parseEther(minDeposit.toString());
 
   if (balance.gte(minDepositBN)) {
