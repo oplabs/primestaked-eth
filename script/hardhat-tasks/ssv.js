@@ -31,7 +31,7 @@ const unpauseDelegator = async ({ signer, nodeDelegator }) => {
   await logTxDetails(tx2, "unpause");
 };
 
-const getClusterInfo = async ({ nodeDelegatorAddress, providerUrl, ssvNetwork, operatorids }) => {
+const getClusterInfo = async ({ nodeDelegatorAddress, providerUrl, ssvNetwork, networkId, operatorids }) => {
   const operatorIds = operatorids.split('.').map(id => parseInt(id))
   log(`Fetching cluster infor for nodeDelegator ${nodeDelegatorAddress} with operator ids: ${operatorIds}`)
 
@@ -39,7 +39,12 @@ const getClusterInfo = async ({ nodeDelegatorAddress, providerUrl, ssvNetwork, o
     nodeUrl: providerUrl, // this can be an Infura, or Alchemy node, necessary to query the blockchain
     contractAddress: ssvNetwork, // this is the address of SSV smart contract
     ownerAddress: nodeDelegatorAddress, // this is the wallet address of the cluster owner
-    network: 'PRATER',
+    /* Based on the network they fetch contract ABIs. See code: https://github.com/bloxapp/ssv-scanner/blob/v1.0.3/src/lib/contract.provider.ts#L16-L22
+     * and the ABIs are fetched from here: https://github.com/bloxapp/ssv-scanner/tree/v1.0.3/src/shared/abi
+     *
+     * Prater seems to work for Goerli at the moment
+     */
+    network: networkId == 1 ? 'MAINNET': 'PRATER',
     operatorIds: operatorIds, // this is a list of operator IDs chosen by the owner for their cluster
   }
 

@@ -22,8 +22,9 @@ subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+    const network = await ethers.provider.getNetwork();
 
-    await depositPrime({ signer, depositPool, ...taskArgs });
+    await depositPrime({ signer, depositPool, networkId: network.chainId, ...taskArgs });
   });
 task("depositPrime").setAction(async (_, __, runSuper) => {
   return runSuper();
