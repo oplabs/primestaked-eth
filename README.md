@@ -359,22 +359,30 @@ export DEFENDER_TEAM_SECRET=
 
 # Set the DEBUG environment variable to prime* for the Defender Action
 npx hardhat setActionVars --id 184e6533-9413-48be-ac01-4a63f87c3035
+npx hardhat setActionVars --id 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb
 
 # Upload Deposit to EigenLayer code
 # The Defender autotask client uses generic env var names so we'll set them first from the values in the .env file
 export API_KEY=${DEFENDER_TEAM_KEY}
 export API_SECRET=${DEFENDER_TEAM_SECRET}
 npx defender-autotask update-code 184e6533-9413-48be-ac01-4a63f87c3035 ./dist/depositAllEL
+npx defender-autotask update-code 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb ./dist/operateValidators
 ```
 
 `rollup` and `defender-autotask-client` can be installed globally to avoid the `npx` prefix.
 
-### Defender Actions
+### Mainnet Defender Actions
 
-| Name                           | ID                                                                                                                                    | Source Code                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Prime - Deposit to EigenLayer  | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/updateRates.js](./script/defender-actions/depositAllEL.js) |
-| Prime - primeETH Price Updater | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                      |
+| Name                           | ID                                                                                                                                    | Source Code                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Prime - Deposit to EigenLayer  | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/depositAllEL.js](./script/defender-actions/depositAllEL.js) |
+| Prime - primeETH Price Updater | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                       |
+
+### Goerli Defender Actions
+
+| Name                  | ID                                                                                                                                    | Source Code                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Prime - Add validator | [7dda695d-56b1-48ba-9e9a-3307c4a2f7bb](https://defender.openzeppelin.com/v2/#/actions/automatic/7dda695d-56b1-48ba-9e9a-3307c4a2f7bb) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
 
 # Credits
 

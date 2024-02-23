@@ -21,7 +21,7 @@ subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
-    const depositPool = await hre.ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+    const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
 
     await depositPrime({ signer, depositPool, ...taskArgs });
   });
@@ -36,9 +36,9 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
-    const depositPool = await hre.ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+    const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
     const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
     if (taskArgs.symbol === "ALL") {
       await depositAllEL({ signer, depositPool, nodeDelegator, ...taskArgs });
     } else {
@@ -52,12 +52,12 @@ task("depositEL").setAction(async (_, __, runSuper) => {
 // SSV
 subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeDelegator")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
-  .setAction(async (taskArgs, hre) => {
+  .setAction(async (taskArgs) => {
     const signer = await getSigner();
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await approveSSV({ signer, nodeDelegator, ...taskArgs });
   });
@@ -73,7 +73,7 @@ subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await depositSSV({ signer, nodeDelegator, ...taskArgs });
   });
@@ -89,7 +89,7 @@ subtask("pauseDelegator", "Manager pause a NodeDelegator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await pauseDelegator({ signer, nodeDelegator, ...taskArgs });
   });
@@ -104,7 +104,7 @@ subtask("unpauseDelegator", "Admin unpause a NodeDelegator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await unpauseDelegator({ signer, nodeDelegator, ...taskArgs });
   });
@@ -133,19 +133,19 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     const contracts = {
       nodeDelegator,
       WETH,
     };
 
-    const network = await hre.ethers.provider.getNetwork();
+    const network = await ethers.provider.getNetwork();
     const p2p_api_key = network.chainId === 1 ? process.env.P2P_MAINNET_API_KEY : process.env.P2P_GOERLI_API_KEY;
     if (!p2p_api_key) {
       throw new Error("P2P API key environment variable is not set. P2P_MAINNET_API_KEY or P2P_GOERLI_API_KEY");
     }
-    p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test.p2p.org";
+    const p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test.p2p.org";
 
     const config = {
       p2p_api_key,
@@ -173,7 +173,7 @@ subtask("registerVal", "Register a validator for testing purposes")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await registerVal({ signer, nodeDelegator });
   });
@@ -188,7 +188,7 @@ subtask("stakeEth", "Stake ETH into validator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await hre.ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
     await stakeEth({ signer, nodeDelegator });
   });
@@ -251,7 +251,7 @@ subtask("depositWETH", "Deposit ETH into WETH")
     const signer = await getSigner();
 
     const wethAddress = await parseAddress("WETH_TOKEN");
-    const weth = await hre.ethers.getContractAt("IWETH", wethAddress);
+    const weth = await ethers.getContractAt("IWETH", wethAddress);
 
     await depositWETH({ weth, signer, ...taskArgs });
   });
@@ -265,7 +265,7 @@ subtask("withdrawWETH", "Withdraw ETH from WETH")
     const signer = await getSigner();
 
     const wethAddress = await parseAddress("WETH_TOKEN");
-    const weth = await hre.ethers.getContractAt("IWETH", wethAddress);
+    const weth = await ethers.getContractAt("IWETH", wethAddress);
 
     await withdrawWETH({ weth, signer, ...taskArgs });
   });

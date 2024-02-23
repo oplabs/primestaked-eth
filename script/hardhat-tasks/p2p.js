@@ -2,16 +2,15 @@ const fetch = require("node-fetch");
 const { BigNumber, utils } = require("ethers");
 const { v4: uuidv4 } = require("uuid");
 
-const { parseAddress } = require("../utils/addressParser");
 const { sleep } = require("../utils/time");
 const { logTxDetails } = require("../utils/txLogger");
 
 const log = require("../utils/logger")("task:p2p");
 
 /* When same UUID experiences and error threshold amount of times it is
- * discarded. 
+ * discarded.
  */
-const ERROR_THRESHOLD = 5
+const ERROR_THRESHOLD = 5;
 /*
  * Spawns and maintains the required amount of validators throughout
  * their setup cycle which consists of:
@@ -30,8 +29,8 @@ const ERROR_THRESHOLD = 5
  *     and start over.
  */
 const operateValidators = async ({ store, signer, contracts, config }) => {
-  const { p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url } = config;
-  const eigenPodAddress = await parseAddress("EIGEN_POD");
+  const { eigenPodAddress, p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url } = config;
+
   let currentState = await getState(store);
   log("currentState", currentState);
 
@@ -42,7 +41,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
 
   const executeOperateLoop = async () => {
     while (true) {
-      if (currentState === undefined) {
+      if (!currentState) {
         await createValidatorRequest(
           p2p_api_key, // api key
           p2p_base_url,
@@ -88,7 +87,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
           store,
           currentState.uuid,
           contracts.nodeDelegator,
-          currentState.metadata.depositData[0]
+          currentState.metadata.depositData[0],
         );
         currentState = await getState(store);
       }
@@ -107,52 +106,52 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
       }
 
       if (currentState.state === "deposit_confirmed") {
-        await clearState(currentState.uuid, store)
+        await clearState(currentState.uuid, store);
         break;
       }
       await sleep(1000);
     }
-  }
+  };
 
   try {
-    if (await getErrorCount(store) >= ERROR_THRESHOLD) {
-      await clearState(currentState.uuid, store, `Errors have reached the threshold(${ERROR_THRESHOLD}) discarding attempt`)
-      return
+    if ((await getErrorCount(store)) >= ERROR_THRESHOLD) {
+      await clearState(
+        currentState.uuid,
+        store,
+        `Errors have reached the threshold(${ERROR_THRESHOLD}) discarding attempt`,
+      );
+      return;
     }
-    await executeOperateLoop()
-  } catch (e){
-    await increaseErrorCount(
-      currentState !== undefined ? currentState.uuid : '',
-      store,
-      e
-    )
-    throw e
+    await executeOperateLoop();
+  } catch (e) {
+    await increaseErrorCount(currentState ? currentState.uuid : "", store, e);
+    throw e;
   }
 };
 
 const getErrorCount = async (store) => {
-  const existingRequest = await getState(store)
-  return existingRequest !== undefined && existingRequest.hasOwnProperty('errorCount') ? existingRequest.errorCount : 0
-}
+  const existingRequest = await getState(store);
+  return existingRequest && existingRequest.hasOwnProperty("errorCount") ? existingRequest.errorCount : 0;
+};
 
 const increaseErrorCount = async (requestUUID, store, error) => {
   if (!requestUUID) {
-    return
+    return;
   }
 
-  const existingRequest = await getState(store)
-  const existingErrorCount = existingRequest.hasOwnProperty('errorCount') ? existingRequest.errorCount : 0
-  const newErrorCount = existingErrorCount + 1
+  const existingRequest = await getState(store);
+  const existingErrorCount = existingRequest.hasOwnProperty("errorCount") ? existingRequest.errorCount : 0;
+  const newErrorCount = existingErrorCount + 1;
 
   await store.put(
     "currentRequest",
     JSON.stringify({
-      ...existingRequest, 
-      errorCount: newErrorCount
+      ...existingRequest,
+      errorCount: newErrorCount,
     }),
   );
-  log(`Operate validators loop uuid: ${requestUUID} encountered an error ${newErrorCount} times. Error: `, error)
-} 
+  log(`Operate validators loop uuid: ${requestUUID} encountered an error ${newErrorCount} times. Error: `, error);
+};
 
 /* Each P2P request has a life cycle that results in the following states stored
  * in the shared Defender key-value storage memory.
@@ -179,8 +178,9 @@ const updateState = async (requestUUID, state, store, metadata = {}) => {
     throw new Error(`Unexpected state: ${state}`);
   }
 
-  const existingRequest = await getState(store)
-  const existingMetadata = existingRequest !== undefined && existingRequest.hasOwnProperty('metadata') ? existingRequest.metadata : {}
+  const existingRequest = await getState(store);
+  const existingMetadata =
+    existingRequest && existingRequest.hasOwnProperty("metadata") ? existingRequest.metadata : {};
 
   await store.put(
     "currentRequest",
@@ -208,7 +208,7 @@ const clearState = async (uuid, store, error = false) => {
  */
 const getState = async (store) => {
   const currentState = await store.get("currentRequest");
-  if (currentState === undefined) {
+  if (!currentState) {
     return currentState;
   }
 
@@ -252,7 +252,7 @@ const p2pRequest = async (url, api_key, method, body) => {
   const response = await rawResponse.json();
   if (response.error != null) {
     log("Request to P2P service failed with an error:", response);
-    throw new Error("Call to P2P has failed");
+    throw new Error(`Call to P2P has failed: ${JSON.stringify(response.error)}`);
   } else {
     log("Request to P2P service succeeded: ", response);
   }
@@ -283,31 +283,31 @@ const createValidatorRequest = async (
 };
 
 const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, txHash, methodName, newState) => {
-  const tx = await provider.getTransaction(txHash)
-  await logTxDetails(tx, methodName, true)
-  await updateState(uuid, newState, store)
+  const tx = await provider.getTransaction(txHash);
+  await logTxDetails(tx, methodName, true);
+  await updateState(uuid, newState, store);
 };
 
 const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
-  const { pubkey, signature, depositDataRoot } = depositData
+  const { pubkey, signature, depositDataRoot } = depositData;
   try {
     log(`About to stake ETH with:`);
     log(`pubkey: ${pubkey}`);
     log(`signature: ${signature}`);
     log(`depositDataRoot: ${depositDataRoot}`);
-    const tx = await nodeDelegator
-      .connect(signer)
-      .stakeEth([{
+    const tx = await nodeDelegator.connect(signer).stakeEth([
+      {
         pubkey,
         signature,
-        depositDataRoot
-      }]);
+        depositDataRoot,
+      },
+    ]);
 
     await updateState(uuid, "deposit_transaction_broadcast", store, {
       depositTx: tx.hash,
     });
   } catch (e) {
-    log(`Submitting transaction failed with: `, e)
+    log(`Submitting transaction failed with: `, e);
     //await clearState(uuid, store, `Transaction to deposit to validator fails`)
     throw e;
   }
