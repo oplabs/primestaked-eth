@@ -1,5 +1,6 @@
 const { logTxDetails } = require("../utils/txLogger");
 const { parseEther } = require("ethers/lib/utils");
+const { ClusterScanner, NonceScanner } = require('ssv-scanner');
 
 const log = require("../utils/logger")("task:ssv");
 
@@ -30,4 +31,32 @@ const unpauseDelegator = async ({ signer, nodeDelegator }) => {
   await logTxDetails(tx2, "unpause");
 };
 
-module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator };
+const getClusterInfo = async ({ nodeDelegatorAddress, providerUrl, ssvNetwork, operatorids }) => {
+  const operatorIds = operatorids.split('.').map(id => parseInt(id))
+  log(`Fetching cluster infor for nodeDelegator ${nodeDelegatorAddress} with operator ids: ${operatorIds}`)
+
+  const params = {
+    nodeUrl: providerUrl, // this can be an Infura, or Alchemy node, necessary to query the blockchain
+    contractAddress: ssvNetwork, // this is the address of SSV smart contract
+    ownerAddress: nodeDelegatorAddress, // this is the wallet address of the cluster owner
+    network: 'PRATER',
+    operatorIds: operatorIds, // this is a list of operator IDs chosen by the owner for their cluster
+  }
+
+  // ClusterScanner is initialized with the given parameters
+  const clusterScanner = new ClusterScanner(params);
+  // and when run, it returns the Cluster Snapshot
+  const result = await clusterScanner.run(params.operatorIds);
+  console.log(JSON.stringify({
+    'block': result.payload.Block,
+    'cluster snapshot': result.cluster,
+    'cluster': Object.values(result.cluster)
+  }, null, '  '));
+
+  const nonceScanner = new NonceScanner(params);
+  const nextNonce = await nonceScanner.run();
+  console.log('Next Nonce:', nextNonce);
+
+};
+
+module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, getClusterInfo };

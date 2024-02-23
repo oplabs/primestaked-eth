@@ -3,7 +3,7 @@ const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator } = require("./ssv");
+const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, getClusterInfo } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -62,6 +62,22 @@ subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
     await approveSSV({ signer, nodeDelegator, ...taskArgs });
   });
 task("approveSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("getClusterInfo", "Print out information regarding SSV cluster")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addParam("operatorids", "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349", '', types.string)
+  .setAction(async (taskArgs) => {
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const network = await ethers.provider.getNetwork();
+    const providerUrl = network.chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.GOERLI_RPC_URL;
+    const ssvNetwork = await parseAddress("SSV_NETWORK");
+
+    await getClusterInfo({ nodeDelegatorAddress, providerUrl, ssvNetwork, ...taskArgs });
+  });
+task("getClusterInfo").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
