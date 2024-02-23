@@ -47,16 +47,21 @@ const getClusterInfo = async ({ nodeDelegatorAddress, providerUrl, ssvNetwork, o
   const clusterScanner = new ClusterScanner(params);
   // and when run, it returns the Cluster Snapshot
   const result = await clusterScanner.run(params.operatorIds);
-  console.log(JSON.stringify({
+  const cluster = {
     'block': result.payload.Block,
     'cluster snapshot': result.cluster,
     'cluster': Object.values(result.cluster)
-  }, null, '  '));
-
+  };
   const nonceScanner = new NonceScanner(params);
   const nextNonce = await nonceScanner.run();
-  console.log('Next Nonce:', nextNonce);
+  return { cluster, nextNonce };
 
 };
 
-module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, getClusterInfo };
+const printClusterInfo = async(options) => {
+  const {cluster, nextNonce} = await getClusterInfo(options);
+  console.log(JSON.stringify(cluster, null, '  '));
+  console.log('Next Nonce:', nextNonce);
+};
+
+module.exports = { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, printClusterInfo, getClusterInfo };

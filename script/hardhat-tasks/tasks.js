@@ -3,7 +3,7 @@ const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, getClusterInfo } = require("./ssv");
+const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, printClusterInfo } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -75,7 +75,7 @@ subtask("getClusterInfo", "Print out information regarding SSV cluster")
     const providerUrl = network.chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.GOERLI_RPC_URL;
     const ssvNetwork = await parseAddress("SSV_NETWORK");
 
-    await getClusterInfo({ nodeDelegatorAddress, providerUrl, ssvNetwork, ...taskArgs });
+    await printClusterInfo({ nodeDelegatorAddress, providerUrl, ssvNetwork, ...taskArgs });
   });
 task("getClusterInfo").setAction(async (_, __, runSuper) => {
   return runSuper();
