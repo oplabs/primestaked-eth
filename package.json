@@ -1,8 +1,8 @@
 {
   "name": "lrt",
   "scripts": {
-    "clean": "rm -rf cache out",
-    "build": "forge build",
+    "clean": "rm -rf cache out cache_forge artifacts",
+    "build": "forge build; hardhat compile",
     "lint": "npm run lint:sol && npm run prettier:check",
     "lint:sol": "forge fmt --check && solhint {script,src,test}/**/*.sol",
     "prettier:check": "prettier --check **/*.{json,md,yml} --ignore-path=.prettierignore",
