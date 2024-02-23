@@ -55,7 +55,6 @@ const getClusterInfo = async ({ nodeDelegatorAddress, providerUrl, ssvNetwork, o
   const nonceScanner = new NonceScanner(params);
   const nextNonce = await nonceScanner.run();
   return { cluster, nextNonce };
-
 };
 
 const printClusterInfo = async(options) => {
