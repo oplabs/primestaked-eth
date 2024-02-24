@@ -33,6 +33,8 @@
     "rollup": "^4.9.1",
     "solhint": "^4.0.0",
     "solidity-code-metrics": "^0.0.25",
+    "ssv-keys": "^1.1.0",
+    "ssv-scanner": "github:bloxapp/ssv-scanner",
     "uuid": "^9.0.1"
   },
   "dependencies": {
