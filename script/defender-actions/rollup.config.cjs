@@ -34,4 +34,12 @@ module.exports = [
       format: "cjs",
     },
   },
+  {
+    ...commonConfig,
+    input: "testAction.js",
+    output: {
+      file: "dist/testAction/index.js",
+      format: "cjs",
+    },
+  },
 ];
