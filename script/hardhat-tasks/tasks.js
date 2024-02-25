@@ -68,15 +68,30 @@ task("approveSSV").setAction(async (_, __, runSuper) => {
 
 subtask("getClusterInfo", "Print out information regarding SSV cluster")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
-  .addParam("operatorids", "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349", '', types.string)
+  .addOptionalParam("owner", "Address of the cluster owner. Default to NodeDelegator", undefined, types.string)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    "",
+    types.string,
+  )
   .setAction(async (taskArgs) => {
-    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
-    const nodeDelegatorAddress = await parseAddress(addressName);
+    let ownerAddress;
+    if (taskArgs.owner) {
+      ownerAddress = taskArgs.owner;
+    } else {
+      const addressName = taskArgs.owner
+        ? taskArgs.owner
+        : taskArgs.index === 1
+          ? "NODE_DELEGATOR_NATIVE_STAKING"
+          : "NODE_DELEGATOR";
+      ownerAddress = await parseAddress(addressName);
+    }
     const network = await ethers.provider.getNetwork();
     const providerUrl = network.chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.GOERLI_RPC_URL;
     const ssvNetwork = await parseAddress("SSV_NETWORK");
 
-    await printClusterInfo({ nodeDelegatorAddress, providerUrl, ssvNetwork, ...taskArgs });
+    await printClusterInfo({ ownerAddress, providerUrl, ssvNetwork, ...taskArgs });
   });
 task("getClusterInfo").setAction(async (_, __, runSuper) => {
   return runSuper();
