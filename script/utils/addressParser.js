@@ -10,7 +10,6 @@ const parseAddress = async (name) => {
   let solidityCode;
   try {
     solidityCode = readFileSync(fileName, "utf8");
-    log(`Read Addresses.sol file`);
   } catch (err) {
     throw new Error(`Failed to read file "${fileName}".`, {
       cause: err,
