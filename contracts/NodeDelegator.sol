@@ -157,7 +157,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
 
         if (asset == WETH_TOKEN_ADDRESS) {
             uint256 ethBalance = address(this).balance;
@@ -216,7 +215,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
 
         if (asset == WETH_TOKEN_ADDRESS) {
             // Add any ETH in the NDC that was earned from EigenLayer
@@ -242,7 +240,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
         address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-        if (WETH_TOKEN_ADDRESS == address(0)) revert NoWETHConfig();
+
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;
@@ -325,8 +323,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     function approveSSV() external onlyLRTManager {
         address SSV_TOKEN_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_TOKEN);
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
-        if (SSV_TOKEN_ADDRESS == address(0)) revert NoSSVTokenConfig();
-        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
 
         IERC20(SSV_TOKEN_ADDRESS).approve(SSV_NETWORK_ADDRESS, type(uint256).max);
     }
@@ -334,7 +330,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @dev Deposits more SSV Tokens to the SSV Network contract which is used to pay the SSV Operators
     function depositSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external onlyLRTManager {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
-        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
 
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
@@ -350,7 +345,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         onlyLRTOperator
     {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
-        if (SSV_NETWORK_ADDRESS == address(0)) revert NoSSVNetworkConfig();
 
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
