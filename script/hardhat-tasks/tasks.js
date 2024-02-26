@@ -68,7 +68,12 @@ task("approveSSV").setAction(async (_, __, runSuper) => {
 
 subtask("getClusterInfo", "Print out information regarding SSV cluster")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
-  .addParam("operatorids", "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349", '', types.string)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    "",
+    types.string,
+  )
   .setAction(async (taskArgs) => {
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
