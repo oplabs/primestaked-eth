@@ -8,9 +8,9 @@ const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const { parseAddress } = require("../utils/addressParser");
-const { abi: erc20Abi } = require("../../out/ERC20.sol/ERC20.json");
 const { depositWETH, withdrawWETH } = require("./weth");
 const { resolveAsset } = require("../utils/assets");
+const { deployNodeDelegator } = require("./deploy");
 
 const log = require("../utils/logger")("task");
 
@@ -301,5 +301,16 @@ subtask("withdrawWETH", "Withdraw ETH from WETH")
     await withdrawWETH({ weth, signer, ...taskArgs });
   });
 task("withdrawWETH").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contract via the Defender Relayer")
+  .addParam("index", "Index of Node Delegator", undefined, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    await deployNodeDelegator({ signer, ...taskArgs });
+  });
+task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();
 });

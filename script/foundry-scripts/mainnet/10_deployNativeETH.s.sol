@@ -29,14 +29,16 @@ contract DeployNativeETH is BaseMainnetScript {
     }
 
     function _execute() internal override {
+        // Deploy new NodeDelegator with proxy and initialize it
+        // This will be done via the Defender Relayer for mainnet but is left in here for fork testing
+        newNodeDelegator2 = NodeDelegatorLib.deployInit(1);
+        // newNodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
+
         // Deploy new LTRDepositPool implementation
         newDepositPoolImpl = DepositPoolLib.deployImpl();
 
         // Deploy a new implementation of NodeDelegator
         newNodeDelegator1Impl = NodeDelegatorLib.deployImpl();
-
-        // Deploy new NodeDelegator with proxy and initialize it
-        newNodeDelegator2 = NodeDelegatorLib.deployInit(1);
 
         // Deploy new WETH oracle
         wethOracleProxy =
