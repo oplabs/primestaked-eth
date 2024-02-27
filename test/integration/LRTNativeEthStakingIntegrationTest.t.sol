@@ -51,7 +51,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         // upgrade all ndcs
         address[] memory ndcs = lrtDepositPool.getNodeDelegatorQueue();
         assertEq(ndcs.length, 5, "Incorrect number of ndcs");
-        newImplementation = address(new NodeDelegator());
+        newImplementation = address(new NodeDelegator(WETHAddress));
         for (uint256 i = 0; i < ndcs.length; i++) {
             proxyAddress = address(ndcs[i]);
             proxyAdmin.upgrade(ITransparentUpgradeableProxy(proxyAddress), newImplementation);

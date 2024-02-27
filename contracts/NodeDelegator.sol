@@ -28,6 +28,9 @@ struct ValidatorStakeData {
 /// @title NodeDelegator Contract
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
+    /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
+    address immutable WETH_TOKEN_ADDRESS;
+
     /// @dev The EigenPod is created and owned by this contract
     IEigenPod public eigenPod;
     /// @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
@@ -37,7 +40,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     uint256 internal constant DUST_AMOUNT = 10;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
+    constructor(address _wethAddress) {
+        UtilLib.checkNonZeroAddress(_wethAddress);
+        WETH_TOKEN_ADDRESS = _wethAddress;
         _disableInitializers();
     }
 
@@ -154,10 +159,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         address lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
 
         // Convert any ETH to WETH before transferring
-        // The WETH address is different between chains so reading from the config.
-        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-
         if (asset == WETH_TOKEN_ADDRESS) {
             uint256 ethBalance = address(this).balance;
             if (ethBalance > 0) {
@@ -207,10 +208,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
         ndcAssets += IERC20(asset).balanceOf(address(this));
 
-        // The WETH address is different between chains so reading from the config.
-        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-
         if (asset == WETH_TOKEN_ADDRESS) {
             // Add any ETH in the NDC that was earned from EigenLayer
             ndcAssets += address(this).balance;
@@ -232,10 +229,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
     function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
-        // The WETH address is different between chains so reading from the config.
-        // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
-        address WETH_TOKEN_ADDRESS = lrtConfig.getLSTToken(LRTConstants.WETH_TOKEN);
-
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;

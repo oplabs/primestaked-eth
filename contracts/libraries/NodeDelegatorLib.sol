@@ -14,8 +14,10 @@ import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 library NodeDelegatorLib {
     function deployImpl() internal returns (address implementation) {
+        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesGoerli.WETH_TOKEN;
+
         // Deploy the new contract
-        implementation = address(new NodeDelegator());
+        implementation = address(new NodeDelegator(wethAddress));
         console.log("NodeDelegator implementation deployed at: %s", implementation);
     }
 
@@ -40,8 +42,10 @@ library NodeDelegatorLib {
     }
 
     function deployInit(uint256 index) internal returns (NodeDelegator nodeDelegator) {
+        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesGoerli.WETH_TOKEN;
+
         // Deploy the new contract
-        address nodeDelegatorImpl = address(new NodeDelegator());
+        address nodeDelegatorImpl = address(new NodeDelegator(wethAddress));
         console.log("NodeDelegator implementation deployed at: %s", nodeDelegatorImpl);
 
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;

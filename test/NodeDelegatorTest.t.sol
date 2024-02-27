@@ -166,7 +166,7 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         // deploy NodeDelegator
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        NodeDelegator nodeDelImpl = new NodeDelegator();
+        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth));
         TransparentUpgradeableProxy nodeDelProxy =
             new TransparentUpgradeableProxy(address(nodeDelImpl), address(proxyAdmin), "");
 
