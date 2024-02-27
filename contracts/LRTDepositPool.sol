@@ -239,6 +239,8 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         nodeDelegatorQueue[ndcIndex] = nodeDelegatorQueue[length - 1];
         nodeDelegatorQueue.pop();
 
+        isNodeDelegator[nodeDelegatorAddress] = 0;
+
         emit NodeDelegatorRemovedFromQueue(nodeDelegatorAddress);
     }
 

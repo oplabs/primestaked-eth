@@ -652,6 +652,7 @@ contract LTRRemoveNodeDelegatorFromQueue is LRTDepositPoolTest {
             nodeDelegatorContractThree,
             "Node delegator index 1 contract is not set"
         );
+        assertEq(lrtDepositPool.isNodeDelegator(nodeDelegatorContractTwo), 0, "Node delegator is not removed");
     }
 
     function test_RemoveManyNodeDelegatorContractsFromQueue() external {
@@ -674,6 +675,8 @@ contract LTRRemoveNodeDelegatorFromQueue is LRTDepositPoolTest {
             nodeDelegatorContractThree,
             "Node delegator index 0 contract is not set"
         );
+        assertEq(lrtDepositPool.isNodeDelegator(nodeDelegatorContractOne), 0, "Node delegator 1 is not removed");
+        assertEq(lrtDepositPool.isNodeDelegator(nodeDelegatorContractTwo), 0, "Node delegator 2 is not removed");
     }
 }
 
