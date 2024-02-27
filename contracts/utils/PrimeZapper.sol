@@ -27,22 +27,22 @@ contract PrimeZapper {
 
     /**
      * @dev Deposit ETH and receive PrimeETH in return.
-     * Will verify that the user is sent 1:1 for ETH.
+     * Will not verify minimum amount of primeEth received
      */
     receive() external payable {
-        deposit("");
+        deposit(0, "");
     }
 
     /**
      * @dev Deposit ETH and receive PrimeETH in return
-     * Will verify that the user is sent 1:1 for ETH.
+     * @param minPrimeEth Minimum amount of PrimeETH for user to receive
      * @return Amount of PrimeETH sent to user
      */
-    function deposit(string memory referralId) public payable returns (uint256) {
+    function deposit(uint256 minPrimeEth, string memory referralId) public payable returns (uint256) {
         uint256 balance = address(this).balance;
         weth.deposit{ value: balance }();
         emit Zap(msg.sender, ETH_MARKER, balance);
-        return _deposit(balance, referralId);
+        return _deposit(minPrimeEth, referralId);
     }
 
     /**

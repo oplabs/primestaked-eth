@@ -29,7 +29,7 @@ contract ZapperTest is BaseTest, LRTDepositPoolTest {
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
-        primeZapper.deposit{ value: 2 ether }(referralId);
+        primeZapper.deposit{ value: 2 ether }((2 ether * 99 / 100), referralId);
 
         // Alice's balance of prETH after deposit
         uint256 aliceBalanceAfter = preth.balanceOf(address(alice));

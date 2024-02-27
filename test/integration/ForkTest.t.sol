@@ -3,13 +3,16 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
+import "forge-std/console.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
+import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { IWETH } from "contracts/interfaces/IWETH.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
@@ -28,6 +31,7 @@ contract ForkTest is Test {
     LRTOracle public lrtOracle;
     NodeDelegator public nodeDelegator1;
     NodeDelegator public nodeDelegator2;
+    PrimeZapper public primeZapper;
 
     address public stWhale;
     address public xWhale;
@@ -37,6 +41,7 @@ contract ForkTest is Test {
     address public rWhale;
     address public swWhale;
     address public wWhale;
+    address public wWhale2;
 
     string public referralId = "1234";
 
@@ -55,6 +60,8 @@ contract ForkTest is Test {
         rWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
         swWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
         wWhale = 0xF04a5cC80B1E94C69B48f5ee68a08CD2F09A7c3E;
+        // WETH whale that is not a contract
+        wWhale2 = 0x267ed5f71EE47D3E45Bb1569Aa37889a2d10f91e;
 
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
@@ -64,6 +71,7 @@ contract ForkTest is Test {
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
         deployer.run();
+        primeZapper = PrimeZapper(payable(deployer.primeZapper()));
 
         // Unpause Prime Staked if its paused
         unpausePrime();
@@ -74,6 +82,20 @@ contract ForkTest is Test {
 
     function test_deposit_WETH() public {
         deposit(Addresses.WETH_TOKEN, wWhale, 20 ether);
+    }
+
+    function test_deposit_ETH() public {
+        vm.prank(wWhale2);
+        IWETH(Addresses.WETH_TOKEN).withdraw(20 ether);
+
+        depositETH(wWhale2, 20 ether, false);
+    }
+
+    function test_deposit_ETH_call() public {
+        vm.prank(wWhale2);
+        IWETH(Addresses.WETH_TOKEN).withdraw(20 ether);
+
+        depositETH(wWhale2, 20 ether, true);
     }
 
     function test_transfer_del_node_WETH() public {
@@ -374,6 +396,49 @@ contract ForkTest is Test {
     }
 
     // TODO basic primeETH token tests. eg transfer, approve, transferFrom
+
+    function depositETH(address whale, uint256 amountToTransfer, bool sendEthWithACall) internal {
+        // Get before asset balances
+        (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
+            lrtDepositPool.getAssetDistributionData(Addresses.WETH_TOKEN);
+
+        vm.startPrank(whale);
+
+        // Should transfer WETH from zapper to pool
+        vm.expectEmit({ emitter: Addresses.WETH_TOKEN, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Transfer(address(primeZapper), address(lrtDepositPool), amountToTransfer);
+
+        // Should mint primeETH
+        vm.expectEmit({
+            emitter: Addresses.PRIME_STAKED_ETH,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
+        
+        emit Transfer(address(0), address(primeZapper), amountToTransfer);
+
+        if (sendEthWithACall) {
+            address(primeZapper).call{ value: amountToTransfer }("");
+        } else {
+            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 99 / 100, referralId);
+        }
+
+        vm.stopPrank();
+
+        // Get after asset balances
+        (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
+            lrtDepositPool.getAssetDistributionData(Addresses.WETH_TOKEN);
+
+        // Check the asset distribution across the DepositPool, NDCs and EigenLayer
+        // stETH can leave a dust amount behind so using assertApproxEqAbs
+        assertApproxEqAbs(
+            assetsDepositPoolAfter, assetsDepositPoolBefore + amountToTransfer, 1, "assets in DepositPool"
+        );
+        assertEq(assetsNDCsAfter, assetsNDCsBefore, "assets in NDCs");
+        assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
+    }
 
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         // Get before asset balances
