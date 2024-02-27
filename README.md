@@ -350,6 +350,7 @@ export DEFENDER_TEAM_SECRET=
 # Set the DEBUG environment variable to prime* for the Defender Action
 npx hardhat setActionVars --id 184e6533-9413-48be-ac01-4a63f87c3035
 npx hardhat setActionVars --id 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb
+npx hardhat setActionVars --id 0cfd91ac-1248-4470-ba1f-e58cd8514b3d
 
 # Upload Deposit to EigenLayer code
 # The Defender autotask client uses generic env var names so we'll set them first from the values in the .env file
