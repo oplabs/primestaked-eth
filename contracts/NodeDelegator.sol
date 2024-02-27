@@ -350,7 +350,5 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @dev allow NodeDelegator to receive ETH rewards
-    receive() external payable {
-        emit ETHRewardsReceived(msg.value);
-    }
+    receive() external payable { }
 }
