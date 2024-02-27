@@ -3,7 +3,6 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
-import "forge-std/console.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -46,6 +45,7 @@ contract ForkTest is Test {
     string public referralId = "1234";
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+    event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     function setUp() public virtual {
@@ -395,14 +395,15 @@ contract ForkTest is Test {
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
     }
 
-    // TODO basic primeETH token tests. eg transfer, approve, transferFrom
-
     function depositETH(address whale, uint256 amountToTransfer, bool sendEthWithACall) internal {
         // Get before asset balances
         (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
             lrtDepositPool.getAssetDistributionData(Addresses.WETH_TOKEN);
 
         vm.startPrank(whale);
+
+        vm.expectEmit({ emitter: address(primeZapper), checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        emit Zap(whale, 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, amountToTransfer);
 
         // Should transfer WETH from zapper to pool
         vm.expectEmit({ emitter: Addresses.WETH_TOKEN, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
@@ -416,7 +417,7 @@ contract ForkTest is Test {
             checkTopic3: true,
             checkData: false
         });
-        
+
         emit Transfer(address(0), address(primeZapper), amountToTransfer);
 
         if (sendEthWithACall) {
@@ -440,6 +441,7 @@ contract ForkTest is Test {
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
     }
 
+    // TODO basic primeETH token tests. eg transfer, approve, transferFrom
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         // Get before asset balances
         (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
