@@ -283,11 +283,11 @@ const createValidatorRequest = async (
 };
 
 const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, txHash, methodName, newState) => {
-  const tx = await provider.getTransaction(txHash);
+  log(`Waiting for transaction with hash "${txHash}" method "${methodName}" and uuid "${uuid}" to be mined...`);
+  const tx = await provider.waitForTransaction(txHash);
   if (!tx) {
     throw Error(`Transaction with hash "${txHash}" not found for method "${methodName}" and uuid "${uuid}"`);
   }
-  await logTxDetails(tx, methodName, true);
   await updateState(uuid, newState, store);
 };
 
