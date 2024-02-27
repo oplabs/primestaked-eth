@@ -3,7 +3,14 @@ const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, printClusterInfo, splitValidatorKey } = require("./ssv");
+const {
+  approveSSV,
+  depositSSV,
+  pauseDelegator,
+  unpauseDelegator,
+  printClusterInfo,
+  splitValidatorKey,
+} = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -67,12 +74,11 @@ task("approveSSV").setAction(async (_, __, runSuper) => {
 });
 
 subtask("splitValidatorKey", "Splits the full validator key in DVT share key")
-
   .addParam(
     "operatorids",
     /* The nonce of the owner within the SSV contract (increments after each validator registration)
-     * the nonce is required to generate the sharesData. 
-     * 
+     * the nonce is required to generate the sharesData.
+     *
      * id 60: https://goerli.explorer.ssv.network/operators/60
      * key: LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMHZPbHNpTzVCV0dDTEM1TUxDQW8KYkN0ZDI5NmNvaFN0MGhhMmtpRjMwNi9NR2Y5OVRORCs0TmpRWXNEQVlFYVJjZFhNUjY1bjdHTk4yUkkxdTg0aQpTZm04NElKTTdIRGsxeUpVTGdGcnRmQ00yWG03ZzFYODZ3ZkZGT2JrWUJSQmNIZnZSZUxHcDdzdjFpSFh1M2s3CkszVzJvUnZhV2U4V3k3MGdXS25jeWROakZpWDJIQ2psQnIyRjhJT0Z0SHI3cGpyWnZqa0ROcDFkMnprK2V6YncKdCticUMySnFSaVF4MGI5d0d4d3h0UERERjY0amVtWDRpMkJPWXNvUkx6dkN6dWtaeHB3UlNJOW1wTHE1UktOaApIY1pEcWg3RUV5VFloUG1BTTcvT2luMWROZCtNUi9VRU5mTkJqMGZMVURhZWJWSUVVMEhzRzMzdHV3MmR5RksxCnRRSURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K
      * id 79: https://goerli.explorer.ssv.network/operators/79
@@ -111,7 +117,7 @@ subtask("splitValidatorKey", "Splits the full validator key in DVT share key")
       ownerAddress,
       chainId: network.chainId,
       ssvNetwork,
-      ...taskArgs
+      ...taskArgs,
     });
   });
 task("splitValidatorKey").setAction(async (_, __, runSuper) => {
