@@ -1,3 +1,6 @@
+#OSX
+.DS_Store
+
 # directories
 cache
 cache_forge

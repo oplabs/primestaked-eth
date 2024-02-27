@@ -3,7 +3,14 @@ const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
-const { approveSSV, depositSSV, pauseDelegator, unpauseDelegator, printClusterInfo } = require("./ssv");
+const {
+  approveSSV,
+  depositSSV,
+  pauseDelegator,
+  unpauseDelegator,
+  printClusterInfo,
+  splitValidatorKey,
+} = require("./ssv");
 const { setActionVars } = require("./defender");
 const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
@@ -63,6 +70,57 @@ subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
     await approveSSV({ signer, nodeDelegator, ...taskArgs });
   });
 task("approveSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("splitValidatorKey", "Splits the full validator key in DVT share key")
+  .addParam(
+    "operatorids",
+    /* The nonce of the owner within the SSV contract (increments after each validator registration)
+     * the nonce is required to generate the sharesData.
+     *
+     * id 60: https://goerli.explorer.ssv.network/operators/60
+     * key: LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMHZPbHNpTzVCV0dDTEM1TUxDQW8KYkN0ZDI5NmNvaFN0MGhhMmtpRjMwNi9NR2Y5OVRORCs0TmpRWXNEQVlFYVJjZFhNUjY1bjdHTk4yUkkxdTg0aQpTZm04NElKTTdIRGsxeUpVTGdGcnRmQ00yWG03ZzFYODZ3ZkZGT2JrWUJSQmNIZnZSZUxHcDdzdjFpSFh1M2s3CkszVzJvUnZhV2U4V3k3MGdXS25jeWROakZpWDJIQ2psQnIyRjhJT0Z0SHI3cGpyWnZqa0ROcDFkMnprK2V6YncKdCticUMySnFSaVF4MGI5d0d4d3h0UERERjY0amVtWDRpMkJPWXNvUkx6dkN6dWtaeHB3UlNJOW1wTHE1UktOaApIY1pEcWg3RUV5VFloUG1BTTcvT2luMWROZCtNUi9VRU5mTkJqMGZMVURhZWJWSUVVMEhzRzMzdHV3MmR5RksxCnRRSURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K
+     * id 79: https://goerli.explorer.ssv.network/operators/79
+     * key: LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBbzRtb2hUcVdKRGhyYkp5MlhXeXUKQjZIOFU3OXpxS2VhdGdweGRIcS9iWkxrTHpNcE10SVNNOEd3ckUxVlhmMUZ1RWhqcXhTQko0V1hnb0RxWGZTNQp4Q0RIeUdwSld1STF5Q3V5Z3NLRE96QkU4OWZaZEZlY1BsQTZpbzYxR0ROWkJPOWNEOGY2VnFiblN1TDRIMEZjCnkwdk5SdmdROWhEUFJZcHhMVER6N1gyU1RYZWk5eGcyVVdBYm01QUZVbm9WR01yZ2R4YkY5ZjlaNDZDZVk0TFgKL3pqQW1DNFl5YVlYZk9TL2lzQkZkYTN3RlFZZmVhcVVWb2huOCt6ZFg3Y2p4SVZrdDVtQ2FqVFo2bXJzWEFBNApzTDQxaEM4Z0NKYmdESDhIcEZaVXViYUFFUEswV1dZOENCUEhMY1dtWWxLeEJhVEdaU25SM2ZBN3hRcU5lK3VvCkl3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K
+     * id 220: https://goerli.explorer.ssv.network/operators/220
+     * key: LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBeUtiUGc2SXRnTGJSTHpHK0VhMUcKSGdSQm45a3J2N2pXN09ocGxqQWg3MUtCVnFNVldtZi9LRVlBUis1Qnp2bGdwV3ptc3pxZ3MyeDN6UzB5MHd0Zgp6WkVLZ2NrMDJIcXVTMzIwTUJ2QTBLN3B0OFc4Qm9ZM3ozS3d4bUpwUnNwZ3p5dm80TGIyU3RsL1FBNFE4cjZsCjVOWjdrRVNHVktFTFA3R3JrQTlYajBOS0wxZU5uYTRocnpEcnpJS1FwMGZkcjBpWWFxRnhNWUZBZ0FUcVp2b1kKbGxDWG16TmdaUDdtaERRWTdWSk9kenJkSTBrOEdISTZpWUFlWUExRVR1Y01mckpzMmd0a0FPRlR6TjhYYW5VWgpkQis1c0g2V0UwSGhvVGFCeGYwcHpnTFpvenROdTdpUzFmRlZOTUNnR3BCc3MxMDcxMEZFNE1aYW1uWFMxeWt5ClN3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K
+     * id 349: https://goerli.explorer.ssv.network/operators/349
+     * key: LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBd1l0MEdGdmRORTA3L1NuNGdSSnUKNkhlWHU0S3RkL1k1ZGkweGFFNUNyYXZyenU3ZXNIZzg0SXRmcURVbTQrVTNJQm9LelFkdUNKdkw5L1FwTG5LaApTanRzcEpid0gxd2liYXppcVFuM08zbVljb0tYWjAvWDVJamoyUG9hVG13cUkrTFlLbUNXNWFQR3psWklpYUF2ClNGQ2V6M3BFTllQOFNlMFRObm1UaWNuMGRkVkIwMU9uRzJxZEZIMXhBRGNxckFwTE52NmVhMzF6eUdRTG9FbHoKTzFMK2VjZzB3SHRON0hqYnZGUDczcDF5TTA4UU1LRzV6ellKUTVJWmEwL3lWK213blJpSjZTcTZEUkgxd1JwYQpHeXpYQWNqYTBJSER0ckJPdCtOQ2grZS8vVU1Gd3B3OS8zMG5rN2JBRVBOcDY3Qks3Q0tnU0FHLzhxcmt4bHRVCi93SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K
+     */
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    "",
+    types.string,
+  )
+  .addParam(
+    "operatorkeys",
+    "4 operator keys separated with a dot: same as IP format. E.g. (without the square brackets)  [LS0tLS1CR...].[LS0tLS1CR...].[LS0tLS1CR...].[LS0tLS1CR]",
+    "",
+    types.string,
+  )
+  .addParam("keystorelocation", "location of the full validator key", "", types.string)
+  .addParam("keystorepass", "password for the keystore", "", types.string)
+  .addOptionalParam("owner", "Address of the cluster owner. Default to NodeDelegator", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    let ownerAddress;
+    if (taskArgs.owner) {
+      ownerAddress = taskArgs.owner;
+    } else {
+      const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+      ownerAddress = await parseAddress(addressName);
+    }
+
+    const network = await ethers.provider.getNetwork();
+    const ssvNetwork = await parseAddress("SSV_NETWORK");
+
+    await splitValidatorKey({
+      ownerAddress,
+      chainId: network.chainId,
+      ssvNetwork,
+      ...taskArgs,
+    });
+  });
+task("splitValidatorKey").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

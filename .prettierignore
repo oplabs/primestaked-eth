@@ -17,3 +17,4 @@ lcov.info
 package-lock.json
 yarn.lock
 metrics.md
+validator_key_data
