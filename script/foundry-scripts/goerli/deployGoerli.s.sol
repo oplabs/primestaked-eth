@@ -183,7 +183,8 @@ contract DeployGoerli is Script {
         NodeDelegatorLib.initialize(node2, lrtConfig);
 
         // Transfer SSV tokens to the native staking NodeDelegator
-        IERC20(AddressesGoerli.SSV_TOKEN).transfer(address(node2), 20 ether);
+        // SSV Faucet https://faucet.ssv.network/
+        IERC20(AddressesGoerli.SSV_TOKEN).transfer(address(node2), 30 ether);
 
         // Mock aggregators
         stETHPriceFeed = address(new MockPriceAggregator());
