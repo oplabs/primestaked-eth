@@ -5,6 +5,7 @@ pragma solidity 0.8.21;
 import "forge-std/Script.sol";
 
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
@@ -181,6 +182,9 @@ contract DeployGoerli is Script {
         node2 = NodeDelegatorLib.deployProxy(nodeImpl, proxyAdmin, proxyFactory, 2);
         NodeDelegatorLib.initialize(node2, lrtConfig);
 
+        // Transfer SSV tokens to the native staking NodeDelegator
+        IERC20(AddressesGoerli.SSV_TOKEN).transfer(address(node2), 20 ether);
+
         // Mock aggregators
         stETHPriceFeed = address(new MockPriceAggregator());
 
@@ -198,6 +202,9 @@ contract DeployGoerli is Script {
 
         proxyAdmin.transferOwnership(AddressesGoerli.PROXY_OWNER);
         console.log("ProxyAdmin ownership transferred to: ", AddressesGoerli.PROXY_OWNER);
+
+        // Approve deposit of WETH into the DepositPool
+        IERC20(AddressesGoerli.WETH_TOKEN).approve(address(depositPool), MAX_DEPOSITS);
 
         if (isForked) {
             vm.stopPrank();
