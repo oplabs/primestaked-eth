@@ -32,10 +32,10 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
   const { eigenPodAddress, p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url } = config;
 
   let currentState = await getState(store);
-  console.log("currentState", currentState);
+  log("currentState", currentState);
 
   if (!(await nodeDelegatorHas32Eth(contracts))) {
-    console.log(`Node delegator doesn't have enough ETH, exiting`);
+    log(`Node delegator doesn't have enough ETH, exiting`);
     return;
   }
 
@@ -150,10 +150,7 @@ const increaseErrorCount = async (requestUUID, store, error) => {
       errorCount: newErrorCount,
     }),
   );
-  console.log(
-    `Operate validators loop uuid: ${requestUUID} encountered an error ${newErrorCount} times. Error: `,
-    error,
-  );
+  log(`Operate validators loop uuid: ${requestUUID} encountered an error ${newErrorCount} times. Error: `, error);
 };
 
 /* Each P2P request has a life cycle that results in the following states stored
@@ -197,9 +194,9 @@ const updateState = async (requestUUID, state, store, metadata = {}) => {
 
 const clearState = async (uuid, store, error = false) => {
   if (error) {
-    console.log(`Clearing state tracking of ${uuid} request because of an error: ${error}`);
+    log(`Clearing state tracking of ${uuid} request because of an error: ${error}`);
   } else {
-    console.log(`Clearing state tracking of ${uuid} request as it has completed its spawn cycle`);
+    log(`Clearing state tracking of ${uuid} request as it has completed its spawn cycle`);
   }
   await store.del("currentRequest");
 };
@@ -224,7 +221,7 @@ const nodeDelegatorHas32Eth = async (contracts) => {
   const ethBalance = await contracts.nodeDelegator.provider.getBalance(address);
   const totalBalance = wethBalance.add(ethBalance);
 
-  console.log(`Node delegator has ${utils.formatUnits(totalBalance, 18)} ETH in total`);
+  log(`Node delegator has ${utils.formatUnits(totalBalance, 18)} ETH in total`);
   return totalBalance.gte(utils.parseEther("32"));
 };
 
@@ -244,7 +241,7 @@ const p2pRequest = async (url, api_key, method, body) => {
   }
 
   const bodyString = JSON.stringify(body);
-  console.log(`Creating a P2P ${method} request with ${url} `, body != undefined ? ` and body: ${bodyString}` : "");
+  log(`Creating a P2P ${method} request with ${url} `, body != undefined ? ` and body: ${bodyString}` : "");
 
   const rawResponse = await fetch(url, {
     method,
@@ -254,10 +251,10 @@ const p2pRequest = async (url, api_key, method, body) => {
 
   const response = await rawResponse.json();
   if (response.error != null) {
-    console.log("Request to P2P service failed with an error:", response);
+    log("Request to P2P service failed with an error:", response);
     throw new Error(`Call to P2P has failed: ${JSON.stringify(response.error)}`);
   } else {
-    console.log("Request to P2P service succeeded: ", response);
+    log("Request to P2P service succeeded: ", response);
   }
 
   return response;
@@ -286,7 +283,7 @@ const createValidatorRequest = async (
 };
 
 const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, txHash, methodName, newState) => {
-  console.log(`Waiting for transaction with hash "${txHash}" method "${methodName}" and uuid "${uuid}" to be mined...`);
+  log(`Waiting for transaction with hash "${txHash}" method "${methodName}" and uuid "${uuid}" to be mined...`);
   const tx = await provider.waitForTransaction(txHash);
   if (!tx) {
     throw Error(`Transaction with hash "${txHash}" not found for method "${methodName}" and uuid "${uuid}"`);
@@ -297,10 +294,10 @@ const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, 
 const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
   const { pubkey, signature, depositDataRoot } = depositData;
   try {
-    console.log(`About to stake ETH with:`);
-    console.log(`pubkey: ${pubkey}`);
-    console.log(`signature: ${signature}`);
-    console.log(`depositDataRoot: ${depositDataRoot}`);
+    log(`About to stake ETH with:`);
+    log(`pubkey: ${pubkey}`);
+    log(`signature: ${signature}`);
+    log(`depositDataRoot: ${depositDataRoot}`);
     const tx = await nodeDelegator.connect(signer).stakeEth([
       {
         pubkey,
@@ -309,13 +306,13 @@ const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
       },
     ]);
 
-    console.log(`Transaction to stake ETH has been broadcast with hash: ${tx.hash}`);
+    log(`Transaction to stake ETH has been broadcast with hash: ${tx.hash}`);
 
     await updateState(uuid, "deposit_transaction_broadcast", store, {
       depositTx: tx.hash,
     });
   } catch (e) {
-    console.log(`Submitting transaction failed with: `, e);
+    log(`Submitting transaction failed with: `, e);
     //await clearState(uuid, store, `Transaction to deposit to validator fails`)
     throw e;
   }
@@ -328,25 +325,25 @@ const broadcastRegisterValidator = async (signer, store, uuid, registerValidator
   );
 
   const [publicKey, operatorIds, sharesData, amount, cluster] = registerTransactionParams;
-  console.log(`About to register validator with:`);
-  console.log(`publicKey: ${publicKey}`);
-  console.log(`operatorIds: ${operatorIds}`);
-  console.log(`sharesData: ${sharesData}`);
-  console.log(`amount: ${amount}`);
-  console.log(`cluster: ${cluster}`);
+  log(`About to register validator with:`);
+  log(`publicKey: ${publicKey}`);
+  log(`operatorIds: ${operatorIds}`);
+  log(`sharesData: ${sharesData}`);
+  log(`amount: ${amount}`);
+  log(`cluster: ${cluster}`);
 
   try {
     const tx = await nodeDelegator
       .connect(signer)
       .registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
 
-    console.log(`Transaction to register SSV Validator has been broadcast with hash: ${tx.hash}`);
+    log(`Transaction to register SSV Validator has been broadcast with hash: ${tx.hash}`);
 
     await updateState(uuid, "register_transaction_broadcast", store, {
       validatorRegistrationTx: tx.hash,
     });
   } catch (e) {
-    console.log(`Submitting transaction failed with: `, e);
+    log(`Submitting transaction failed with: `, e);
     //await clearState(uuid, store, `Transaction to register SSV Validator fails`)
     throw e;
   }
@@ -360,16 +357,16 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
       "GET",
     );
     if (response.error != null) {
-      console.log(`Error processing request uuid: ${uuid} error: ${response}`);
+      log(`Error processing request uuid: ${uuid} error: ${response}`);
     } else if (response.result.status === "ready") {
       await updateState(uuid, "validator_creation_confirmed", store, {
         validatorRegistrationRawTx: response.result.validatorRegistrationTxs[0],
         depositData: response.result.depositData,
       });
-      console.log(`Validator created using uuid: ${uuid} is ready`);
+      log(`Validator created using uuid: ${uuid} is ready`);
       return true;
     } else {
-      console.log(`Validator created using uuid: ${uuid} not yet ready. State: ${response.result.status}`);
+      log(`Validator created using uuid: ${uuid} not yet ready. State: ${response.result.status}`);
       return false;
     }
   };
@@ -383,7 +380,7 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
     counter++;
 
     if (counter > attempts) {
-      console.log(`Tried validating the validator formation with ${attempts} but failed`);
+      log(`Tried validating the validator formation with ${attempts} but failed`);
       await clearState(uuid, store, `Too may attempts(${attempts}) to waiting for validator to be ready.`);
       break;
     }
