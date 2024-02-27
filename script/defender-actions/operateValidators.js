@@ -18,7 +18,7 @@ const handler = async (event) => {
   console.log(`DEBUG env var in handler before being set: "${process.env.DEBUG}"`);
 
   const network = await provider.getNetwork();
-  log(`Network: ${network.name} with chain id (${network.chainId})`);
+  console.log(`Network: ${network.name} with chain id (${network.chainId})`);
 
   const eigenPodAddress = addresses[network.name].EIGEN_POD;
 
