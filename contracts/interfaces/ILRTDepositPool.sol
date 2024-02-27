@@ -56,5 +56,5 @@ interface ILRTDepositPool {
     function getAssetDistributionData(address asset)
         external
         view
-        returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer);
+        returns (uint256 depositPoolAssets, uint256 ndcAssets, uint256 eigenAssets);
 }

@@ -48,9 +48,8 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @param asset Asset address
     /// @return totalAssetDeposit total asset present in protocol
     function getTotalAssetDeposits(address asset) public view override returns (uint256 totalAssetDeposit) {
-        (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer) =
-            getAssetDistributionData(asset);
-        return (assetLyingInDepositPool + assetLyingInNDCs + assetStakedInEigenLayer);
+        (uint256 depositPoolAssets, uint256 ndcAssets, uint256 eigenAssets) = getAssetDistributionData(asset);
+        return (depositPoolAssets + ndcAssets + eigenAssets);
     }
 
     /// @notice gets the current limit of asset deposit
@@ -72,26 +71,25 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
 
     /// @dev provides asset amount distribution data among depositPool, NDCs and EigenLayer
     /// @param asset the asset to get the total amount of
-    /// @return assetLyingInDepositPool asset amount lying in this LRTDepositPool contract
-    /// @return assetLyingInNDCs asset amount sum lying in all NDC contracts.
+    /// @return depositPoolAssets asset amount lying in this LRTDepositPool contract
+    /// @return ndcAssets asset amount sum lying in all NDC contracts.
     /// This includes any native ETH when the asset is WETH.
-    /// @return assetStakedInEigenLayer asset amount deposited in EigenLayer through all NDCs.
+    /// @return eigenAssets asset amount deposited in EigenLayer through all NDCs.
     /// This is either LSTs in EigenLayer strategies or native ETH managed by EigenLayer pods.
     function getAssetDistributionData(address asset)
         public
         view
         override
         onlySupportedAsset(asset)
-        returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer)
+        returns (uint256 depositPoolAssets, uint256 ndcAssets, uint256 eigenAssets)
     {
-        assetLyingInDepositPool = IERC20(asset).balanceOf(address(this));
+        depositPoolAssets = IERC20(asset).balanceOf(address(this));
 
         uint256 ndcsCount = nodeDelegatorQueue.length;
         for (uint256 i; i < ndcsCount;) {
-            (uint256 assetLyingInNDC, uint256 assetInEigenLayer) =
-                INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
-            assetLyingInNDCs += assetLyingInNDC;
-            assetStakedInEigenLayer += assetInEigenLayer;
+            (uint256 _ndcAssets, uint256 _eigenAssets) = INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
+            ndcAssets += _ndcAssets;
+            eigenAssets += _eigenAssets;
             unchecked {
                 ++i;
             }

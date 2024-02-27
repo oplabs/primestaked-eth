@@ -15,7 +15,6 @@ interface INodeDelegator {
     error StrategyIsNotSetForAsset();
     error InvalidETHSender();
     error InsufficientWETH(uint256 balance);
-    error NoWETHConfig();
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
@@ -25,8 +24,5 @@ interface INodeDelegator {
 
     function getAssetBalances() external view returns (address[] memory, uint256[] memory);
 
-    function getAssetBalance(address asset)
-        external
-        view
-        returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer);
+    function getAssetBalance(address asset) external view returns (uint256 ndcAssets, uint256 eigenAssets);
 }

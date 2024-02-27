@@ -187,8 +187,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         assetBalances = new uint256[](assets.length);
 
         for (uint256 i = 0; i < assets.length;) {
-            (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer) = getAssetBalance(assets[i]);
-            assetBalances[i] = assetLyingInNDC + assetStakedInEigenLayer;
+            (uint256 ndcAssets, uint256 eigenAssets) = getAssetBalance(assets[i]);
+            assetBalances[i] = ndcAssets + eigenAssets;
 
             unchecked {
                 ++i;
@@ -200,17 +200,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// or native ETH staked into an EigenPod.
     /// @param asset the token address of the asset.
     /// WETH will include any native ETH in this contract or staked in EigenLayer.
-    /// @return assetLyingInNDC assets lying in this NDC contract.
+    /// @return ndcAssets assets lying in this NDC contract.
     /// This includes any native ETH when the asset is WETH.
-    /// @return assetStakedInEigenLayer asset amount deposited in underlying EigenLayer strategy
+    /// @return eigenAssets asset amount deposited in underlying EigenLayer strategy
     /// or native ETH staked into an EigenPod.
-    function getAssetBalance(address asset)
-        public
-        view
-        override
-        returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer)
-    {
-        assetLyingInNDC += IERC20(asset).balanceOf(address(this));
+    function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
+        ndcAssets += IERC20(asset).balanceOf(address(this));
 
         // The WETH address is different between chains so reading from the config.
         // Ideally, the WETH address would be an immutable but following the existing pattern of using config for now.
@@ -218,16 +213,16 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         if (asset == WETH_TOKEN_ADDRESS) {
             // Add any ETH in the NDC that was earned from EigenLayer
-            assetLyingInNDC += address(this).balance;
+            ndcAssets += address(this).balance;
 
-            assetStakedInEigenLayer = stakedButNotVerifiedEth;
+            eigenAssets = stakedButNotVerifiedEth;
             if (address(eigenPod) != address(0)) {
-                assetStakedInEigenLayer += address(eigenPod).balance;
+                eigenAssets += address(eigenPod).balance;
             }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
-                assetStakedInEigenLayer = IStrategy(strategy).userUnderlyingView(address(this));
+                eigenAssets = IStrategy(strategy).userUnderlyingView(address(this));
             }
         }
     }
