@@ -229,6 +229,8 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
       WETH,
     };
 
+    const eigenPodAddress = await parseAddress("EIGEN_POD");
+
     const network = await ethers.provider.getNetwork();
     const p2p_api_key = network.chainId === 1 ? process.env.P2P_MAINNET_API_KEY : process.env.P2P_GOERLI_API_KEY;
     if (!p2p_api_key) {
@@ -237,6 +239,7 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
     const p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test.p2p.org";
 
     const config = {
+      eigenPodAddress,
       p2p_api_key,
       p2p_base_url,
       // how much SSV (expressed in days of runway) gets deposited into SSV
