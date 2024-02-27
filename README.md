@@ -339,6 +339,7 @@ The following will upload the different Action bundles to Defender.
 ```sh
 # change to the defender-actions folder
 cd ./script/defender-actions
+npx rollup -c
 
 # Export the DEFENDER_TEAM_KEY and DEFENDER_TEAM_SECRET environment variables
 export DEFENDER_TEAM_KEY=
@@ -369,9 +370,27 @@ npx defender-autotask update-code 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb ./dist/op
 
 ### Goerli Defender Actions
 
-| Name                  | ID                                                                                                                                    | Source Code                                                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Prime - Add validator | [7dda695d-56b1-48ba-9e9a-3307c4a2f7bb](https://defender.openzeppelin.com/v2/#/actions/automatic/7dda695d-56b1-48ba-9e9a-3307c4a2f7bb) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
+| Name                           | ID                                                                                                                                    | Source Code                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Prime - Add validator - Goerli | [7dda695d-56b1-48ba-9e9a-3307c4a2f7bb](https://defender.openzeppelin.com/v2/#/actions/automatic/7dda695d-56b1-48ba-9e9a-3307c4a2f7bb) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
+
+## Goerli Testing
+
+After the Goerli contracts have been deployed and addresses updated in `Addresses.sol` and `addresses.js`. This includes
+the EigenPod for the new native staking NodeDelegator.
+
+Make sure the `GOERLI_RPC_URL` environment variable is set in the `.env` file.
+
+Generate an API key for the Goerli Defender Relayer and set the `DEFENDER_RELAYER_KEY` and `DEFENDER_RELAYER_SECRET`
+environment variables in the `.env` file.
+
+```
+export DEBUG=prime*
+npx hardhat depositWETH --amount 32 --network goerli
+npx hardhat depositPrime --symbol WETH --amount 32 --network goerli
+npx hardhat depositEL --symbol WETH --index 1  --network goerli
+npx hardhat operateValidators --network goerli
+```
 
 # Validators
 
