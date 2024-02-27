@@ -93,7 +93,7 @@ library AddressesGoerli {
     address public constant LRT_DEPOSIT_POOL = 0xAfC2A725cc957D0751f2343929C6e062118fB86e;
     address public constant NODE_DELEGATOR = 0x134ed22982EDE4ED69aC8c3ee5B29874bC0492F9;
     address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x03f754CC229C916cb0dd936F5a332c4De32aAb29;
-    address public constant EIGEN_POD = 0x90Aa87c100aA3C2D513ECEa85069B78A274E8bf4;
+    address public constant EIGEN_POD = 0x4b4DC934Dd44A1B48C822c70997eFb4a828118c8;
 
     // address public constant CHAINLINK_ORACLE_PROXY = ;
 
