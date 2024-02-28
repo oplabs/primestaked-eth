@@ -228,7 +228,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param validators A list of validator data needed to stake.
     /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
-    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
+    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator whenNotPaused {
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;
@@ -305,6 +305,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     )
         external
         onlyLRTOperator
+        whenNotPaused
     {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
