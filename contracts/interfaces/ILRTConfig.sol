@@ -10,6 +10,7 @@ interface ILRTConfig {
     error CallerNotLRTConfigManager();
     error CallerNotLRTConfigOperator();
     error CallerNotLRTConfigAllowedRole(string role);
+    error ValidatorAllreadyStaked(bytes pubkey);
 
     // Events
     event SetToken(bytes32 key, address indexed tokenAddr);
