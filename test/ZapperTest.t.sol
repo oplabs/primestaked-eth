@@ -9,22 +9,22 @@ import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/trans
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract ZapperTest is BaseTest, LRTDepositPoolTest {
-	PrimeZapper public primeZapper;
-	address public wethAddress;
+    PrimeZapper public primeZapper;
+    address public wethAddress;
 
-	function setUp() public virtual override(LRTDepositPoolTest, BaseTest) {
-	    super.setUp();
+    function setUp() public virtual override(LRTDepositPoolTest, BaseTest) {
+        super.setUp();
 
-	    // initialize LRTDepositPool
+        // initialize LRTDepositPool
         lrtDepositPool.initialize(address(lrtConfig));
 
-	    wethAddress = address(weth);
-	    ProxyAdmin proxyAdmin = new ProxyAdmin();
-	    primeZapper = new PrimeZapper(address(preth), address(lrtDepositPool), wethAddress);
-	}
+        wethAddress = address(weth);
+        ProxyAdmin proxyAdmin = new ProxyAdmin();
+        primeZapper = new PrimeZapper(address(preth), address(lrtDepositPool), wethAddress);
+    }
 
-	function test_DepositETH() external {
-		vm.startPrank(alice);
+    function test_DepositETH() external {
+        vm.startPrank(alice);
 
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
@@ -37,15 +37,15 @@ contract ZapperTest is BaseTest, LRTDepositPoolTest {
 
         assertEq(lrtDepositPool.getTotalAssetDeposits(wethAddress), 2 ether, "Total asset deposits is not set");
         assertGe(aliceBalanceAfter - aliceBalanceBefore, 2 ether, "Alice balance too low");
-  	}
+    }
 
-  	function test_sendETH() external {
-		vm.startPrank(alice);
+    function test_sendETH() external {
+        vm.startPrank(alice);
 
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
-        (bool sent, bytes memory data) = address(primeZapper).call{value: 2 ether}("");
+        (bool sent, bytes memory data) = address(primeZapper).call{ value: 2 ether }("");
         require(sent, "Failed to send Ether");
 
         // Alice's balance of prETH after deposit

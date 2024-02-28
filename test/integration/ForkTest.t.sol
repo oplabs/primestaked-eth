@@ -402,11 +402,23 @@ contract ForkTest is Test {
 
         vm.startPrank(whale);
 
-        vm.expectEmit({ emitter: address(primeZapper), checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        vm.expectEmit({
+            emitter: address(primeZapper),
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
         emit Zap(whale, 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, amountToTransfer);
 
         // Should transfer WETH from zapper to pool
-        vm.expectEmit({ emitter: Addresses.WETH_TOKEN, checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+        vm.expectEmit({
+            emitter: Addresses.WETH_TOKEN,
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
         emit Transfer(address(primeZapper), address(lrtDepositPool), amountToTransfer);
 
         // Should mint primeETH

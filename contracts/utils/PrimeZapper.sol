@@ -14,8 +14,8 @@ contract PrimeZapper {
     /* leaving ETH marker and "asset" in the Zap event just in case in 
      * future we decide to allow for zapping with any other asset.
      */
-    address private constant ETH_MARKER =
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address private constant ETH_MARKER = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
     event Zap(address indexed minter, address indexed asset, uint256 amount);
 
     constructor(address _primeEth, address _lrtDepositPool, address _weth) {

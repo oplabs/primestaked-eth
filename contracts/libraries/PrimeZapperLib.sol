@@ -6,7 +6,6 @@ import "forge-std/console.sol";
 import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 
-
 library PrimeZapperLib {
     function deploy() internal returns (address contractAddress) {
         address primeth = block.chainid == 1 ? Addresses.PRIME_STAKED_ETH : AddressesGoerli.PRIME_STAKED_ETH;
