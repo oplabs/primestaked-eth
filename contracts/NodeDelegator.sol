@@ -29,7 +29,7 @@ struct ValidatorStakeData {
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
-    address immutable WETH_TOKEN_ADDRESS;
+    address public immutable WETH_TOKEN_ADDRESS;
 
     /// @dev The EigenPod is created and owned by this contract
     IEigenPod public eigenPod;

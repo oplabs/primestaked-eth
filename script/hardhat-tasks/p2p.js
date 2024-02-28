@@ -283,8 +283,11 @@ const createValidatorRequest = async (
 };
 
 const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, txHash, methodName, newState) => {
-  const tx = await provider.getTransaction(txHash);
-  await logTxDetails(tx, methodName, true);
+  log(`Waiting for transaction with hash "${txHash}" method "${methodName}" and uuid "${uuid}" to be mined...`);
+  const tx = await provider.waitForTransaction(txHash);
+  if (!tx) {
+    throw Error(`Transaction with hash "${txHash}" not found for method "${methodName}" and uuid "${uuid}"`);
+  }
   await updateState(uuid, newState, store);
 };
 
@@ -302,6 +305,8 @@ const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
         depositDataRoot,
       },
     ]);
+
+    log(`Transaction to stake ETH has been broadcast with hash: ${tx.hash}`);
 
     await updateState(uuid, "deposit_transaction_broadcast", store, {
       depositTx: tx.hash,
@@ -331,6 +336,8 @@ const broadcastRegisterValidator = async (signer, store, uuid, registerValidator
     const tx = await nodeDelegator
       .connect(signer)
       .registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
+
+    log(`Transaction to register SSV Validator has been broadcast with hash: ${tx.hash}`);
 
     await updateState(uuid, "register_transaction_broadcast", store, {
       validatorRegistrationTx: tx.hash,

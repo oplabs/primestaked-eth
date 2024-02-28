@@ -7,6 +7,8 @@ const addresses = require("../utils/addresses");
 const { abi: nodeDelegatorAbi } = require("../../out/NodeDelegator.sol/NodeDelegator.json");
 const { abi: erc20Abi } = require("../../out/ERC20.sol/ERC20.json");
 
+const log = require("../utils/logger")("action:operateValidators");
+
 // Entrypoint for the Defender Action
 const handler = async (event) => {
   const store = new KeyValueStoreClient(event);
