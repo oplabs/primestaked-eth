@@ -19,6 +19,7 @@ import { PrimeStakedETHLib } from "contracts/libraries/PrimeStakedETHLib.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { MockPriceAggregator } from "script/foundry-scripts/utils/MockPriceAggregator.sol";
@@ -183,6 +184,9 @@ contract DeployGoerli is Script {
 
         // Mock aggregators
         stETHPriceFeed = address(new MockPriceAggregator());
+
+        // Deploy new Prime Zapper
+        PrimeZapperLib.deploy();
 
         // setup
         setUpByAdmin();

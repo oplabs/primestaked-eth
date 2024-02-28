@@ -67,11 +67,11 @@ contract ForkTest is Test {
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
         nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
+        primeZapper = PrimeZapper(payable(Addresses.PRIME_ZAPPER));
 
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
         deployer.run();
-        primeZapper = PrimeZapper(payable(deployer.primeZapper()));
 
         // Unpause Prime Staked if its paused
         unpausePrime();
