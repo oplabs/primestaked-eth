@@ -17,6 +17,7 @@ participant "SSV Token" as ssv <<SSV>>
 participant "WETH" as weth <<Wrapped ETH>>
 participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
+participant "Delayed\nWithdrawal\nRouter" as dwr <<EigenLayer>>
 participant "DepositContract" as dep <<Beacon>>
 end box
 
@@ -206,6 +207,40 @@ note right: transfer SSV tokens\nfrom DelegatorNode\nto SSV Network
 return
 return
 return
+end group
+
+
+group Operator verifies validator
+
+note over nd
+TBD How are the validator proofs obtained?
+end note
+
+op -> pod : verifyWithdrawalCredentialsAndBalance(\noracleBlockNumber,\nvalidatorIndexm\nproofs,\nvalidatorFields)
+activate pod
+return
+
+end group
+
+group Operator withdraws rewards
+
+op -> nd : initiateWithdrawRewards()
+activate nd
+note right : withdraw all ETH in the EigenPod
+nd -> pod : withdrawBeforeRestaking()
+activate pod
+return
+return
+
+... 7 days ...
+
+op -> nd : claimRewards(maxClaims)
+activate nd
+nd -> dwr : claimDelayedWithdrawals(nodeDelegator, maxClaims)
+activate dwr
+return
+return
+
 end group
 
 @enduml
