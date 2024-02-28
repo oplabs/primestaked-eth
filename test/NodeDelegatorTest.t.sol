@@ -545,57 +545,6 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
     }
 }
 
-contract NodeDelegatorVerifyWithdrawalCredentials is NodeDelegatorTest {
-    function setUp() public override {
-        super.setUp();
-        nodeDel.initialize(address(lrtConfig));
-
-        vm.prank(manager);
-        nodeDel.createEigenPod();
-
-        // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
-        uint256 amount = 1000 ether;
-        weth.mint(address(nodeDel), amount);
-        vm.deal(address(weth), amount);
-
-        // stake ETH in EigenPodManager
-        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
-        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
-
-        vm.prank(operator);
-        nodeDel.stakeEth(blankValidator);
-    }
-
-    function test_RevertWhenCallerIsNotLRTOperator() external {
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs =
-            BeaconChainProofs.ValidatorFieldsAndBalanceProofs(hex"", hex"", hex"");
-
-        vm.startPrank(alice);
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-        nodeDel.verifyWithdrawalCredentials(0, 0, proofs, new bytes32[](0));
-        vm.stopPrank();
-    }
-
-    function test_VerifyWithdrawalCredentials() external {
-        uint64 oracleBlockNumber = 0;
-        uint40 validatorIndex = 0;
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs =
-            BeaconChainProofs.ValidatorFieldsAndBalanceProofs(hex"", hex"", hex"");
-        bytes32[] memory validatorFields = new bytes32[](0);
-
-        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
-        uint256 stakeButNotVerifiedBefore = nodeDel.stakedButNotVerifiedEth();
-        assertEq(stakeButNotVerifiedBefore, 32 ether, "Incorrect stakedButNotVerifiedEth");
-
-        vm.prank(operator);
-        nodeDel.verifyWithdrawalCredentials(oracleBlockNumber, validatorIndex, proofs, validatorFields);
-
-        // stakeButNotVerifiedAfter is still 32 as dummy validator results in zero balance on beacon chain
-        uint256 stakeButNotVerifiedAfter = nodeDel.stakedButNotVerifiedEth();
-        assertEq(stakeButNotVerifiedAfter, 32 ether, "Incorrect stakedButNotVerifiedEth");
-    }
-}
-
 contract NodeDelegatorPause is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();

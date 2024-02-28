@@ -266,32 +266,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit ETHStaked(pubkey, 32 ether);
     }
 
-    /// @dev Verifies the withdrawal credentials for a withdrawal
-    /// This will allow the EigenPodManager to verify the withdrawal credentials and credit the OD with shares
-    /// Only manager should call this function
-    /// @param oracleBlockNumber The oracle block number of the withdrawal
-    /// @param validatorIndex The validator index of the withdrawal
-    /// @param proofs The proofs of the withdrawal
-    /// @param validatorFields The validator fields of the withdrawal
-    function verifyWithdrawalCredentials(
-        uint64 oracleBlockNumber,
-        uint40 validatorIndex,
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
-        bytes32[] calldata validatorFields
-    )
-        external
-        onlyLRTOperator
-    {
-        eigenPod.verifyWithdrawalCredentialsAndBalance(oracleBlockNumber, validatorIndex, proofs, validatorFields);
-
-        // Decrement the staked but not verified ETH
-        uint64 validatorCurrentBalanceGwei =
-            BeaconChainProofs.getBalanceFromBalanceRoot(validatorIndex, proofs.balanceRoot);
-
-        uint256 gweiToWei = 1e9;
-        stakedButNotVerifiedEth -= (validatorCurrentBalanceGwei * gweiToWei);
-    }
-
     /// @dev Triggers stopped state. Contract must not be paused.
     function pause() external onlyLRTManager {
         _pause();
