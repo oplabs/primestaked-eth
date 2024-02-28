@@ -277,11 +277,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @dev Claim ETH withdrawals from the EigenPod that were initiated over 7 days ago.
-    function claimRewards(uint256 maxNumberOfDelayedWithdrawalsToClaim) external onlyLRTOperator whenNotPaused {
+    /// @param maxClaims The maximum number of delayed withdrawals to claim.
+    function claimRewards(uint256 maxClaims) external onlyLRTOperator whenNotPaused {
         uint256 balanceBefore = address(this).balance;
         address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
         IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
-        elDelayedRouter.claimDelayedWithdrawals(address(this), maxNumberOfDelayedWithdrawalsToClaim);
+        elDelayedRouter.claimDelayedWithdrawals(address(this), maxClaims);
         uint256 balanceAfter = address(this).balance;
 
         emit ETHRewardsClaimed(balanceAfter - balanceBefore);
