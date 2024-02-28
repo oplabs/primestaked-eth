@@ -266,6 +266,26 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit ETHStaked(pubkey, 32 ether);
     }
 
+    /// @dev Initiate a withdraw of all ETH in the EigenPod before it is verified for restaking.
+    /// The ETH can be claimed from the EigenLayer Delayed Withdrawal Router after 7 days.
+    function initiateWithdrawRewards() external onlyLRTOperator whenNotPaused {
+        uint256 eigenPodBalance = address(eigenPod).balance;
+
+        eigenPod.withdrawBeforeRestaking();
+        emit ETHRewardsWithdrawInitiated(eigenPodBalance);
+    }
+
+    /// @dev Claim ETH withdrawals from the EigenPod that were initiated over 7 days ago.
+    function claimRewards(uint256 maxNumberOfDelayedWithdrawalsToClaim) external onlyLRTOperator whenNotPaused {
+        uint256 balanceBefore = address(this).balance;
+        address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
+        IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
+        elDelayedRouter.claimDelayedWithdrawals(address(this), maxNumberOfDelayedWithdrawalsToClaim);
+        uint256 balanceAfter = address(this).balance;
+
+        emit ETHRewardsClaimed(balanceAfter - balanceBefore);
+    }
+
     /// @dev Triggers stopped state. Contract must not be paused.
     function pause() external onlyLRTManager {
         _pause();
