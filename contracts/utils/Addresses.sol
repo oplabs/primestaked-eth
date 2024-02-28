@@ -24,6 +24,8 @@ library Addresses {
     address public constant NODE_DELEGATOR_NATIVE_STAKING = 0xdaD6769045CA5467CBCA3437DC7a5C019872e3Da;
     // TODO update after deployment
     // address public constant EIGEN_POD = ;
+    // TODO update after deployment
+    address public constant PRIME_ZAPPER = 0x1ce5743DAD7526e898882464D9A53d08547536d5;
 
     address public constant CHAINLINK_ORACLE_PROXY = 0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09;
 
@@ -94,6 +96,7 @@ library AddressesGoerli {
     address public constant NODE_DELEGATOR = 0x134ed22982EDE4ED69aC8c3ee5B29874bC0492F9;
     address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x03f754CC229C916cb0dd936F5a332c4De32aAb29;
     address public constant EIGEN_POD = 0x4b4DC934Dd44A1B48C822c70997eFb4a828118c8;
+    address public constant PRIME_ZAPPER = 0xdee41ea9A4c8EF7D78377eEC0093785E0B2B3485;
 
     // address public constant CHAINLINK_ORACLE_PROXY = ;
 

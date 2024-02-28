@@ -15,6 +15,7 @@ import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
+import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 contract DeployNativeETH is BaseMainnetScript {
@@ -43,6 +44,9 @@ contract DeployNativeETH is BaseMainnetScript {
         // Deploy new WETH oracle
         wethOracleProxy =
             OraclesLib.deployInitWETHOracle(ProxyAdmin(Addresses.PROXY_ADMIN), ProxyFactory(Addresses.PROXY_FACTORY));
+
+        // Deploy new Prime Zapper
+        PrimeZapperLib.deploy();
     }
 
     function _fork() internal override {

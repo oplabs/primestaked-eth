@@ -11,7 +11,7 @@ solc_version = "0.8.21"
 build_info = true
 extra_output = ["storageLayout"]
 fs_permissions = [{ access = "read-write", path = "./data/"},{ access = "read", path = "./out/"}]
-gas_reports = ["LRTDepositPool", "NodeDelegator", "LRTOracle", "PrimeStakedETH", "LRTConfig"]
+gas_reports = ["LRTDepositPool", "NodeDelegator", "LRTOracle", "PrimeStakedETH", "LRTConfig", "PrimeZapper"]
 
 [profile.ci]
 fuzz = { runs = 10_000 }
