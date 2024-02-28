@@ -26,36 +26,35 @@ contract PrimeZapper {
     }
 
     /**
-     * @dev Deposit ETH and receive PrimeETH in return.
-     * Will not verify minimum amount of primeEth received
+     * @dev Deposit ETH and receive primeETH in return.
+     * Will not verify minimum amount of primeETH received
      */
     receive() external payable {
         deposit(0, "");
     }
 
     /**
-     * @dev Deposit ETH and receive PrimeETH in return
-     * @param minPrimeEth Minimum amount of PrimeETH for user to receive
-     * @return Amount of PrimeETH sent to user
+     * @dev Deposit ETH and receive primeETH in return
+     * @param minPrimeEth Minimum amount of primeETH for user to receive
+     * @return primeEthAmount the amount of primeETH tokens sent to user
      */
-    function deposit(uint256 minPrimeEth, string memory referralId) public payable returns (uint256) {
+    function deposit(uint256 minPrimeEth, string memory referralId) public payable returns (uint256 primeEthAmount) {
         uint256 balance = address(this).balance;
         weth.deposit{ value: balance }();
         emit Zap(msg.sender, ETH_MARKER, balance);
-        return _deposit(minPrimeEth, referralId);
+        primeEthAmount = _deposit(minPrimeEth, referralId);
     }
 
     /**
      * @dev Internal function to deposit PrimeETH from WETH
      * @param minPrimeEth Minimum amount of PrimeETH for user to receive
-     * @return Amount of PrimeEth sent to user
+     * @return primeEthAmount the amount of primeETH tokens sent to user
      */
-    function _deposit(uint256 minPrimeEth, string memory referralId) internal returns (uint256) {
+    function _deposit(uint256 minPrimeEth, string memory referralId) internal returns (uint256 primeEthAmount) {
         uint256 toDeposit = weth.balanceOf(address(this));
         lrtDepositPool.depositAsset(address(weth), toDeposit, minPrimeEth, referralId);
-        uint256 depositedAmount = primeEth.balanceOf(address(this));
-        require(depositedAmount >= minPrimeEth, "Zapper: not enough minted");
-        require(primeEth.transfer(msg.sender, depositedAmount));
-        return depositedAmount;
+        primeEthAmount = primeEth.balanceOf(address(this));
+        require(primeEthAmount >= minPrimeEth, "Zapper: not enough minted");
+        require(primeEth.transfer(msg.sender, primeEthAmount));
     }
 }
