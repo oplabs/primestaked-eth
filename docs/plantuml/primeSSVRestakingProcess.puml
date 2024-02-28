@@ -19,6 +19,7 @@ participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
 participant "Delayed\nWithdrawal\nRouter" as dwr <<EigenLayer>>
 participant "DepositContract" as dep <<Beacon>>
+participant "Validator" as val <<Beacon>>
 end box
 
 group Manager setup of EigenPod and SSV Network
@@ -223,6 +224,9 @@ return
 end group
 
 group Operator withdraws rewards
+
+val -> pod : ETH
+note left : Beacon chain partial withdraw\nof excess ETH every 10 days\nfrom validator to EigenPod
 
 op -> nd : initiateWithdrawRewards()
 activate nd
