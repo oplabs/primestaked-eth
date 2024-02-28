@@ -266,6 +266,31 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit ETHStaked(pubkey, 32 ether);
     }
 
+    /// @dev initiate a delayed withdraw of the ETH before the EigenPod is verified
+    /// which will be available to claim after withdrawalDelay blocks
+    function initiateWithdrawRewards() external onlyLRTOperator {
+        uint256 eigenPodBalance = address(eigenPod).balance;
+        uint256 ethValidatorMinBalanceThreshold = 16 ether;
+        if (eigenPodBalance > ethValidatorMinBalanceThreshold) {
+            revert InvalidRewardAmount();
+        }
+
+        eigenPod.withdrawBeforeRestaking();
+        emit ETHRewardsWithdrawInitiated(eigenPodBalance);
+    }
+
+    /// @dev claims back the withdrawal amount initiated to this nodeDelegator contract
+    /// once withdrawal amount is claimable
+    function claimRewards(uint256 maxNumberOfDelayedWithdrawalsToClaim) external onlyLRTOperator {
+        uint256 balanceBefore = address(this).balance;
+        address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
+        IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
+        elDelayedRouter.claimDelayedWithdrawals(address(this), maxNumberOfDelayedWithdrawalsToClaim);
+        uint256 balanceAfter = address(this).balance;
+
+        emit ETHRewardsClaimed(balanceAfter - balanceBefore);
+    }
+
     /// @dev Triggers stopped state. Contract must not be paused.
     function pause() external onlyLRTManager {
         _pause();
