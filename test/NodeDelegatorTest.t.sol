@@ -527,11 +527,13 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
 
         vm.prank(operator);
-        ValidatorStakeData memory blankValidator = ValidatorStakeData(hex"", hex"", hex"");
+        ValidatorStakeData memory someValidator = ValidatorStakeData(new bytes(1), hex"", hex"");
+        ValidatorStakeData memory someValidator1 = ValidatorStakeData(new bytes(2), hex"", hex"");
+        ValidatorStakeData memory someValidator2 = ValidatorStakeData(new bytes(3), hex"", hex"");
         ValidatorStakeData[] memory validators = new ValidatorStakeData[](3);
-        validators[0] = blankValidator;
-        validators[1] = blankValidator;
-        validators[2] = blankValidator;
+        validators[0] = someValidator;
+        validators[1] = someValidator1;
+        validators[2] = someValidator2;
         nodeDel.stakeEth(validators);
 
         (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
@@ -542,6 +544,25 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
 
         uint256 stakedButNotVerifiedEth = nodeDel.stakedButNotVerifiedEth();
         assertEq(stakedButNotVerifiedEth, amount, "Incorrect staked but not verified ETH");
+    }
+
+    function test_revertStakeETH() external {
+        // add WETH to nodeDelegator so it can deposit it into 2 validators
+        weth.mint(address(nodeDel), amount);
+        vm.deal(address(weth), amount);
+
+        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
+
+        vm.prank(operator);
+        ValidatorStakeData memory someValidator = ValidatorStakeData(new bytes(1), hex"", hex"");
+        ValidatorStakeData[] memory validators = new ValidatorStakeData[](3);
+        // not allowed to stake the same validator twice
+        validators[0] = someValidator;
+        validators[1] = someValidator;
+
+        bytes4 selector = bytes4(keccak256("ValidatorAlreadyStaked(bytes)"));
+        vm.expectRevert(abi.encodeWithSelector(selector, new bytes(1)));
+        nodeDel.stakeEth(validators);
     }
 }
 

@@ -15,6 +15,7 @@ interface INodeDelegator {
     error StrategyIsNotSetForAsset();
     error InvalidETHSender();
     error InsufficientWETH(uint256 balance);
+    error ValidatorAlreadyStaked(bytes pubkey);
 
     // methods
     function depositAssetIntoStrategy(address asset) external;

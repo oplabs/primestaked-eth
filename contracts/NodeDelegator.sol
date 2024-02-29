@@ -38,6 +38,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     uint256 public stakedButNotVerifiedEth;
 
     uint256 internal constant DUST_AMOUNT = 10;
+    mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _wethAddress) {
@@ -244,7 +245,14 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // For each validator
         for (uint256 i = 0; i < validators.length;) {
+            bytes32 pubkeyHash = sha256(validators[i].pubkey);
+
+            if (validatorsStaked[pubkeyHash]) {
+                revert ValidatorAlreadyStaked(validators[i].pubkey);
+            }
+
             _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
+            validatorsStaked[pubkeyHash] = true;
 
             unchecked {
                 ++i;
