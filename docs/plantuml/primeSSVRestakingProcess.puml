@@ -18,6 +18,7 @@ participant "WETH" as weth <<Wrapped ETH>>
 participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
 participant "Delayed\nWithdrawal\nRouter" as dwr <<EigenLayer>>
+participant "Message\nSender" as msg <<P2P>>
 participant "DepositContract" as dep <<Beacon>>
 participant "Validator" as val <<Beacon>>
 end box
@@ -80,6 +81,10 @@ feeRecipientAddress is NodeDelegator
 ssvOwnerAddress is NodeDelegator
 type is without-encrypt-key
 end note
+api -> api: private key
+note right : generate a validator private key
+api -> api: split(key)
+note right : splits validator key into multiple KeyShares
 return
 
 op -> api: status(uuid)
@@ -244,6 +249,30 @@ nd -> dwr : claimDelayedWithdrawals(nodeDelegator, maxClaims)
 activate dwr
 return
 return
+
+end group
+
+group Operator full withdraw from validator
+
+op -> api : GET\neth/staking/ssv/tx/withdraw/{id}\namount
+activate api
+note right : Prepare withdraw Transaction
+return tx
+
+op -> msg : send(action, pubKeys)
+activate msg
+note right : emits Message event
+return
+
+activate api
+api -> api : monitor Message events
+api -> api : sign(\npk,\nexit message)
+note right :voluntary exit message signed by the validator private key
+api -> val : signed voluntary exit message
+activate val
+note left : boardcast to the Beacon chain
+return
+deactivate api
 
 end group
 
