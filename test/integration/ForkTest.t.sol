@@ -12,6 +12,7 @@ import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 import { IStrategy } from "contracts/interfaces/IStrategy.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
+import { IEigenPod } from "contracts/interfaces/IEigenPod.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
@@ -156,6 +157,8 @@ contract ForkTest is Test {
         uint256 transferAmount = 32 ether;
         address asset = Addresses.WETH_TOKEN;
         deposit(asset, wWhale, transferAmount);
+        IEigenPod pod = IEigenPod(Addresses.EIGEN_POD);
+        address delayedWithdrawalRouter = pod.delayedWithdrawalRouter();
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
@@ -203,10 +206,22 @@ contract ForkTest is Test {
         vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
         emit ETHRewardsWithdrawInitiated(0.1 ether);
 
+        // initiate the withdrawal which sends ETH from the pod to the delayed router
+        uint256 balanceBeforePod = address(pod).balance;
+        uint256 balanceBeforeRouter = delayedWithdrawalRouter.balance;
+        uint256 balanceBeforeND = address(nodeDelegator2).balance;
         nodeDelegator2.initiateWithdrawRewards();
 
+        assertEq(address(Addresses.EIGEN_POD).balance, 0);
+        assertEq(balanceBeforeRouter + balanceBeforePod, delayedWithdrawalRouter.balance);
+
+        // move block number forward so rewards are claimable and claim rewards
+        uint256 DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS = 50400;
+        vm.roll(vm.getBlockNumber() + DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS + 1);
         nodeDelegator2.claimRewards(1);
 
+        // see that ETH has actually made it to the node delegator
+        assertEq(balanceBeforeND + balanceBeforePod, address(nodeDelegator2).balance);
         vm.stopPrank();
     }
 
