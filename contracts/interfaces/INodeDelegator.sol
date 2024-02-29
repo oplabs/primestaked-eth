@@ -9,6 +9,7 @@ interface INodeDelegator {
     event ETHDepositFromDepositPool(uint256 depositAmount);
     event EigenPodCreated(address indexed eigenPod, address indexed podOwner);
     event ETHStaked(bytes valPubKey, uint256 amount);
+    error ValidatorAlreadyStaked(bytes pubkey);
 
     // errors
     error TokenTransferFailed();

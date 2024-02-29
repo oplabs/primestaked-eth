@@ -248,12 +248,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             bytes32 pubkeyHash = sha256(validators[i].pubkey);
 
             if (validatorsStaked[pubkeyHash]) {
-                revert ILRTConfig.ValidatorAllreadyStaked(validators[i].pubkey);
+                revert ValidatorAlreadyStaked(validators[i].pubkey);
             }
 
             _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
             validatorsStaked[pubkeyHash] = true;
-            
+
             unchecked {
                 ++i;
             }

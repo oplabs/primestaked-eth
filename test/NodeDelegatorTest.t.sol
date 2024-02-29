@@ -560,7 +560,7 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         validators[0] = someValidator;
         validators[1] = someValidator;
 
-        bytes4 selector = bytes4(keccak256("ValidatorAllreadyStaked(bytes)"));
+        bytes4 selector = bytes4(keccak256("ValidatorAlreadyStaked(bytes)"));
         vm.expectRevert(abi.encodeWithSelector(selector, new bytes(1)));
         nodeDel.stakeEth(validators);
     }
