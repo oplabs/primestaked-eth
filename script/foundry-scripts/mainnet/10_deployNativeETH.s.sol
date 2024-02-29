@@ -2,8 +2,10 @@
 pragma solidity 0.8.21;
 
 import "forge-std/console.sol";
+import { Vm } from "forge-std/Vm.sol";
 
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
@@ -83,7 +85,29 @@ contract DeployNativeETH is BaseMainnetScript {
 
         vm.startPrank(Addresses.MANAGER_ROLE);
         console.log("Impersonating Manager: %s", Addresses.MANAGER_ROLE);
+
+        // Start the event recorder
+        vm.recordLogs();
+
+        // Create an EigenPod attached to the NodeDelegator
         newNodeDelegator2.createEigenPod();
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        console.log("EigenPod");
+        console.logBytes32(entries[3].topics[1]);
+        console.log("PodOwner = NodeDelegator");
+        console.logBytes32(entries[3].topics[2]);
+        assert(entries[3].topics[0] == keccak256("EigenPodCreated(address,address)"));
+
+        vm.stopPrank();
+
+        vm.startPrank(Addresses.ADMIN_MULTISIG);
+        console.log("Impersonating multisig: %s", Addresses.ADMIN_MULTISIG);
+
+        // Transfer some SSV to the NodeDelegator
+        IERC20(Addresses.SSV_TOKEN).transfer(address(newNodeDelegator2), 20e18);
+
         vm.stopPrank();
 
         console.log("Completed fork function in deploy script");
