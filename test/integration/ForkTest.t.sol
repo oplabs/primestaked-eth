@@ -48,6 +48,7 @@ contract ForkTest is Test {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event ETHRewardsWithdrawInitiated(uint256 amount);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -195,6 +196,17 @@ contract ForkTest is Test {
         });
 
         nodeDelegator2.stakeEth(validatorStakeData);
+
+        // Deposit some ETH in the EigenPod
+        vm.deal(Addresses.EIGEN_POD, 0.1 ether);
+
+        vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
+        emit ETHRewardsWithdrawInitiated(0.1 ether);
+
+        nodeDelegator2.initiateWithdrawRewards();
+
+        nodeDelegator2.claimRewards(1);
+
         vm.stopPrank();
     }
 
