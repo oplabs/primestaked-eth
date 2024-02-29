@@ -18,6 +18,7 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 
 import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
 import { IEigenPod, BeaconChainProofs } from "./interfaces/IEigenPod.sol";
+import { IEigenDelayedWithdrawalRouter } from "./interfaces/IEigenDelayedWithdrawalRouter.sol";
 
 struct ValidatorStakeData {
     bytes pubkey;
@@ -229,7 +230,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param validators A list of validator data needed to stake.
     /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
-    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
+    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator whenNotPaused {
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;
@@ -274,30 +275,25 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit ETHStaked(pubkey, 32 ether);
     }
 
-    /// @dev Verifies the withdrawal credentials for a withdrawal
-    /// This will allow the EigenPodManager to verify the withdrawal credentials and credit the OD with shares
-    /// Only manager should call this function
-    /// @param oracleBlockNumber The oracle block number of the withdrawal
-    /// @param validatorIndex The validator index of the withdrawal
-    /// @param proofs The proofs of the withdrawal
-    /// @param validatorFields The validator fields of the withdrawal
-    function verifyWithdrawalCredentials(
-        uint64 oracleBlockNumber,
-        uint40 validatorIndex,
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
-        bytes32[] calldata validatorFields
-    )
-        external
-        onlyLRTOperator
-    {
-        eigenPod.verifyWithdrawalCredentialsAndBalance(oracleBlockNumber, validatorIndex, proofs, validatorFields);
+    /// @dev Initiate a withdraw of all ETH in the EigenPod before it is verified for restaking.
+    /// The ETH can be claimed from the EigenLayer Delayed Withdrawal Router after 7 days.
+    function initiateWithdrawRewards() external onlyLRTOperator whenNotPaused {
+        uint256 eigenPodBalance = address(eigenPod).balance;
 
-        // Decrement the staked but not verified ETH
-        uint64 validatorCurrentBalanceGwei =
-            BeaconChainProofs.getBalanceFromBalanceRoot(validatorIndex, proofs.balanceRoot);
+        eigenPod.withdrawBeforeRestaking();
+        emit ETHRewardsWithdrawInitiated(eigenPodBalance);
+    }
 
-        uint256 gweiToWei = 1e9;
-        stakedButNotVerifiedEth -= (validatorCurrentBalanceGwei * gweiToWei);
+    /// @dev Claim ETH withdrawals from the EigenPod that were initiated over 7 days ago.
+    /// @param maxClaims The maximum number of delayed withdrawals to claim.
+    function claimRewards(uint256 maxClaims) external onlyLRTOperator whenNotPaused {
+        uint256 balanceBefore = address(this).balance;
+        address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
+        IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
+        elDelayedRouter.claimDelayedWithdrawals(address(this), maxClaims);
+        uint256 balanceAfter = address(this).balance;
+
+        emit ETHRewardsClaimed(balanceAfter - balanceBefore);
     }
 
     /// @dev Triggers stopped state. Contract must not be paused.
@@ -339,6 +335,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     )
         external
         onlyLRTOperator
+        whenNotPaused
     {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 

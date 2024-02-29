@@ -23,7 +23,7 @@ library Addresses {
     // TODO update after deployment
     address public constant NODE_DELEGATOR_NATIVE_STAKING = 0xdaD6769045CA5467CBCA3437DC7a5C019872e3Da;
     // TODO update after deployment
-    // address public constant EIGEN_POD = ;
+    address public constant EIGEN_POD = 0x55340Ae083210F42ad8Cbc962Be056bA4aFaBd0D;
     // TODO update after deployment
     address public constant PRIME_ZAPPER = 0x1ce5743DAD7526e898882464D9A53d08547536d5;
 
