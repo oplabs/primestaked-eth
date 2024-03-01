@@ -5,9 +5,10 @@ skinparam tabSize 2
 title "Prime Staked resaking process using SSV validators managed by P2P"
 
 actor "Staker" as staker
-actor "Operator" as op
-actor "Manager" as man
+actor "Operator" as op <<Prime>>
+actor "Prime\nManager" as man
 participant "API" as api <<P2P>>
+actor "Operator" as ssvOp <<SSV>>
 
 box "Blockahin"
 participant "DepositPool" as dp <<Prime>>
@@ -19,7 +20,7 @@ participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
 participant "Delayed\nWithdrawal\nRouter" as dwr <<EigenLayer>>
 participant "Message\nSender" as msg <<P2P>>
-participant "DepositContract" as dep <<Beacon>>
+participant "Deposit" as dep <<Beacon>>
 participant "Validator" as val <<Beacon>>
 end box
 
@@ -228,7 +229,7 @@ return
 
 end group
 
-group Operator withdraws rewards
+group Operator withdraws consensus rewards
 
 val -> pod : ETH
 note left : Beacon chain partial withdraw\nof excess ETH every 10 days\nfrom validator to EigenPod
@@ -252,27 +253,52 @@ return
 
 end group
 
-group Operator full withdraw from validator
+group Operator removes validator from SSV Cluster
 
-op -> api : GET\neth/staking/ssv/tx/withdraw/{id}\namount
-activate api
-note right : Prepare withdraw Transaction
-return tx
-
-op -> msg : send(action, pubKeys)
-activate msg
-note right : emits Message event
+op -> nd : exitSsvValidator(\npublicKey\noperatorIds)
+activate nd
+nd -> ssvNet : exitValidator(\npublicKey\noperatorIds)
+activate ssvNet
+return
 return
 
-activate api
-api -> api : monitor Message events
-api -> api : sign(\npk,\nexit message)
-note right :voluntary exit message signed by the validator private key
-api -> val : signed voluntary exit message
+ssvOp -> ssvOp : sign(\npk,\nexit message)
+note right : voluntary exit message signed by the validator private key
+ssvOp -> val : signed voluntary exit message
 activate val
-note left : boardcast to the Beacon chain
+val -> pod : ETH
+note left : transfer staked ETH\nfrom Beacon Deposit\nto EigenPod
 return
-deactivate api
+
+... wait until validator has exited ...
+
+op -> nd : removeSsvValidator(\npublicKey,\noperatorIds,\ncluster)
+activate nd
+nd -> ssvNet : removeValidator(\npublicKey\noperatorIds,\ncluster)
+activate ssvNet
+return
+return
+
+op -> nd : initiateWithdrawRewards()
+activate nd
+note right : withdraw all ETH in the EigenPod
+nd -> pod : withdrawBeforeRestaking()
+activate pod
+pod -> dwr : ETH
+note right : transfers ETH\nfrom EigenPod\nto Delayed Withdrawal Router
+return
+return
+
+... 7 days ...
+
+op -> nd : claimRewards(maxClaims)
+activate nd
+nd -> dwr : claimDelayedWithdrawals(nodeDelegator, maxClaims)
+activate dwr
+dwr -> nd : ETH
+note right : transfers ETH\nfrom Delayed Withdrawal Router\nto NodeDelegator
+return
+return
 
 end group
 
