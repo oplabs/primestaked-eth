@@ -376,7 +376,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).exitValidator(publicKey, operatorIds);
 
         // There can be a gap between the validator exiting the beacon chain and the ETH being sent to the EigenPod.
-        // stakedButNotVerifiedEth -= 32 ether;
+        stakedButNotVerifiedEth -= 32 ether;
     }
 
     /// @dev Remove a validator from the SSV Cluster.

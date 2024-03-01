@@ -749,8 +749,23 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
     }
 
     function test_exitSsvValidator() external {
-        vm.prank(operator);
+        vm.startPrank(manager);
+        nodeDel.approveSSV();
+        ssvToken.transfer(address(nodeDel), 10 ether);
+        vm.stopPrank();
+
+        vm.startPrank(operator);
+        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+
+        // add WETH to nodeDelegator so it can deposit it validators
+        weth.mint(address(nodeDel), 32 ether);
+        vm.deal(address(weth), 32 ether);
+        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
+        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
+        nodeDel.stakeEth(blankValidator);
+
         nodeDel.exitSsvValidator(hex"", operatorIds);
+        vm.stopPrank();
     }
 
     function test_removeSsvValidator() external {
