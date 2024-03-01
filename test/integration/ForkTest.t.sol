@@ -46,9 +46,16 @@ contract ForkTest is Test {
 
     string public referralId = "1234";
 
+    // removed the 0x06e8fb9c function signature (4 bytes) from the validatorRegistrationTxs.data
+    bytes internal validatorRegistrationTx =
+    // solhint-disable-next-line max-line-length
+        hex"0000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000001676d629c6961600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b39f8aa77ae6b907708d63e4150f6d9886c33a7e111ffc40e13db62ac652599440097d7eed3f140ae654db0fd4aa326d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000c300000000000000000000000000000000000000000000000000000000000000c600000000000000000000000000000000000000000000000000000000000000c900000000000000000000000000000000000000000000000000000000000005208236d06c51b31749ec5b8a3c1814d3949cd903612f134155f0cd0725a9b133bcb93c64ec5bd2940e965139e65728db1f1020e719b0d7847722c63fee58b859dbe5603da8891435faf203df8bbfb8dcf83581fb312ba16d2316ef510a44b06cc7b90c8c895a597f53cd500ef295c914191588b04510f7e2b41082132ab9afec89112ed4dd8f5d4e751fdd8ff1242d626291c52149682edf28512e17caeb72320addbe36466aad0aa94c07683a35018b9161a3efc79515871b2bd1016c3ef402c1abda13527332a26764052d63cf9e4a3b4a0d6699df592219a53b5fe149756c7de40f9a615ff15086bd27a06ae456d0c8a7174d57444d181c26b51219cc3d7b4bf1af6f9e1617915869e3b9c42b8f31112929e60c2583c6bbc99755742e63d5fd3efab5daed5c4b25045c691d5fc146e4cb70fefbad4926e968fb1ac7900c94bc87804b6faf0a09d04b6998328c1f54708ffea4cfb2dd55be278c1545af34817e0ef37f7bece61e27d55a99cf075e22394eab66a31ebad54aecefb680efc1f1a27914cc2127a6ba75a596ce96b70c6dcf5998b7b826744203d20e5ccd91ba1f8d4f8074b80a2afd5cc9b0aa86a79261bd7fac0847538cf1ab99e347b3eca3634011559c8d73adf7f47c0f6ba93b986e252e7f16d0519a99544ff1edfa4b016bb5700ec479957c920b152b7891bb42eef8910b2a470cec9ccf5e02dd6aed9a46834d2bc46d3c1a4047d6ad39807ab1b8fdfaeab7e89e12ef1aba530ab51e47c8702efd6ac36137deba9836e5973c0faa5fac42917ea3b82144296e1f8f317a64a1ff8d7c1085d2aa65d84833b2fa302f73ec4bc2139528b684f7af0535ed83c885586ba10e8d32913ecddde536c6f65c45f9aed2170d7652c8e10f11490ad81207bb045c79d29d0e1479140a4847e0b2425abe0a3f08cded1253617cd27a2c79ec1d647d91660e18ac6830256c49cf7e8e303f130d67b890872d4c50a1e2b928c63531979faa18f09e29a1915462c949c7a32e08df769189f089c528c61035edc120cc7ac9075a32acb5315996bed3182d325da9c88594facb574966cc4ea938e33e22bde45e91d8537e78a96086e05d7bf2b8953872386caa03a3fc27f8753cf3a11c4b75f87229a52ed96952125b6ebd8bbd48734d3aa2441cb46aafcd0fe20539b270da3e36af2a7ec53ac53d844293c932ca328d5cef7697c1e538f926fbda38e35be5df56c8207c1d3e23939ee7adefa3eb3176ae3d4144f2145fcf0726ca8cac4087e27174ec77960cd08593ffe2abd2d2f12e1b93d8f0b8649f574599826bddf45e94d636c0d47075b5ae481a262338ccbfeee2f8b0d9ff516e45ad83ca5c4542ed8bff89acaf2df15b6eb36f39bb3c4068fc85bb9d4cc891c717fcf538a248ae49a0114af6b08e5ca945fdb4f954760726b6d5c565bfda65c997c5f76ca02fc4488c1edb5a39c521b5378b4f1cd2f098673bcfa842054227b95a5544ba006919d52c61207245e65ce1a88d2ef76b93f5b4c45478b4485b7b2c5b569b5d8220075f5b38e441c8faabb5d9349c2dbfd397fa15ea9b83dcf2a0dc9414add07c21be25cc76bd5fc12657f63f6669182445d777c5b92bea84ac97f11b1e8b1c5050b47968244f6d4bfdf7a4a6a16941bc5b5dd1c887a9b5a733f9fb73afbfe4b2e6cf48a819ede206026e81eb8588f4d83fc2153c2d6cef1aabb46996780ef2a726455d63c1722ca425567f500de622bdc011a8a69d5c94d12c1ba9b9f5c994dd080a3465900d3647057cc6d615f8eec62c0eb7318037aa605b7ef09e3573d5183bb9061671d0ecd27241ae18b10d81baf7df198bc4856b25d8a76a8a698775";
+    ValidatorStakeData[] internal validatorStakeData;
+
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event ETHStaked(bytes valPubKey, uint256 amount);
     event ETHRewardsWithdrawInitiated(uint256 amount);
 
     function setUp() public virtual {
@@ -71,6 +78,16 @@ contract ForkTest is Test {
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
         nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
         primeZapper = PrimeZapper(payable(Addresses.PRIME_ZAPPER));
+
+        validatorStakeData.push(
+            ValidatorStakeData({
+                pubkey: hex"b39f8aa77ae6b907708d63e4150f6d9886c33a7e111ffc40e13db62ac652599440097d7eed3f140ae654db0fd4aa326d",
+                signature: hex"aa5d02ab96a3f1cabad81518dba674d07bf7e349df833ccb60b4b390b310880a"
+                    hex"43eeaedf1eacbb32c7d38dbc1250a80216af6a55e6980c52d919b7576001b0e6"
+                    hex"774e68631b5b888e3247d7cb657b95629bfb0a0c6529738f1f982410ea31d272",
+                depositDataRoot: 0x4c85805d759a32b68e733e3f82ec24dbb62c37a267dfd264be5ed83f6628098e
+            })
+        );
 
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
@@ -153,25 +170,19 @@ contract ForkTest is Test {
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
     }
 
-    function test_stakeETH() public {
+    function test_registerValidator() public {
         uint256 transferAmount = 32 ether;
         address asset = Addresses.WETH_TOKEN;
         deposit(asset, wWhale, transferAmount);
-        IEigenPod pod = IEigenPod(Addresses.EIGEN_POD);
-        address delayedWithdrawalRouter = pod.delayedWithdrawalRouter();
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
-        // Should transfer `asset` from DepositPool to the Delegator node
-        vm.expectEmit(asset);
-        emit Transfer(address(lrtDepositPool), address(nodeDelegator2), transferAmount);
-
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
 
-        // removed the 0x06e8fb9c function signature (4 bytes) from the validatorRegistrationTxs.data
-        bytes memory validatorRegistrationTx =
-        // solhint-disable-next-line max-line-length
-            hex"0000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000001676d629c6961600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b39f8aa77ae6b907708d63e4150f6d9886c33a7e111ffc40e13db62ac652599440097d7eed3f140ae654db0fd4aa326d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000c300000000000000000000000000000000000000000000000000000000000000c600000000000000000000000000000000000000000000000000000000000000c900000000000000000000000000000000000000000000000000000000000005208236d06c51b31749ec5b8a3c1814d3949cd903612f134155f0cd0725a9b133bcb93c64ec5bd2940e965139e65728db1f1020e719b0d7847722c63fee58b859dbe5603da8891435faf203df8bbfb8dcf83581fb312ba16d2316ef510a44b06cc7b90c8c895a597f53cd500ef295c914191588b04510f7e2b41082132ab9afec89112ed4dd8f5d4e751fdd8ff1242d626291c52149682edf28512e17caeb72320addbe36466aad0aa94c07683a35018b9161a3efc79515871b2bd1016c3ef402c1abda13527332a26764052d63cf9e4a3b4a0d6699df592219a53b5fe149756c7de40f9a615ff15086bd27a06ae456d0c8a7174d57444d181c26b51219cc3d7b4bf1af6f9e1617915869e3b9c42b8f31112929e60c2583c6bbc99755742e63d5fd3efab5daed5c4b25045c691d5fc146e4cb70fefbad4926e968fb1ac7900c94bc87804b6faf0a09d04b6998328c1f54708ffea4cfb2dd55be278c1545af34817e0ef37f7bece61e27d55a99cf075e22394eab66a31ebad54aecefb680efc1f1a27914cc2127a6ba75a596ce96b70c6dcf5998b7b826744203d20e5ccd91ba1f8d4f8074b80a2afd5cc9b0aa86a79261bd7fac0847538cf1ab99e347b3eca3634011559c8d73adf7f47c0f6ba93b986e252e7f16d0519a99544ff1edfa4b016bb5700ec479957c920b152b7891bb42eef8910b2a470cec9ccf5e02dd6aed9a46834d2bc46d3c1a4047d6ad39807ab1b8fdfaeab7e89e12ef1aba530ab51e47c8702efd6ac36137deba9836e5973c0faa5fac42917ea3b82144296e1f8f317a64a1ff8d7c1085d2aa65d84833b2fa302f73ec4bc2139528b684f7af0535ed83c885586ba10e8d32913ecddde536c6f65c45f9aed2170d7652c8e10f11490ad81207bb045c79d29d0e1479140a4847e0b2425abe0a3f08cded1253617cd27a2c79ec1d647d91660e18ac6830256c49cf7e8e303f130d67b890872d4c50a1e2b928c63531979faa18f09e29a1915462c949c7a32e08df769189f089c528c61035edc120cc7ac9075a32acb5315996bed3182d325da9c88594facb574966cc4ea938e33e22bde45e91d8537e78a96086e05d7bf2b8953872386caa03a3fc27f8753cf3a11c4b75f87229a52ed96952125b6ebd8bbd48734d3aa2441cb46aafcd0fe20539b270da3e36af2a7ec53ac53d844293c932ca328d5cef7697c1e538f926fbda38e35be5df56c8207c1d3e23939ee7adefa3eb3176ae3d4144f2145fcf0726ca8cac4087e27174ec77960cd08593ffe2abd2d2f12e1b93d8f0b8649f574599826bddf45e94d636c0d47075b5ae481a262338ccbfeee2f8b0d9ff516e45ad83ca5c4542ed8bff89acaf2df15b6eb36f39bb3c4068fc85bb9d4cc891c717fcf538a248ae49a0114af6b08e5ca945fdb4f954760726b6d5c565bfda65c997c5f76ca02fc4488c1edb5a39c521b5378b4f1cd2f098673bcfa842054227b95a5544ba006919d52c61207245e65ce1a88d2ef76b93f5b4c45478b4485b7b2c5b569b5d8220075f5b38e441c8faabb5d9349c2dbfd397fa15ea9b83dcf2a0dc9414add07c21be25cc76bd5fc12657f63f6669182445d777c5b92bea84ac97f11b1e8b1c5050b47968244f6d4bfdf7a4a6a16941bc5b5dd1c887a9b5a733f9fb73afbfe4b2e6cf48a819ede206026e81eb8588f4d83fc2153c2d6cef1aabb46996780ef2a726455d63c1722ca425567f500de622bdc011a8a69d5c94d12c1ba9b9f5c994dd080a3465900d3647057cc6d615f8eec62c0eb7318037aa605b7ef09e3573d5183bb9061671d0ecd27241ae18b10d81baf7df198bc4856b25d8a76a8a698775";
+        (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthBefore, transferAmount, "WETH/ETH in NodeDelegator before");
+        assertEq(eigenEthBefore, 0, "WETH/ETH in EigenLayer before");
+
         (
             bytes memory publicKey,
             uint64[] memory operatorIds,
@@ -189,19 +200,78 @@ contract ForkTest is Test {
 
         nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
 
-        ValidatorStakeData[] memory validatorStakeData = new ValidatorStakeData[](1);
-        validatorStakeData[0] = ValidatorStakeData({
-            pubkey: publicKey,
-            signature: hex"aa5d02ab96a3f1cabad81518dba674d07bf7e349df833ccb60b4b390b310880a"
-                hex"43eeaedf1eacbb32c7d38dbc1250a80216af6a55e6980c52d919b7576001b0e6"
-                hex"774e68631b5b888e3247d7cb657b95629bfb0a0c6529738f1f982410ea31d272",
-            depositDataRoot: 0x4c85805d759a32b68e733e3f82ec24dbb62c37a267dfd264be5ed83f6628098e
-        });
+        (uint256 ndcEthAfter, uint256 eigenEthAfter) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthAfter, transferAmount, "WETH/ETH in NodeDelegator after");
+        assertEq(eigenEthAfter, 0, "WETH/ETH in EigenLayer after");
+
+        vm.stopPrank();
+    }
+
+    function test_stakeETH() public {
+        uint256 transferAmount = 32 ether;
+        address asset = Addresses.WETH_TOKEN;
+        deposit(asset, wWhale, transferAmount);
+        IEigenPod pod = IEigenPod(Addresses.EIGEN_POD);
+        address delayedWithdrawalRouter = pod.delayedWithdrawalRouter();
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
+
+        (
+            bytes memory publicKey,
+            uint64[] memory operatorIds,
+            bytes memory sharesData,
+            uint256 amount,
+            Cluster memory cluster
+        ) = abi.decode(validatorRegistrationTx, (bytes, uint64[], bytes, uint256, Cluster));
+
+        nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
+
+        (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthBefore, transferAmount, "WETH/ETH in NodeDelegator before");
+        assertEq(eigenEthBefore, 0, "WETH/ETH in EigenLayer before");
+
+        vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
+        emit ETHStaked(publicKey, 32 ether);
+
+        nodeDelegator2.stakeEth(validatorStakeData);
+
+        (uint256 ndcEthAfter, uint256 eigenEthAfter) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthAfter, 0, "WETH/ETH in NodeDelegator after");
+        assertEq(eigenEthAfter, transferAmount, "WETH/ETH in EigenLayer after");
+
+        vm.stopPrank();
+    }
+
+    function test_claimRewards() public {
+        address asset = Addresses.WETH_TOKEN;
+        deposit(asset, wWhale, 32 ether);
+        IEigenPod pod = IEigenPod(Addresses.EIGEN_POD);
+        address delayedWithdrawalRouter = pod.delayedWithdrawalRouter();
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        lrtDepositPool.transferAssetToNodeDelegator(1, asset, 32 ether);
+
+        (
+            bytes memory publicKey,
+            uint64[] memory operatorIds,
+            bytes memory sharesData,
+            uint256 amount,
+            Cluster memory cluster
+        ) = abi.decode(validatorRegistrationTx, (bytes, uint64[], bytes, uint256, Cluster));
+
+        nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
 
         nodeDelegator2.stakeEth(validatorStakeData);
 
         // Deposit some ETH in the EigenPod
         vm.deal(Addresses.EIGEN_POD, 0.1 ether);
+
+        (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthBefore, 0, "WETH/ETH in NodeDelegator before");
+        assertEq(eigenEthBefore, 32.1 ether, "WETH/ETH in EigenLayer before");
 
         vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
         emit ETHRewardsWithdrawInitiated(0.1 ether);
@@ -215,10 +285,19 @@ contract ForkTest is Test {
         assertEq(address(Addresses.EIGEN_POD).balance, 0);
         assertEq(balanceBeforeRouter + balanceBeforePod, delayedWithdrawalRouter.balance);
 
+        (uint256 ndcEthAfterInitiate, uint256 eigenEthAfterInitiate) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthAfterInitiate, 0, "WETH/ETH in NodeDelegator after initiate");
+        assertEq(eigenEthAfterInitiate, 32.1 ether, "WETH/ETH in EigenLayer after initiate");
+
         // move block number forward so rewards are claimable and claim rewards
-        uint256 DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS = 50400;
+        uint256 DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS = 50_400;
         vm.roll(vm.getBlockNumber() + DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS + 1);
         nodeDelegator2.claimRewards(1);
+
+        (uint256 ndcEthAfterClaim, uint256 eigenEthAfterClaim) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthAfterClaim, 0.1 ether, "WETH/ETH in NodeDelegator after claim");
+        assertEq(eigenEthAfterClaim, 32 ether, "WETH/ETH in EigenLayer after claim");
 
         // see that ETH has actually made it to the node delegator
         assertEq(balanceBeforeND + balanceBeforePod, address(nodeDelegator2).balance);
@@ -237,6 +316,10 @@ contract ForkTest is Test {
         vm.deal(Addresses.NODE_DELEGATOR_NATIVE_STAKING, 10 ether);
 
         vm.prank(Addresses.MANAGER_ROLE);
+
+        vm.expectEmit(Addresses.WETH_TOKEN);
+        emit Transfer(address(nodeDelegator2), address(lrtDepositPool), 30 ether);
+
         nodeDelegator2.transferBackToLRTDepositPool(asset, 30 ether);
     }
 

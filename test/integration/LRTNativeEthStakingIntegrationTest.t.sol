@@ -10,6 +10,7 @@ import { OneETHPriceOracle } from "contracts/oracles/OneETHPriceOracle.sol";
 import { NodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
+import { AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -32,7 +33,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         vm.startPrank(admin);
 
         // Goerli WETH
-        WETHAddress = 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
+        WETHAddress = AddressesGoerli.WETH_TOKEN;
 
         // upgrade lrtConfig
         address proxyAddress = address(lrtConfig);
@@ -51,7 +52,7 @@ contract SkipLRTNativeEthStakingIntegrationTest is Test {
         // upgrade all ndcs
         address[] memory ndcs = lrtDepositPool.getNodeDelegatorQueue();
         assertEq(ndcs.length, 5, "Incorrect number of ndcs");
-        newImplementation = address(new NodeDelegator(WETHAddress));
+        newImplementation = address(new NodeDelegator(WETHAddress, AddressesGoerli.EIGEN_DELAYED_WITHDRAWAL_ROUTER));
         for (uint256 i = 0; i < ndcs.length; i++) {
             proxyAddress = address(ndcs[i]);
             proxyAdmin.upgrade(ITransparentUpgradeableProxy(proxyAddress), newImplementation);

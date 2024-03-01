@@ -74,6 +74,10 @@ contract MockSSVNetwork {
     {
         IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
     }
+
+    function exitValidator(bytes memory publicKey, uint64[] memory operatorIds) external { }
+
+    function removeValidator(bytes memory publicKey, uint64[] memory operatorIds, Cluster memory cluster) external { }
 }
 
 contract MockEigenPodManager {
@@ -108,6 +112,17 @@ contract MockEigenPod {
     receive() external payable { }
 }
 
+contract MockEigenDelayedWithdrawalRouter {
+    struct DelayedWithdrawal {
+        uint224 amount;
+        uint32 blockCreated;
+    }
+
+    function getUserDelayedWithdrawals(address user) external view returns (DelayedWithdrawal[] memory) { }
+    function createDelayedWithdrawal(address podOwner, address recipient) external payable { }
+    function claimDelayedWithdrawals(address recipient, uint256 maxNumberOfDelayedWithdrawalsToClaim) external { }
+}
+
 contract NodeDelegatorTest is LRTConfigTest {
     NodeDelegator public nodeDel;
     address public operator;
@@ -119,6 +134,7 @@ contract NodeDelegatorTest is LRTConfigTest {
     address public mockLRTDepositPool;
 
     MockEigenPodManager public mockEigenPodManager;
+    MockEigenDelayedWithdrawalRouter public mockEigenDelayedWithdrawalRouter;
 
     event UpdatedLRTConfig(address indexed lrtConfig);
     event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
@@ -141,6 +157,7 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         mockEigenPodManager = new MockEigenPodManager();
         lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, address(mockEigenPodManager));
+        mockEigenDelayedWithdrawalRouter = new MockEigenDelayedWithdrawalRouter();
 
         // add WETH token
         lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
@@ -166,7 +183,7 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         // deploy NodeDelegator
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth));
+        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth), address(mockEigenDelayedWithdrawalRouter));
         TransparentUpgradeableProxy nodeDelProxy =
             new TransparentUpgradeableProxy(address(nodeDelImpl), address(proxyAdmin), "");
 
@@ -685,6 +702,22 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.stopPrank();
     }
 
+    function test_exitSsvValidatorRevertWhenCallerIsNotLRTOperator() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+
+        nodeDel.exitSsvValidator(hex"", operatorIds);
+        vm.stopPrank();
+    }
+
+    function test_removeSsvValidatorRevertWhenCallerIsNotLRTOperator() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+
+        nodeDel.removeSsvValidator(hex"", operatorIds, cluster);
+        vm.stopPrank();
+    }
+
     function test_approveSSV() external {
         vm.prank(manager);
 
@@ -713,5 +746,15 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
 
         vm.prank(operator);
         nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+    }
+
+    function test_exitSsvValidator() external {
+        vm.prank(operator);
+        nodeDel.exitSsvValidator(hex"", operatorIds);
+    }
+
+    function test_removeSsvValidator() external {
+        vm.prank(operator);
+        nodeDel.removeSsvValidator(hex"", operatorIds, cluster);
     }
 }

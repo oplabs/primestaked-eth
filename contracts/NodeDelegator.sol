@@ -31,6 +31,7 @@ struct ValidatorStakeData {
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH_TOKEN_ADDRESS;
+    address public immutable EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS;
 
     /// @dev The EigenPod is created and owned by this contract
     IEigenPod public eigenPod;
@@ -42,9 +43,13 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _wethAddress) {
+    constructor(address _wethAddress, address _eigenDelayedWithdrawalRouterAddress) {
         UtilLib.checkNonZeroAddress(_wethAddress);
         WETH_TOKEN_ADDRESS = _wethAddress;
+
+        UtilLib.checkNonZeroAddress(_eigenDelayedWithdrawalRouterAddress);
+        EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS = _eigenDelayedWithdrawalRouterAddress;
+
         _disableInitializers();
     }
 
@@ -218,6 +223,19 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             if (address(eigenPod) != address(0)) {
                 eigenAssets += address(eigenPod).balance;
             }
+
+            // Get any ETH in the EigenDelayedWithdrawalRouter
+            IEigenDelayedWithdrawalRouter.DelayedWithdrawal[] memory delayedWithdrawals = IEigenDelayedWithdrawalRouter(
+                EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS
+            ).getUserDelayedWithdrawals(address(this));
+
+            for (uint256 i = 0; i < delayedWithdrawals.length;) {
+                eigenAssets += delayedWithdrawals[i].amount;
+
+                unchecked {
+                    ++i;
+                }
+            }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
@@ -326,6 +344,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
 
+    /// @dev Registers a new validator in the SSV Cluster
     function registerSsvValidator(
         bytes calldata publicKey,
         uint64[] calldata operatorIds,
@@ -340,6 +359,41 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
+    }
+
+    /// @dev Exit a validator from the Beacon chain.
+    /// The staked ETH will be sent to the EigenPod.
+    function exitSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds
+    )
+        external
+        onlyLRTOperator
+        whenNotPaused
+    {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).exitValidator(publicKey, operatorIds);
+
+        // There can be a gap between the validator exiting the beacon chain and the ETH being sent to the EigenPod.
+        // stakedButNotVerifiedEth -= 32 ether;
+    }
+
+    /// @dev Remove a validator from the SSV Cluster.
+    /// Make sure `exitSsvValidator` is called before and the validate has exited the Beacon chain.
+    /// If removed before the validator has exited the beacon chain will result in the validator being slashed.
+    function removeSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds,
+        Cluster calldata cluster
+    )
+        external
+        onlyLRTOperator
+        whenNotPaused
+    {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).removeValidator(publicKey, operatorIds, cluster);
     }
 
     /// @dev allow NodeDelegator to receive ETH rewards
