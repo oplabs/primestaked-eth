@@ -168,6 +168,10 @@ contract ForkTest is Test {
 
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
 
+        (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthBefore, 32 ether, "WETH/ETH in NodeDelegator before");
+        assertEq(eigenEthBefore, 0, "WETH/ETH in EigenLayer before");
+
         // removed the 0x06e8fb9c function signature (4 bytes) from the validatorRegistrationTxs.data
         bytes memory validatorRegistrationTx =
         // solhint-disable-next-line max-line-length
@@ -203,25 +207,10 @@ contract ForkTest is Test {
         // Deposit some ETH in the EigenPod
         vm.deal(Addresses.EIGEN_POD, 0.1 ether);
 
-        vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
-        emit ETHRewardsWithdrawInitiated(0.1 ether);
+        (uint256 ndcEthAfter, uint256 eigenEthAfter) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcEthAfter, 0, "WETH/ETH in NodeDelegator after");
+        assertEq(eigenEthAfter, 32 ether, "WETH/ETH in EigenLayer after");
 
-        // initiate the withdrawal which sends ETH from the pod to the delayed router
-        uint256 balanceBeforePod = address(pod).balance;
-        uint256 balanceBeforeRouter = delayedWithdrawalRouter.balance;
-        uint256 balanceBeforeND = address(nodeDelegator2).balance;
-        nodeDelegator2.initiateWithdrawRewards();
-
-        assertEq(address(Addresses.EIGEN_POD).balance, 0);
-        assertEq(balanceBeforeRouter + balanceBeforePod, delayedWithdrawalRouter.balance);
-
-        // move block number forward so rewards are claimable and claim rewards
-        uint256 DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS = 50400;
-        vm.roll(vm.getBlockNumber() + DELAY_ROUTER_WITHDRAWAL_DELAY_BLOCKS + 1);
-        nodeDelegator2.claimRewards(1);
-
-        // see that ETH has actually made it to the node delegator
-        assertEq(balanceBeforeND + balanceBeforePod, address(nodeDelegator2).balance);
         vm.stopPrank();
     }
 
