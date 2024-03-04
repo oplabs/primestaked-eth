@@ -17,8 +17,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/securit
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
-import { IEigenPod, BeaconChainProofs } from "./interfaces/IEigenPod.sol";
-import { IEigenDelayedWithdrawalRouter } from "./interfaces/IEigenDelayedWithdrawalRouter.sol";
+import { IEigenPod } from "./interfaces/IEigenPod.sol";
 
 struct ValidatorStakeData {
     bytes pubkey;
