@@ -1,12 +1,13 @@
 @startuml
 
 skinparam tabSize 2
+hide footbox
 
 title "Prime Staked resaking process using SSV validators managed by P2P"
 
 actor "Staker" as staker
-actor "Operator" as op
-actor "Manager" as man
+actor "Operator" as op <<Prime>>
+actor "Manager" as man <<Prime>>
 participant "API" as api <<P2P>>
 
 box "Blockahin"
@@ -17,9 +18,12 @@ participant "SSV Token" as ssv <<SSV>>
 participant "WETH" as weth <<Wrapped ETH>>
 participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
+participant "StrategyManager" as stratMan <<EigenLayer>>
 participant "Delayed\nWithdrawal\nRouter" as dwr <<EigenLayer>>
-participant "Message\nSender" as msg <<P2P>>
-participant "DepositContract" as dep <<Beacon>>
+participant "Deposit" as dep <<Beacon>>
+end box
+
+box "Beacon chain"
 participant "Validator" as val <<Beacon>>
 end box
 
@@ -50,24 +54,6 @@ man -> ssv : transfer(\nfrom\nto\namount)
 activate ssv
 note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
 return
-
-' man -> ssv : approve(\nSSV Network,\namount)
-' activate ssv
-' note right : Manger approves\nSSV Network to spend\nSSV tokens
-' return
-
-' man -> ssvNet : deposit(clusterOwner,\noperatorIds,\namount,\ncluster)
-' activate ssvNet
-' note right
-' who is the clusterOwner?
-' is operatorIds the P2P ids?
-' cluster?
-' end note
-' ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
-' activate ssv
-' note right: transfer SSV tokens\nfrom Manager\nto SSV Network
-' return
-' return
 
 end
 
@@ -111,12 +97,6 @@ return
 return
 return
 
-
-' op -> ssvNet : bulkRegisterValidator(\npublicKeys,\noperatorIds,\nsharesData,\namount,\ncluster)
-' activate ssvNet
-' note right : amount 0 as SSV tokens already deposited
-' return
-
 end group
 
 group User deposits WETH into Prime Staked
@@ -153,7 +133,6 @@ return
 ' return
 ' return
 
-
 op -> nd : stakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
 activate nd
 nd -> weth : withdraw(\namount)
@@ -168,8 +147,10 @@ note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
 activate podMan
 podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
 activate pod
+note right : 32 ETH from EigenPodManager\nis sent to EigenPod
 pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
 activate dep
+note right : 32 ETH from EigenPod\nis sent to Beacon Deposit
 return
 return
 return
@@ -195,7 +176,6 @@ end group
 
 group Manager deposits more SSV to SSV cluster
 
-
 man -> ssv : transfer(\nto\namount)
 activate ssv
 note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
@@ -218,12 +198,36 @@ end group
 
 group Operator verifies validator
 
-note over nd
-TBD How are the validator proofs obtained?
-end note
+op -> val : get Beacon state
+activate val
+return state
+
+op -> val : get Beacon block
+activate val
+return block
+
+op -> val : get Beacon block header
+activate val
+return block header
+
+op -> op : generate(\nstate,\nblock,\nblock header)
+activate op
+note right : generate proofs using EigenPod Proofs Generator tool
+return proofs, validatorFields
 
 op -> pod : verifyWithdrawalCredentialsAndBalance(\noracleBlockNumber,\nvalidatorIndexm\nproofs,\nvalidatorFields)
 activate pod
+note right
+verify validator's balance is >= 32 ETH
+and withdrawal credentials point to EigenPod
+end note
+pod -> podMan : restakeBeaconChainETH(\npodOwner,\namount)
+activate podMan
+podMan -> stratMan : depositBeaconChainETH(\nstaker,\namount)
+activate stratMan
+note right : add ETH strategy shares to NodeDelegator
+return
+return
 return
 
 end group
