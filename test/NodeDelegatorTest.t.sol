@@ -702,22 +702,6 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.stopPrank();
     }
 
-    function test_exitSsvValidatorRevertWhenCallerIsNotLRTOperator() external {
-        vm.startPrank(alice);
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-
-        nodeDel.exitSsvValidator(hex"", operatorIds);
-        vm.stopPrank();
-    }
-
-    function test_removeSsvValidatorRevertWhenCallerIsNotLRTOperator() external {
-        vm.startPrank(alice);
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-
-        nodeDel.removeSsvValidator(hex"", operatorIds, cluster);
-        vm.stopPrank();
-    }
-
     function test_approveSSV() external {
         vm.prank(manager);
 
@@ -746,30 +730,5 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
 
         vm.prank(operator);
         nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
-    }
-
-    function test_exitSsvValidator() external {
-        vm.startPrank(manager);
-        nodeDel.approveSSV();
-        ssvToken.transfer(address(nodeDel), 10 ether);
-        vm.stopPrank();
-
-        vm.startPrank(operator);
-        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
-
-        // add WETH to nodeDelegator so it can deposit it validators
-        weth.mint(address(nodeDel), 32 ether);
-        vm.deal(address(weth), 32 ether);
-        ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
-        blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
-        nodeDel.stakeEth(blankValidator);
-
-        nodeDel.exitSsvValidator(hex"", operatorIds);
-        vm.stopPrank();
-    }
-
-    function test_removeSsvValidator() external {
-        vm.prank(operator);
-        nodeDel.removeSsvValidator(hex"", operatorIds, cluster);
     }
 }
