@@ -215,9 +215,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             ndcAssets += address(this).balance;
 
             eigenAssets = stakedButNotVerifiedEth;
-            if (address(eigenPod) != address(0)) {
-                eigenAssets += address(eigenPod).balance;
-            }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
@@ -273,27 +270,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         stakedButNotVerifiedEth += 32 ether;
 
         emit ETHStaked(pubkey, 32 ether);
-    }
-
-    /// @dev Initiate a withdraw of all ETH in the EigenPod before it is verified for restaking.
-    /// The ETH can be claimed from the EigenLayer Delayed Withdrawal Router after 7 days.
-    function initiateWithdrawRewards() external onlyLRTOperator whenNotPaused {
-        uint256 eigenPodBalance = address(eigenPod).balance;
-
-        eigenPod.withdrawBeforeRestaking();
-        emit ETHRewardsWithdrawInitiated(eigenPodBalance);
-    }
-
-    /// @dev Claim ETH withdrawals from the EigenPod that were initiated over 7 days ago.
-    /// @param maxClaims The maximum number of delayed withdrawals to claim.
-    function claimRewards(uint256 maxClaims) external onlyLRTOperator whenNotPaused {
-        uint256 balanceBefore = address(this).balance;
-        address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
-        IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
-        elDelayedRouter.claimDelayedWithdrawals(address(this), maxClaims);
-        uint256 balanceAfter = address(this).balance;
-
-        emit ETHRewardsClaimed(balanceAfter - balanceBefore);
     }
 
     /// @dev Triggers stopped state. Contract must not be paused.
