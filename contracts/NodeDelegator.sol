@@ -31,6 +31,7 @@ struct ValidatorStakeData {
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH_TOKEN_ADDRESS;
+    address public immutable EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS;
 
     /// @dev The EigenPod is created and owned by this contract
     IEigenPod public eigenPod;
@@ -42,9 +43,13 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _wethAddress) {
+    constructor(address _wethAddress, address _eigenDelayedWithdrawalRouterAddress) {
         UtilLib.checkNonZeroAddress(_wethAddress);
         WETH_TOKEN_ADDRESS = _wethAddress;
+
+        UtilLib.checkNonZeroAddress(_eigenDelayedWithdrawalRouterAddress);
+        EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS = _eigenDelayedWithdrawalRouterAddress;
+
         _disableInitializers();
     }
 
@@ -218,6 +223,19 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             if (address(eigenPod) != address(0)) {
                 eigenAssets += address(eigenPod).balance;
             }
+
+            // Get any ETH in the EigenDelayedWithdrawalRouter
+            IEigenDelayedWithdrawalRouter.DelayedWithdrawal[] memory delayedWithdrawals = IEigenDelayedWithdrawalRouter(
+                EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS
+            ).getUserDelayedWithdrawals(address(this));
+
+            for (uint256 i = 0; i < delayedWithdrawals.length;) {
+                eigenAssets += delayedWithdrawals[i].amount;
+
+                unchecked {
+                    ++i;
+                }
+            }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
@@ -326,6 +344,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
 
+    /// @dev Registers a new validator in the SSV Cluster
     function registerSsvValidator(
         bytes calldata publicKey,
         uint64[] calldata operatorIds,
