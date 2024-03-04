@@ -35,12 +35,30 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
     /// @dev The EigenPod is created and owned by this contract
     IEigenPod public eigenPod;
-    /// @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
-    /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
+    /* @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
+     * Calling verifyWithdrawalCredentials acts as a message from BeaconChain to the execution chain informing the latter
+     * of the validator credentials and balance on the Beacon Chain. Once this is done the EigenPod (and other EigenLayer contracts)
+     * mint shares on the (EigenLayer's) Beacon Chain Strategy (restaking). 
+     */
     uint256 public stakedButNotVerifiedEth;
 
+    /* @dev the number of SSV validators that are in the process of exiting. That means that the exit
+     * message has already been posted by the validator and the validator is in one of the 3 possible
+     * stages:
+     *  1. The exit queue. Each epoch up to 16 validators can exit. See this page for information 
+     *     regarding the current state of the queue: https://www.validatorqueue.com/ . At the time
+     *     of writing the first stage passes in a couple of hours.
+     *  2. Validator has exited and after ~27 hours funds are marked as withdrawable.
+     *  3. Funds sweeping beacon chain process claims the funds and sends them to the EigenPod
+     * 
+     *  Call `removeSsvValidator` once the validator has completely exited (all 3 stages)
+     */
+    uint256 public validatorsExiting;
+
+    /// @dev State of the validators sha256(pubKey) => state
+    mapping(bytes32 => VALIDATOR_STATE) public validatorStates;
+
     uint256 internal constant DUST_AMOUNT = 10;
-    mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _wethAddress, address _eigenDelayedWithdrawalRouterAddress) {
@@ -266,12 +284,15 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         for (uint256 i = 0; i < validators.length;) {
             bytes32 pubkeyHash = sha256(validators[i].pubkey);
 
-            if (validatorsStaked[pubkeyHash]) {
-                revert ValidatorAlreadyStaked(validators[i].pubkey);
+            // can only stake to validators that have been registered and 
+            // not yet staked to
+            VALIDATOR_STATE currentState = validatorStates[sha256(validators[i].pubkey)];
+            if (currentState != VALIDATOR_STATE.REGISTERED) {
+                revert ValidatorInUnexpectedState(validators[i].pubkey, currentState);
             }
 
             _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
-            validatorsStaked[pubkeyHash] = true;
+            validatorStates[sha256(validators[i].pubkey)] = VALIDATOR_STATE.STAKED;
 
             unchecked {
                 ++i;
@@ -289,7 +310,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // Increment the staked but not verified ETH
         stakedButNotVerifiedEth += 32 ether;
-
+        validatorStates[sha256(pubkey)] = VALIDATOR_STATE.STAKED;
         emit ETHStaked(pubkey, 32 ether);
     }
 
@@ -359,7 +380,60 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
+        validatorStates[sha256(publicKey)] = VALIDATOR_STATE.REGISTERED;
+        emit SSVValidatorRegistered(publicKey, operatorIds);
     }
+
+    /// @dev Exit a validator from the Beacon chain.
+    /// The staked ETH will be sent to the EigenPod.
+    function exitSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds
+    )
+        external
+        onlyLRTOperator
+        whenNotPaused
+    {   
+        VALIDATOR_STATE currentState = validatorStates[sha256(publicKey)];
+        if (currentState != VALIDATOR_STATE.STAKED) {
+            revert ValidatorInUnexpectedState(publicKey, currentState);
+        }
+
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        ISSVNetwork(SSV_NETWORK_ADDRESS).exitValidator(publicKey, operatorIds);
+        emit SSVValidatorExitInitiated(publicKey, operatorIds);
+
+        validatorStates[sha256(publicKey)] = VALIDATOR_STATE.EXITING;
+        validatorsExiting += 1;
+    }
+
+    /// @dev Remove a validator from the SSV Cluster.
+    /// Make sure `exitSsvValidator` is called before and the validate has exited the Beacon chain.
+    /// If removed before the validator has exited the beacon chain will result in the validator being slashed.
+    function removeSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds,
+        Cluster calldata cluster
+    )
+        external
+        onlyLRTOperator
+        whenNotPaused
+    {
+        /// TBD: should we require Beacon Chain proofs of validator's exit (balance == 0)?
+
+        VALIDATOR_STATE currentState = validatorStates[sha256(publicKey)];
+        if (currentState != VALIDATOR_STATE.EXITING) {
+            revert ValidatorInUnexpectedState(publicKey, currentState);
+        }
+
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+        ISSVNetwork(SSV_NETWORK_ADDRESS).removeValidator(publicKey, operatorIds, cluster);
+        emit SSVValidatorExitCompleted(publicKey, operatorIds);
+
+        validatorStates[sha256(publicKey)] = VALIDATOR_STATE.EXIT_COMPLETE;
+        validatorsExiting -= 1;
+    }
+
 
     /// @dev allow NodeDelegator to receive ETH rewards
     receive() external payable { }
