@@ -370,7 +370,10 @@ subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contr
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
 
-    await deployNodeDelegator({ signer, ...taskArgs });
+    const wethAddress = await parseAddress("WETH_TOKEN");
+    const weth = await ethers.getContractAt("IWETH", wethAddress);
+
+    await deployNodeDelegator({ weth, signer, ...taskArgs });
   });
 task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();

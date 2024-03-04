@@ -5,9 +5,9 @@ const { parseAddress } = require("../utils/addressParser");
 const log = require("../utils/logger")("task:deploy");
 
 // Used to deploy a new NodeDelegator contract via the Defender Relayer
-const deployNodeDelegator = async ({ index, signer }) => {
+const deployNodeDelegator = async ({ index, signer, weth }) => {
   let nodeDelegatorFactory = await ethers.getContractFactory("NodeDelegator", signer);
-  let implementation = await nodeDelegatorFactory.deploy();
+  let implementation = await nodeDelegatorFactory.deploy(weth.address);
   await implementation.deployTransaction.wait();
 
   log(`NodeDelegator implementation deployed at: %s`, implementation.address);
