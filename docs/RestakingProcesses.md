@@ -20,7 +20,7 @@
 
 ![](./plantuml/primeSSVRestakingProcess-deposit-ssv.png)
 
-##  Operator verifies validator
+## Operator verifies validator
 
 ![](./plantuml/primeSSVRestakingProcess-verify.png)
 
