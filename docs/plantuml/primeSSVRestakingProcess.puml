@@ -238,13 +238,15 @@ end group
 group Operator withdraws consensus rewards
 
 val -> pod : ETH
-note left : Beacon chain partial withdraw\nof excess ETH every 10 days\nfrom validator to EigenPod
+note left : Beacon chain partial withdraw\nof excess ETH every 8-10 days\nfrom validator to EigenPod
 
 op -> nd : initiateWithdrawRewards()
 activate nd
 note right : withdraw all ETH in the EigenPod
 nd -> pod : withdrawBeforeRestaking()
 activate pod
+pod -> dwr : ETH
+note right : transfers ETH\nfrom EigenPod\nto Delayed Withdrawal Router
 return
 return
 
@@ -254,6 +256,8 @@ op -> nd : claimRewards(maxClaims)
 activate nd
 nd -> dwr : claimDelayedWithdrawals(nodeDelegator, maxClaims)
 activate dwr
+dwr -> nd : ETH
+note right : transfers ETH\nfrom Delayed Withdrawal Router\nto NodeDelegator
 return
 return
 
