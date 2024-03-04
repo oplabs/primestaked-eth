@@ -18,6 +18,7 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 
 import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
 import { IEigenPod, BeaconChainProofs } from "./interfaces/IEigenPod.sol";
+import { IEigenDelayedWithdrawalRouter } from "./interfaces/IEigenDelayedWithdrawalRouter.sol";
 
 struct ValidatorStakeData {
     bytes pubkey;
@@ -38,6 +39,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     uint256 public stakedButNotVerifiedEth;
 
     uint256 internal constant DUST_AMOUNT = 10;
+    mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _wethAddress) {
@@ -213,9 +215,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             ndcAssets += address(this).balance;
 
             eigenAssets = stakedButNotVerifiedEth;
-            if (address(eigenPod) != address(0)) {
-                eigenAssets += address(eigenPod).balance;
-            }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
@@ -228,7 +227,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param validators A list of validator data needed to stake.
     /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
     /// @dev Only accounts with the Operator role can call this function.
-    function stakeEth(ValidatorStakeData[] calldata validators) external onlyLRTOperator {
+    function stakeEth(ValidatorStakeData[] calldata validators) external whenNotPaused nonReentrant onlyLRTOperator {
         // Yield from the validators will come as native ETH.
         uint256 ethBalance = address(this).balance;
         uint256 requiredETH = validators.length * 32 ether;
@@ -244,7 +243,14 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // For each validator
         for (uint256 i = 0; i < validators.length;) {
+            bytes32 pubkeyHash = keccak256(validators[i].pubkey);
+
+            if (validatorsStaked[pubkeyHash]) {
+                revert ValidatorAlreadyStaked(validators[i].pubkey);
+            }
+
             _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
+            validatorsStaked[pubkeyHash] = true;
 
             unchecked {
                 ++i;
@@ -264,32 +270,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         stakedButNotVerifiedEth += 32 ether;
 
         emit ETHStaked(pubkey, 32 ether);
-    }
-
-    /// @dev Verifies the withdrawal credentials for a withdrawal
-    /// This will allow the EigenPodManager to verify the withdrawal credentials and credit the OD with shares
-    /// Only manager should call this function
-    /// @param oracleBlockNumber The oracle block number of the withdrawal
-    /// @param validatorIndex The validator index of the withdrawal
-    /// @param proofs The proofs of the withdrawal
-    /// @param validatorFields The validator fields of the withdrawal
-    function verifyWithdrawalCredentials(
-        uint64 oracleBlockNumber,
-        uint40 validatorIndex,
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
-        bytes32[] calldata validatorFields
-    )
-        external
-        onlyLRTOperator
-    {
-        eigenPod.verifyWithdrawalCredentialsAndBalance(oracleBlockNumber, validatorIndex, proofs, validatorFields);
-
-        // Decrement the staked but not verified ETH
-        uint64 validatorCurrentBalanceGwei =
-            BeaconChainProofs.getBalanceFromBalanceRoot(validatorIndex, proofs.balanceRoot);
-
-        uint256 gweiToWei = 1e9;
-        stakedButNotVerifiedEth -= (validatorCurrentBalanceGwei * gweiToWei);
     }
 
     /// @dev Triggers stopped state. Contract must not be paused.
@@ -331,6 +311,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     )
         external
         onlyLRTOperator
+        whenNotPaused
     {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
