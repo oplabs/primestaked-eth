@@ -265,12 +265,12 @@ For instructions on how to deploy to a testnet or mainnet, check out the
 
 ### Verify Contracts
 
-Follow this pattern `contractAddress=<contractAddress> contractPath=<contract-path> make verify-lrt-proxy-testnet`
+Follow this pattern `contractAddress=<contractAddress> contractPath=<contract-path> make verify-contract-testnet`
 
 Example:
 
 ```bash
-contractAddress=0x0000000000000000000000000000000000000000 contractPath=contracts/LRTConfig.sol:LRTConfig  make verify-lrt-proxy-testnet
+contractAddress=0x0000000000000000000000000000000000000000 contractPath=contracts/LRTConfig.sol:LRTConfig  make verify-contract-testnet
 ```
 
 ## Open Zeppelin Defender
