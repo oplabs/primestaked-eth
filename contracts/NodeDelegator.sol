@@ -15,6 +15,7 @@ import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
 import { IEigenPod, BeaconChainProofs } from "./interfaces/IEigenPod.sol";
@@ -29,6 +30,8 @@ struct ValidatorStakeData {
 /// @title NodeDelegator Contract
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
+    using Math for uint256;
+
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH_TOKEN_ADDRESS;
     address public immutable EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS;
@@ -55,7 +58,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
      */
     uint256 public validatorsExiting;
 
-    /// @dev State of the validators sha256(pubKey) => state
+    /// @dev State of the validators keccak256(pubKey) => state
     mapping(bytes32 => VALIDATOR_STATE) public validatorStates;
 
     uint256 internal constant DUST_AMOUNT = 10;
@@ -239,10 +242,16 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
             eigenAssets = stakedButNotVerifiedEth;
             if (address(eigenPod) != address(0)) {
+                // validator beacon chain rewards and full validator withdrawals are here
                 eigenAssets += address(eigenPod).balance;
             }
 
-            // Get any ETH in the EigenDelayedWithdrawalRouter
+            /* Get any ETH in the EigenDelayedWithdrawalRouter
+             * 
+             * Whether ETH is withdrawn via simple withdrawal (EigenPod hasn't restaked yet)
+             * or a more involved one (EigenPod has restaked) it in both cases goes through
+             * the DelayedWithrawalRouter
+             */
             IEigenDelayedWithdrawalRouter.DelayedWithdrawal[] memory delayedWithdrawals = IEigenDelayedWithdrawalRouter(
                 EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS
             ).getUserDelayedWithdrawals(address(this));
@@ -253,6 +262,32 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
                 unchecked {
                     ++i;
                 }
+            }
+
+            // how many times a full validator stake is possible with eigenAssets
+            uint256 eigenAssetsValidators = eigenAssets / 32 ether;
+            if (validatorsExiting > 0 && eigenAssetsValidators > 0) {
+                /* Balance of EigenPod pot consists of beacon chain validator rewards
+                 * and full validator withdrawals. There is no way to discern between 
+                 * the two solely on the execution chain.
+                 * 
+                 * For that reason when the node delegator marks that 1 or more validators
+                 * are in the exit/full withdrawal process and the balance amount on
+                 * the eigenPod indicates that it could belong to full validator
+                 * withdrawal. In that case we always first attribute the eigenAsset balance
+                 * to the full validator exit. 
+                 * 
+                 * This behaviour prevents us from double counting the fully withdrawn ETH: 
+                 * once as already withdrawn ETH from the beacon chain, and the second time
+                 * in the `stakedButNotVerifiedEth` variable. 
+                 * 
+                 * The case where this breaks down is when the balance of eigenAssets beacon
+                 * chain rewards surpasses 32 ETH. And those 32 ETH combined in the EigenPod
+                 * and delayedRouter haven't been yet withdrawn to the Node Delegator. 
+                 * If a validator is exiting, the logic will miss-attribute the rewards as
+                 * the full withdrawal funds - showing a smaller balance than it actually is.
+                 */
+                eigenAssets -= validatorsExiting.min(eigenAssetsValidators) * 32 ether;
             }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
@@ -282,17 +317,17 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // For each validator
         for (uint256 i = 0; i < validators.length;) {
-            bytes32 pubkeyHash = sha256(validators[i].pubkey);
+            bytes32 pubkeyHash = keccak256(validators[i].pubkey);
 
             // can only stake to validators that have been registered and 
             // not yet staked to
-            VALIDATOR_STATE currentState = validatorStates[sha256(validators[i].pubkey)];
+            VALIDATOR_STATE currentState = validatorStates[keccak256(validators[i].pubkey)];
             if (currentState != VALIDATOR_STATE.REGISTERED) {
                 revert ValidatorInUnexpectedState(validators[i].pubkey, currentState);
             }
 
             _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
-            validatorStates[sha256(validators[i].pubkey)] = VALIDATOR_STATE.STAKED;
+            validatorStates[keccak256(validators[i].pubkey)] = VALIDATOR_STATE.STAKED;
 
             unchecked {
                 ++i;
@@ -310,7 +345,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // Increment the staked but not verified ETH
         stakedButNotVerifiedEth += 32 ether;
-        validatorStates[sha256(pubkey)] = VALIDATOR_STATE.STAKED;
+        validatorStates[keccak256(pubkey)] = VALIDATOR_STATE.STAKED;
         emit ETHStaked(pubkey, 32 ether);
     }
 
@@ -380,7 +415,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
-        validatorStates[sha256(publicKey)] = VALIDATOR_STATE.REGISTERED;
+        validatorStates[keccak256(publicKey)] = VALIDATOR_STATE.REGISTERED;
         emit SSVValidatorRegistered(publicKey, operatorIds);
     }
 
@@ -394,7 +429,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         onlyLRTOperator
         whenNotPaused
     {   
-        VALIDATOR_STATE currentState = validatorStates[sha256(publicKey)];
+        VALIDATOR_STATE currentState = validatorStates[keccak256(publicKey)];
         if (currentState != VALIDATOR_STATE.STAKED) {
             revert ValidatorInUnexpectedState(publicKey, currentState);
         }
@@ -403,7 +438,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).exitValidator(publicKey, operatorIds);
         emit SSVValidatorExitInitiated(publicKey, operatorIds);
 
-        validatorStates[sha256(publicKey)] = VALIDATOR_STATE.EXITING;
+        validatorStates[keccak256(publicKey)] = VALIDATOR_STATE.EXITING;
         validatorsExiting += 1;
     }
 
@@ -421,7 +456,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     {
         /// TBD: should we require Beacon Chain proofs of validator's exit (balance == 0)?
 
-        VALIDATOR_STATE currentState = validatorStates[sha256(publicKey)];
+        VALIDATOR_STATE currentState = validatorStates[keccak256(publicKey)];
         if (currentState != VALIDATOR_STATE.EXITING) {
             revert ValidatorInUnexpectedState(publicKey, currentState);
         }
@@ -430,7 +465,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).removeValidator(publicKey, operatorIds, cluster);
         emit SSVValidatorExitCompleted(publicKey, operatorIds);
 
-        validatorStates[sha256(publicKey)] = VALIDATOR_STATE.EXIT_COMPLETE;
+        stakedButNotVerifiedEth -= 32 ether;
+        validatorStates[keccak256(publicKey)] = VALIDATOR_STATE.EXIT_COMPLETE;
         validatorsExiting -= 1;
     }
 
