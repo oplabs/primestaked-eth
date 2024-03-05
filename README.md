@@ -14,13 +14,17 @@
 | Contract Name                                                | Proxy Address                                                                                                              | Implementation Address                                                                                                     |
 | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [PrimeStakedETH](./contracts/README.md#primestakedeth)       | [0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615](https://etherscan.io/address/0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615#code) | [0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2](https://etherscan.io/address/0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2#code) |
-| [LRTDepositPool](./contracts/README.md#lrtdepositpool)       | [0xA479582c8b64533102F6F528774C536e354B8d32](https://etherscan.io/address/0xA479582c8b64533102F6F528774C536e354B8d32#code) | [0x93c9390DD6a17561D8E0ef3c96E2eD3633b119e2](https://etherscan.io/address/0x93c9390DD6a17561D8E0ef3c96E2eD3633b119e2#code) |
+| [LRTDepositPool](./contracts/README.md#lrtdepositpool)       | [0xA479582c8b64533102F6F528774C536e354B8d32](https://etherscan.io/address/0xA479582c8b64533102F6F528774C536e354B8d32#code) | [0xC059Ce5a024f25Dc90f2f5C852b4dcc00f316262](https://etherscan.io/address/0xC059Ce5a024f25Dc90f2f5C852b4dcc00f316262#code) |
 | [LRTConfig](./contracts/README.md#lrtconfig)                 | [0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF](https://etherscan.io/address/0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF#code) | [0xcdfD989e689872506E2897316b10e29c84AB087F](https://etherscan.io/address/0xcdfD989e689872506E2897316b10e29c84AB087F#code) |
 | [LRTOracle](./contracts/README.md#lrtoracle)                 | [0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32](https://etherscan.io/address/0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32#code) | [0x76f6f696869Cc42c49A24acB4fbaB17E3B8fEE14](https://etherscan.io/address/0x76f6f696869Cc42c49A24acB4fbaB17E3B8fEE14#code) |
-| [NodeDelegator](./contracts/README.md#nodedelegator) index 0 | [0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2](https://etherscan.io/address/0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2#code) | [0xe5d7792DF6F6F11Dc584ECD91f472090f454A373](https://etherscan.io/address/0xe5d7792DF6F6F11Dc584ECD91f472090f454A373#code) |
-| [NodeDelegator](./contracts/README.md#nodedelegator) index 1 | 0x0000000000000000000000000000000000000000                                                                                 | 0x0000000000000000000000000000000000000000                                                                                 |
+| [NodeDelegator](./contracts/README.md#nodedelegator) index 0 | [0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2](https://etherscan.io/address/0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2#code) | [0xAC49836f90E37B8Ab7db5de0e5Bec0b1621451F3](https://etherscan.io/address/0xAC49836f90E37B8Ab7db5de0e5Bec0b1621451F3#code) |
+| [NodeDelegator](./contracts/README.md#nodedelegator) index 1 | [0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087](https://etherscan.io/address/0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087#code) | [0x7d18405358c52acb3d7c8d2226c1b2e0379c1efd](https://etherscan.io/address/0x7d18405358c52acb3d7c8d2226c1b2e0379c1efd#code) |
 
 ### Immutable Contracts
+
+| Contract Name | Address                                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [PrimeZapper](./contracts/utils/PrimeZapper.sol)   | [0xb21c296013f5C02B55f076bA8bb404FE40A80c78](https://etherscan.io/address/0xb21c296013f5C02B55f076bA8bb404FE40A80c78#code) |
 
 The following are [Open Zeppelin](https://www.openzeppelin.com/contracts) contracts.
 
@@ -28,6 +32,8 @@ The following are [Open Zeppelin](https://www.openzeppelin.com/contracts) contra
 | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | ProxyFactory  | [0x279b272E8266D2fd87e64739A8ecD4A5c94F953D](https://etherscan.io/address/0x279b272E8266D2fd87e64739A8ecD4A5c94F953D#code) |
 | ProxyAdmin    | [0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758](https://etherscan.io/address/0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758#code) |
+
+
 
 ### Operational Roles
 
@@ -62,6 +68,7 @@ The protocol is currently managed by a [Gnosis Safe](https://safe.global), 3 of 
 | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [ChainlinkPriceOracle](./contracts/oracles/ChainlinkPriceOracle.sol) | [0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09](https://etherscan.io/address/0xE238124CD0E1D15D1Ab08DB86dC33BDFa545bF09#code) | [0x84D4bA56A033abf1FEa28217cb86EC8A611B3E8E](https://etherscan.io/address/0x84D4bA56A033abf1FEa28217cb86EC8A611B3E8E#code) |
 | [OETHPriceOracle](./contracts/oracles/OETHPriceOracle.sol)           | [0xc513bDfbC308bC999cccc852AF7C22aBDF44A995](https://etherscan.io/address/0xc513bDfbC308bC999cccc852AF7C22aBDF44A995#code) | [0xd91d3bEC19E921e911A487394B155da552953917](https://etherscan.io/address/0xd91d3bEC19E921e911A487394B155da552953917#code) |
+| [WETHPriceOracle ](./contracts/oracles/WETHPriceOracle.sol)          | [0x2772337eD6cC93CB440e68607557CfCCC0E6b700](https://etherscan.io/address/0x2772337eD6cC93CB440e68607557CfCCC0E6b700#code) | [0xd480388103CC1F274e2e45C72C8D5B2F5188a47E](https://etherscan.io/address/0xd480388103CC1F274e2e45C72C8D5B2F5188a47E#code) |
 | [SfrxETHPriceOracle](./contracts/oracles/SfrxETHPriceOracle.sol)     | [0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294](https://etherscan.io/address/0x407d53b380A4A05f8dce5FBd775DF51D1DC0D294#code) | [0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3](https://etherscan.io/address/0xE6BebE3072fF42a7c2A4A5a9864b30Bc5608d9C3#code) |
 | [EthXPriceOracle](./contracts/oracles/EthXPriceOracle.sol)           | [0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C](https://etherscan.io/address/0x85B4C05c9dC3350c220040BAa48BD0aD914ad00C#code) | [0xd101bd159968106595d48948677fee9e8a0450a9](https://etherscan.io/address/0xd101bd159968106595d48948677fee9e8a0450a9#code) |
 | [MEthPriceOracle ](./contracts/oracles/MEthPriceOracle.sol)          | [0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369](https://etherscan.io/address/0xE709cee865479Ae1CF88f2f643eF8D7e0be6e369#code) | [0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8](https://etherscan.io/address/0x91Fad4007FF129ABFB72d0701C200f0957e9a0D8#code) |
