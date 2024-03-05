@@ -22,7 +22,7 @@ abstract contract BaseMainnetScript is Script {
 
         isForked = vm.envOr("IS_FORK", false);
         if (isForked) {
-            address impersonator = Addresses.RELAYER;
+            address impersonator = Addresses.INITIAL_DEPLOYER;
             console.log("Running script on mainnet fork impersonating: %s", impersonator);
             vm.startPrank(impersonator);
         } else {
