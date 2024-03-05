@@ -20,8 +20,7 @@ library Addresses {
     address public constant LRT_ORACLE = 0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32;
     address public constant LRT_DEPOSIT_POOL = 0xA479582c8b64533102F6F528774C536e354B8d32;
     address public constant NODE_DELEGATOR = 0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2;
-    // TODO update after deployment
-    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x664686fED5381787cc2f80db657234f8FEa2F080;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x18169Ee0CED9AA744F3CD01Adc6E2EB2E8FB0087;
     // TODO update after deployment
     address public constant EIGEN_POD = 0x586eE39f194436eAEb3b9C5370475660E6A3D177;
     // TODO update after deployment
