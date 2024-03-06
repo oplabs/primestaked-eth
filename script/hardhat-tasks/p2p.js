@@ -81,6 +81,8 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
         currentState = await getState(store);
       }
 
+      if (!stake) break;
+
       if (currentState.state === "validator_registered") {
         await depositEth(
           signer,

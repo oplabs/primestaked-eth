@@ -210,8 +210,9 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 });
 
 // Defender
-subtask("operateValidators", "Spawns up the required amount of validators and sets them up")
+subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addOptionalParam("stake", "Stake 32 ether after registering a new SSV validator", true, types.boolean)
   .setAction(async (taskArgs) => {
     const storeFilePath = require("path").join(__dirname, "..", "..", ".localKeyValueStorage");
 
@@ -245,6 +246,7 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
       // how much SSV (expressed in days of runway) gets deposited into SSV
       // network contract on validator registration.
       validatorSpawnOperationalPeriodInDays: 90,
+      stake: taskArgs.stake,
     };
 
     await operateValidators({
@@ -273,7 +275,7 @@ task("registerVal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("stakeEth", "Stake ETH into validator")
+subtask("stakeEth", "Stake ETH into validator for testing purposes")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
@@ -285,6 +287,22 @@ subtask("stakeEth", "Stake ETH into validator")
     await stakeEth({ signer, nodeDelegator });
   });
 task("stakeEth").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("decode", "Util to decode tx data")
+  .addParam("data", "data field of tx", undefined, types.string)
+  .addOptionalParam("name", "Identifier of the address in the Solidity addresses file", "SSV_NETWORK", types.string)
+  .addOptionalParam("contract", "Name of the contract or interface", "ISSVNetwork", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress(taskArgs.name);
+    const contract = await ethers.getContractAt(taskArgs.contract, nodeDelegatorAddress);
+
+    const txData = contract.interface.parseTransaction({ data: taskArgs.data });
+    console.log(txData);
+  });
+task("decode").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
