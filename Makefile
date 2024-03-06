@@ -10,7 +10,7 @@
 coverage :; forge coverage --report lcov && lcov --remove lcov.info  -o lcov.info 'test/*' 'script/*'
 
 # Deploy to Goerli testnet
-deploy-testnet :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url ${GOERLI_RPC_URL}  --broadcast --etherscan-api-key ${GOERLI_ETHERSCAN_API_KEY} --verify --slow -vvv
+deploy-testnet :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url ${GOERLI_RPC_URL}  --broadcast --etherscan-api-key ${GOERLI_ETHERSCAN_API_KEY} --verify -vvv
 deploy-testnet-local :; forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost --broadcast --slow -vvv
 deploy-testnet-fork :; IS_FORK=true forge script script/foundry-scripts/goerli/deployGoerli.s.sol:DeployGoerli --rpc-url localhost -vvv
 
@@ -26,7 +26,7 @@ transfer-ownership-mainnet :; forge script script/foundry-scripts/TransferOwners
 transfer-ownership-fork :; IS_FORK=true forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url localhost --broadcast -vvv
 
 # deploy minimal setup
-minimal-deploy-testnet :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url ${GOERLI_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+minimal-deploy-testnet :; forge script script/foundry-scripts/mainnet/01_deployMinimal.s.sol:DeployMinimal --rpc-url ${GOERLI_RPC_URL}  --broadcast --etherscan-api-key ${GOERLI_ETHERSCAN_API_KEY} --verify -vvv
 minimal-deploy-mainnet :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 minimal-deploy-local-test :; forge script script/foundry-scripts/DeployMinimal.s.sol:DeployMinimal --rpc-url localhost --broadcast -vvv
 

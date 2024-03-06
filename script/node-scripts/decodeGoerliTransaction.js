@@ -36,23 +36,27 @@ async function signAndBroadcast() {
     maxFeePerGas: ethers.utils.parseUnits("5", "gwei"),
     maxPriorityFeePerGas: ethers.utils.parseUnits("1", "gwei"),
   };
-  
-  // Sign the transaction
-  const signedTransaction = await wallet.signTransaction(newTx);
 
-  // Send the signed transaction
-  const transactionResponse = await provider.sendTransaction(signedTransaction);
+  if (process.env.TX_TYPE="register_ssv_validator") {
+    const registerTransactionParams = utils.defaultAbiCoder.decode(
+      ["bytes", "uint64[]", "bytes", "uint256", '"tuple(uint32, uint64, uint64, bool, uint256)'],
+      utils.hexDataSlice(tx.data, 4),
+    );
 
-  return transactionResponse;
+    const [publicKey, operatorIds, sharesData, amount, cluster] = registerTransactionParams;
+    console.log(`About to register validator with:`);
+    console.log(`publicKey: ${publicKey}`);
+    console.log(`operatorIds: ${operatorIds}`);
+    console.log(`sharesData: ${sharesData}`);
+    console.log(`amount: ${amount}`);
+    console.log(`cluster: ${cluster}`);
+
+    return 
+  }
+
+  if (process.env.TX_TYPE="remove_ssv_validator") {
+
+    return
+  }
 }
 
-signAndBroadcast()
-  .then((transactionResponse) => {
-    console.log("Transaction broadcasted, transaction hash:", transactionResponse.hash);
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-  })
-  .finally(() => {
-    console.log("Finished");
-  });
