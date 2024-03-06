@@ -101,6 +101,14 @@ contract DeployNativeETH is BaseMainnetScript {
         console.logBytes32(entries[3].topics[2]);
         assert(entries[3].topics[0] == keccak256("EigenPodCreated(address,address)"));
 
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.OETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.STETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.ETHX_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.SWETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.RETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.SFRXETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.METH_TOKEN, 0);
+
         vm.stopPrank();
 
         vm.startPrank(Addresses.ADMIN_MULTISIG);
