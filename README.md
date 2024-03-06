@@ -22,9 +22,9 @@
 
 ### Immutable Contracts
 
-| Contract Name | Address                                                                                                                    |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [PrimeZapper](./contracts/utils/PrimeZapper.sol)   | [0xb21c296013f5C02B55f076bA8bb404FE40A80c78](https://etherscan.io/address/0xb21c296013f5C02B55f076bA8bb404FE40A80c78#code) |
+| Contract Name                                    | Address                                                                                                                    |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| [PrimeZapper](./contracts/utils/PrimeZapper.sol) | [0x3cf4Db4c59dCB082d1A9719C54dF3c04Db93C6b7](https://etherscan.io/address/0x3cf4Db4c59dCB082d1A9719C54dF3c04Db93C6b7#code) |
 
 The following are [Open Zeppelin](https://www.openzeppelin.com/contracts) contracts.
 
@@ -32,8 +32,6 @@ The following are [Open Zeppelin](https://www.openzeppelin.com/contracts) contra
 | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | ProxyFactory  | [0x279b272E8266D2fd87e64739A8ecD4A5c94F953D](https://etherscan.io/address/0x279b272E8266D2fd87e64739A8ecD4A5c94F953D#code) |
 | ProxyAdmin    | [0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758](https://etherscan.io/address/0xF83cacA1bC89e4C7f93bd17c193cD98fEcc6d758#code) |
-
-
 
 ### Operational Roles
 
