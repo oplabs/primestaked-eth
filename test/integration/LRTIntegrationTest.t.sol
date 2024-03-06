@@ -9,7 +9,7 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
-import { getLSTs } from "script/foundry-scripts/DeployLRT.s.sol";
+import { AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -35,10 +35,6 @@ contract LRTIntegrationTest is Test {
     address public stEthOracle;
     address public ethxPriceOracle;
 
-    address public EIGEN_STRATEGY_MANAGER;
-    address public EIGEN_STETH_STRATEGY;
-    address public EIGEN_ETHX_STRATEGY;
-
     uint256 public minPrimeAmount;
     string public referralId = "0";
 
@@ -59,18 +55,14 @@ contract LRTIntegrationTest is Test {
         stEthOracle = 0x46E6D75E5784200F21e4cCB7d8b2ff8e20996f52;
         ethxPriceOracle = 0x4df5Cea2954CEafbF079c2d23a9271681D15cf67;
 
-        EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
-        EIGEN_STETH_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
-        EIGEN_ETHX_STRATEGY = 0x5d1E9DC056C906CBfe06205a39B0D965A6Df7C14;
-
         lrtDepositPool = LRTDepositPool(payable(0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19));
         lrtConfig = LRTConfig(0x4BF4cc0e5970Cee11D67f5d716fF1241fA593ca4);
         preth = PrimeStakedETH(0xA265e2387fc0da67CB43eA6376105F3Df834939a);
         lrtOracle = LRTOracle(0xDE2336F1a4Ed7749F08F994785f61b5995FcD560);
         nodeDelegator1 = NodeDelegator(payable(0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd));
 
-        stETHAddress = 0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F;
-        ethXAddress = 0x3338eCd3ab3d3503c55c931d759fA6d78d287236;
+        stETHAddress = AddressesGoerli.STETH_TOKEN;
+        ethXAddress = AddressesGoerli.ETHX_TOKEN;
 
         amountToTransfer = 1 ether;
 
@@ -395,10 +387,10 @@ contract LRTIntegrationTest is Test {
         assertTrue(lrtConfig.isSupportedAsset(stETHAddress));
         assertTrue(lrtConfig.isSupportedAsset(ethXAddress));
 
-        assertEq(EIGEN_STETH_STRATEGY, lrtConfig.assetStrategy(stETHAddress), "Eigen stETH strategy");
-        assertEq(EIGEN_ETHX_STRATEGY, lrtConfig.assetStrategy(ethXAddress), "Eigen ETHx strategy");
+        assertEq(AddressesGoerli.EIGEN_STRATEGY_MANAGER, lrtConfig.assetStrategy(stETHAddress), "Eigen stETH strategy");
+        assertEq(AddressesGoerli.ETHX_EIGEN_STRATEGY, lrtConfig.assetStrategy(ethXAddress), "Eigen ETHx strategy");
 
-        assertEq(EIGEN_STRATEGY_MANAGER, lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
+        assertEq(AddressesGoerli.EIGEN_STRATEGY_MANAGER, lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
         assertEq(address(lrtDepositPool), lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL));
         assertEq(address(lrtOracle), lrtConfig.getContract(LRTConstants.LRT_ORACLE));
     }

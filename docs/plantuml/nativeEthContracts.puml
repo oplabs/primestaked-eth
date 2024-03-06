@@ -1,0 +1,91 @@
+@startuml
+
+skinparam tabSize 2
+
+' title "Prime Staked ETH Contract Dependencies"
+' title "Prime Staked ETH Oracle Contract Dependencies"
+title "Native ETH Contract Dependencies"
+' title "EigenLayer Contract Dependencies"
+
+object "Stakers" as staker <<account>> {
+}
+' object "Anyone" as any <<account>> {
+' }
+
+
+object "Manager" as man <<Prime Staked>> <<2/7 multi-sig>> {
+}
+
+' object "Admin" as admin <<Prime Staked>> <<2/7 multi-sig>> {
+' }
+
+object "EigenLayer\nOperator" as op <<Prime Staked>> <<2/7 multi-sig>> {
+}
+
+object "rawPrimeETH" as peth <<Prime Staked>> <<Proxy>> {
+}
+
+object "Deposit\nPool" as dep <<Prime Staked>> <<Proxy>> {
+assets: ETH
+}
+
+' object "Config" as config <<Prime Staked>> <<Proxy>> {
+' }
+
+object "Node\nDelegator 1" as del1 <<Prime Staked>> <<Proxy>> {
+asset: ETH
+}
+
+object "Operator" as eop <<P2P>> {
+}
+
+object "Eigen\nPod Manager" as podMan <<EigenLayer>> <<Proxy>> {
+}
+object "Eigen\nPod 1" as pod1 <<EigenLayer>> <<Proxy>> {
+}
+' object "Eigen\nPod 2" as pod2 <<EigenLayer>> <<Proxy>> {
+' }
+object "Validator 1" as val1 <<P2P>> <<Proxy>> {
+}
+
+staker ..> dep : depositETH
+
+' Main functions
+man ..> dep : transferETHToNodeDelegator
+man ....> del1 : createEigenPod,\nsendETHFromDepositPoolToNDC,\ntransferBackToLRTDepositPool
+op ....> del1 : stakeETH,\nverifyWithdrawalCredentials
+
+' ' All functions
+' admin ..> dep : setMinAmountToDeposit,\nupdateMaxNodeDelegatorLimit,\nupdateLRTConfig,\nunpause
+' admin ..> peth : updateLRTConfig,\nunpause
+' admin ....> del1 : updateLRTConfig,\nunpause
+' admin ...> oracle : updatePriceOracleFor,\nupdateLRTConfig
+' man ..> dep : transferAssetToNodeDelegator,\nswapAssetWithinDepositPool,\npause
+' man ..> peth : pause
+' man ....> del1 : depositAssetIntoStrategy,\ntransferBackToLRTDepositPool
+' op ....> del1 : stakeEth
+
+peth <. dep : mint,\nburnFrom
+
+' dep ..> config : hasRole,\ndepositLimitByAsset,\ngetContract,\nprimeETH
+' config <.. del1 : hasRole,\ngetContract,\nassetStrategy
+' oracle ..> config : hasRole,\ngetContract,\ngetSupportedAssetList,\nprimeETH
+' peth ..> config : hasRole
+
+dep ...> del1 : getETHEigenPodBalance,\nsendETHFromDepositPoolToNDC
+
+del1 .> eop
+
+del1 ..> podMan : createPod,\nownerToPod,\nstake
+podMan ..> pod1 : stake,\nwithdrawRestakedBeaconChainETH
+pod1 ..> podMan : getBeaconChainStateRoot,\nrestakeBeaconChainETH,\nrecordOvercommittedBeaconChainETH
+
+del1 ...> pod1 : withdrawBeforeRestaking,\nverifyWithdrawalCredentialsAndBalance
+' any ..> pod1 : verifyWithdrawalCredentialsAndBalance
+
+pod1 ..> val1
+
+pod1 <.. val1 : withdraw\naddress
+del1 <.... val1 : execution\naddress\n(MEV)
+
+@enduml

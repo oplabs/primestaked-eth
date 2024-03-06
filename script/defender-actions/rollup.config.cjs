@@ -4,7 +4,7 @@ const json = require("@rollup/plugin-json");
 const builtins = require("builtin-modules");
 
 const commonConfig = {
-  plugins: [resolve({ preferBuiltins: true }), commonjs(), json({ compact: true })],
+  plugins: [resolve({ preferBuiltins: true, exportConditions: ["node"] }), commonjs(), json({ compact: true })],
   // Do not bundle these packages.
   // ethers is required to be bundled even though its an Autotask package.
   external: [
@@ -19,11 +19,19 @@ const commonConfig = {
 
 module.exports = [
   {
+    ...commonConfig,
     input: "depositAllEL.js",
     output: {
       file: "dist/depositAllEL/index.js",
       format: "cjs",
     },
+  },
+  {
     ...commonConfig,
+    input: "operateValidators.js",
+    output: {
+      file: "dist/operateValidators/index.js",
+      format: "cjs",
+    },
   },
 ];

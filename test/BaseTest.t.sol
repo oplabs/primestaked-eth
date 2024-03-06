@@ -4,18 +4,14 @@ pragma solidity 0.8.21;
 
 import { Test } from "forge-std/Test.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-contract MockToken is ERC20 {
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) { }
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
-    }
-}
+import { MockToken } from "contracts/mocks/MockToken.sol";
+import { MockWETH } from "contracts/mocks/MockWETH.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
 contract BaseTest is Test {
     MockToken public stETH;
     MockToken public ethX;
+    MockWETH public weth;
 
     MockToken public rETH;
     MockToken public cbETH;
@@ -28,15 +24,20 @@ contract BaseTest is Test {
 
     uint256 public oneThousand = 1000 ** 18;
 
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
     function setUp() public virtual {
-        stETH = new MockToken("staked ETH", "stETH");
+        stETH = new MockToken("Lido ETH", "stETH");
         ethX = new MockToken("ETHX", "ethX");
-        rETH = new MockToken("rETH", "rETH");
-        cbETH = new MockToken("cbETH", "cbETH");
+        weth = new MockWETH("Wrapped WETH", "WETH");
+        rETH = new MockToken("Rocket Pool ETH", "rETH");
+        cbETH = new MockToken("Coinbase ETH", "cbETH");
 
         // mint LST tokens to alice, bob and carol
         mintLSTTokensForUsers(stETH);
         mintLSTTokensForUsers(ethX);
+        mintLSTTokensForUsers(weth);
         mintLSTTokensForUsers(rETH);
         mintLSTTokensForUsers(cbETH);
 

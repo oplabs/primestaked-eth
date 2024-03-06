@@ -10,7 +10,8 @@ optimizer_runs = 10_000
 solc_version = "0.8.21"
 build_info = true
 extra_output = ["storageLayout"]
-fs_permissions = [{ access = "read-write", path = "./data/"}]
+fs_permissions = [{ access = "read-write", path = "./data/"},{ access = "read", path = "./out/"}]
+gas_reports = ["LRTDepositPool", "NodeDelegator", "LRTOracle", "PrimeStakedETH", "LRTConfig", "PrimeZapper"]
 
 [profile.ci]
 fuzz = { runs = 10_000 }
@@ -28,5 +29,3 @@ wrap_comments = true
 
 [rpc_endpoints]
 localhost = "http://localhost:8545"
-goerli = "https://eth-goerli.nodereal.io/v1/${API_KEY_NODE_REAL}"
-mainnet = "https://eth-mainnet.nodereal.io/v1/${API_KEY_NODE_REAL}"

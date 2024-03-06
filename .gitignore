@@ -1,3 +1,6 @@
+#OSX
+.DS_Store
+
 # directories
 cache
 cache_forge
@@ -24,3 +27,6 @@ data/*.csv
 
 # Defender Actions
 dist
+
+# Local storage to represent Defender Actions shared storage state
+.localKeyValueStorage*

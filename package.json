@@ -1,33 +1,41 @@
 {
   "name": "lrt",
   "scripts": {
-    "clean": "rm -rf cache out",
-    "build": "forge build",
+    "clean": "rm -rf cache out cache_forge artifacts",
+    "build": "forge build; hardhat compile",
     "lint": "npm run lint:sol && npm run prettier:check",
     "lint:sol": "forge fmt --check && solhint {script,src,test}/**/*.sol",
-    "prettier:check": "prettier --check **/*.{json,md,yml} --ignore-path=.prettierignore",
-    "prettier:write": "prettier --write **/*.{json,md,yml} --ignore-path=.prettierignore",
+    "prettier:check": "prettier --check **/*.{json,md,yml,js} --ignore-path=.prettierignore",
+    "prettier:write": "prettier --write **/*.{json,md,yml,js} --ignore-path=.prettierignore",
     "test": "forge test",
     "test:coverage": "forge coverage",
     "test:coverage:report": "forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage",
+    "test:unit": "forge test --no-match-contract \"(Skip|IntegrationTest|Fork)\"",
+    "test:fork": "forge test --no-match-contract \"Skip\" --match-contract \"IntegrationTest\"",
     "metrics": "npx solidity-code-metrics contracts/*.sol contracts/**/*.sol > metrics.md"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/defender-autotask-client": "^1.54.1",
+    "@openzeppelin/defender-kvstore-client": "^1.54.1",
     "@openzeppelin/defender-sdk": "^1.9.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@solidity-parser/parser": "^0.18.0",
+    "defender-kvstore-client": "^1.44.0",
     "ethers": "^5.7.2",
     "hardhat": "^2.18.3",
     "prettier": "^3.0.3",
     "rollup": "^4.9.1",
     "solhint": "^4.0.0",
-    "solidity-code-metrics": "^0.0.25"
+    "solidity-code-metrics": "^0.0.25",
+    "ssv-keys": "^1.1.0",
+    "ssv-scanner": "github:bloxapp/ssv-scanner",
+    "uuid": "^9.0.1"
   },
   "dependencies": {
     "dotenv": "^16.3.1"

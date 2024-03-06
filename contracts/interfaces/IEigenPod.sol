@@ -45,7 +45,23 @@ library BeaconChainProofs {
     }
 }
 
+interface IBeaconDeposit {
+    /// @notice Query the current deposit root hash.
+    /// @return The deposit root hash.
+    function get_deposit_root() external view returns (bytes32);
+}
+
 interface IEigenPod {
+    /// @notice This is the beacon chain deposit contract
+    function ethPOS() external returns (IBeaconDeposit);
+
+    /// @return delayedWithdrawalRouter address of EigenLayer delayedWithdrawalRouter,
+    /// which does book keeping of delayed withdrawls
+    function delayedWithdrawalRouter() external returns (address);
+
+    /// @notice Called by the pod owner to withdraw the balance of the pod when `hasRestaked` is set to false
+    function withdrawBeforeRestaking() external;
+
     /**
      * @notice This function verifies that the withdrawal credentials of the podOwner are pointed to
      * this contract. It also verifies the current (not effective) balance  of the validator.  It verifies the provided

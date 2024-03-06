@@ -186,11 +186,36 @@ $ forge test --gas-report
 
 ## Deploy
 
-### Deploy to testnet
+### Test Goerli deployment against a local Anvil fork of Goerli
+
+The runs the Goerli deployment in a fork and does not broadcast the transactions to the local Anvil node. The contracts
+will NOT be deployed to the local Anvil node.
+
+Set `GOERLI_DEPLOYER_PRIVATE_KEY` and `FORK_RPC_URL` environment variables in the `.env` file.
+
+In one terminal run
 
 ```bash
-make deploy-lrt-testnet
+make node-test-fork
 ```
+
+In another terminal run
+
+```bash
+make deploy-testnet-fork
+```
+
+### Deploy to Goerli testnet
+
+Set `GOERLI_DEPLOYER_PRIVATE_KEY`, `GOERLI_RPC_URL` and `GOERLI_ETHERSCAN_API_KEY` environment variables in the `.env`
+file.
+
+```bash
+make deploy-testnet
+```
+
+Update the address in [Addresses.sol](./contracts/utils/Addresses.sol) if this new deployment is going to be used for
+more Goerli testing.
 
 ### For tests (mainnet) using Anvil:
 
@@ -213,14 +238,26 @@ make add-assets-fork
 make deploy-lrt-local-test
 ```
 
-### General Deploy Script Instructions
+### General Mainnet Deploy Script Instructions
 
-Create a Deploy script in `script/Deploy.s.sol`:
+Create a new ordered deploy script in `script/foundry-scripts/mainnet`. For example, `10_deployNativeETH.s.sol`
 
-and run the script:
+To run the script as a dry-run against a local forked node, start an Anvil node in one terminal:
 
 ```bash
-forge script script/Deploy.s.sol --broadcast --fork-url http://localhost:8545
+make node-fork
+```
+
+And run the following in a new terminal:
+
+```bash
+IS_FORK=true forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost --broadcast -vvv
+```
+
+To run the script against mainnet, set `DEPLOYER_PRIVATE_KEY` in your `.env` file and following command:
+
+```bash
+forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
 ```
 
 For instructions on how to deploy to a testnet or mainnet, check out the
@@ -302,31 +339,83 @@ The following will upload the different Action bundles to Defender.
 ```sh
 # change to the defender-actions folder
 cd ./script/defender-actions
+npx rollup -c
 
 # Export the DEFENDER_TEAM_KEY and DEFENDER_TEAM_SECRET environment variables
 export DEFENDER_TEAM_KEY=
 export DEFENDER_TEAM_SECRET=
-# Alternatively, the following can be used but it will export all env var including DEPLOYER_PRIVATE_KEY and LOCAL_DEPLOYER_PRIVATE_KEY
+# Alternatively, the following can be used but it will export all env var including DEPLOYER_PRIVATE_KEY
 # set -o allexport && source ../../.env && set +o allexport
 
 # Set the DEBUG environment variable to prime* for the Defender Action
 npx hardhat setActionVars --id 184e6533-9413-48be-ac01-4a63f87c3035
+npx hardhat setActionVars --id 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb
 
 # Upload Deposit to EigenLayer code
 # The Defender autotask client uses generic env var names so we'll set them first from the values in the .env file
 export API_KEY=${DEFENDER_TEAM_KEY}
 export API_SECRET=${DEFENDER_TEAM_SECRET}
 npx defender-autotask update-code 184e6533-9413-48be-ac01-4a63f87c3035 ./dist/depositAllEL
+npx defender-autotask update-code 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb ./dist/operateValidators
 ```
 
 `rollup` and `defender-autotask-client` can be installed globally to avoid the `npx` prefix.
 
-### Defender Actions
+### Mainnet Defender Actions
 
-| Name                           | ID                                                                                                                                    | Source Code                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Prime - Deposit to EigenLayer  | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/updateRates.js](./script/defender-actions/depositAllEL.js) |
-| Prime - primeETH Price Updater | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                      |
+| Name                           | ID                                                                                                                                    | Source Code                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Prime - Deposit to EigenLayer  | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/depositAllEL.js](./script/defender-actions/depositAllEL.js) |
+| Prime - primeETH Price Updater | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                       |
+
+### Goerli Defender Actions
+
+| Name                           | ID                                                                                                                                    | Source Code                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Prime - Add validator - Goerli | [7dda695d-56b1-48ba-9e9a-3307c4a2f7bb](https://defender.openzeppelin.com/v2/#/actions/automatic/7dda695d-56b1-48ba-9e9a-3307c4a2f7bb) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
+
+## Goerli Testing
+
+After the Goerli contracts have been deployed and addresses updated in `Addresses.sol` and `addresses.js`. This includes
+the EigenPod for the new native staking NodeDelegator.
+
+Make sure the `GOERLI_RPC_URL` environment variable is set in the `.env` file.
+
+Generate an API key for the Goerli Defender Relayer and set the `DEFENDER_RELAYER_KEY` and `DEFENDER_RELAYER_SECRET`
+environment variables in the `.env` file.
+
+```
+export DEBUG=prime*
+npx hardhat depositWETH --amount 32 --network goerli
+npx hardhat depositPrime --symbol WETH --amount 32 --network goerli
+npx hardhat depositEL --symbol WETH --index 1  --network goerli
+npx hardhat operateValidators --network goerli
+```
+
+# Validators
+
+This section contains the required steps and dependencies to create validator keys and splitting them.
+
+First download the "staking-deposit-cli" tool from the
+[ethereum release page](https://github.com/ethereum/staking-deposit-cli/releases) that is a CLI tool for generating
+keystore files. Extract the file and move it somewhere on the $PATH (e.g. /usr/local/bin)
+
+Create a new mnemonic in offline mode:
+
+```bash
+deposit new-mnemonic
+```
+
+Follow the wizard and create a required number of validator keys - the wizard ask what number of keys are required -
+along with the validator deposit data. Example validator keys for mnemonic "daughter topple square amount rich elder
+regret blade crisp auto burden shoe enrich weasel apart case space zebra require oyster stadium icon truly result" are
+located in `validator_key_data/validator_keys`
+
+After that create shares data that can be used by the DVT to deploy distributed validators. See example command:
+
+```bash
+npx hardhat splitValidatorKey --network goerli --operatorids 60.79.220.349 --operatorkeys LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMHZPbHNpTzVCV0dDTEM1TUxDQW8KYkN0ZDI5NmNvaFN0MGhhMmtpRjMwNi9NR2Y5OVRORCs0TmpRWXNEQVlFYVJjZFhNUjY1bjdHTk4yUkkxdTg0aQpTZm04NElKTTdIRGsxeUpVTGdGcnRmQ00yWG03ZzFYODZ3ZkZGT2JrWUJSQmNIZnZSZUxHcDdzdjFpSFh1M2s3CkszVzJvUnZhV2U4V3k3MGdXS25jeWROakZpWDJIQ2psQnIyRjhJT0Z0SHI3cGpyWnZqa0ROcDFkMnprK2V6YncKdCticUMySnFSaVF4MGI5d0d4d3h0UERERjY0amVtWDRpMkJPWXNvUkx6dkN6dWtaeHB3UlNJOW1wTHE1UktOaApIY1pEcWg3RUV5VFloUG1BTTcvT2luMWROZCtNUi9VRU5mTkJqMGZMVURhZWJWSUVVMEhzRzMzdHV3MmR5RksxCnRRSURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K.LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBbzRtb2hUcVdKRGhyYkp5MlhXeXUKQjZIOFU3OXpxS2VhdGdweGRIcS9iWkxrTHpNcE10SVNNOEd3ckUxVlhmMUZ1RWhqcXhTQko0V1hnb0RxWGZTNQp4Q0RIeUdwSld1STF5Q3V5Z3NLRE96QkU4OWZaZEZlY1BsQTZpbzYxR0ROWkJPOWNEOGY2VnFiblN1TDRIMEZjCnkwdk5SdmdROWhEUFJZcHhMVER6N1gyU1RYZWk5eGcyVVdBYm01QUZVbm9WR01yZ2R4YkY5ZjlaNDZDZVk0TFgKL3pqQW1DNFl5YVlYZk9TL2lzQkZkYTN3RlFZZmVhcVVWb2huOCt6ZFg3Y2p4SVZrdDVtQ2FqVFo2bXJzWEFBNApzTDQxaEM4Z0NKYmdESDhIcEZaVXViYUFFUEswV1dZOENCUEhMY1dtWWxLeEJhVEdaU25SM2ZBN3hRcU5lK3VvCkl3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K.LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBeUtiUGc2SXRnTGJSTHpHK0VhMUcKSGdSQm45a3J2N2pXN09ocGxqQWg3MUtCVnFNVldtZi9LRVlBUis1Qnp2bGdwV3ptc3pxZ3MyeDN6UzB5MHd0Zgp6WkVLZ2NrMDJIcXVTMzIwTUJ2QTBLN3B0OFc4Qm9ZM3ozS3d4bUpwUnNwZ3p5dm80TGIyU3RsL1FBNFE4cjZsCjVOWjdrRVNHVktFTFA3R3JrQTlYajBOS0wxZU5uYTRocnpEcnpJS1FwMGZkcjBpWWFxRnhNWUZBZ0FUcVp2b1kKbGxDWG16TmdaUDdtaERRWTdWSk9kenJkSTBrOEdISTZpWUFlWUExRVR1Y01mckpzMmd0a0FPRlR6TjhYYW5VWgpkQis1c0g2V0UwSGhvVGFCeGYwcHpnTFpvenROdTdpUzFmRlZOTUNnR3BCc3MxMDcxMEZFNE1aYW1uWFMxeWt5ClN3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K.LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBd1l0MEdGdmRORTA3L1NuNGdSSnUKNkhlWHU0S3RkL1k1ZGkweGFFNUNyYXZyenU3ZXNIZzg0SXRmcURVbTQrVTNJQm9LelFkdUNKdkw5L1FwTG5LaApTanRzcEpid0gxd2liYXppcVFuM08zbVljb0tYWjAvWDVJamoyUG9hVG13cUkrTFlLbUNXNWFQR3psWklpYUF2ClNGQ2V6M3BFTllQOFNlMFRObm1UaWNuMGRkVkIwMU9uRzJxZEZIMXhBRGNxckFwTE52NmVhMzF6eUdRTG9FbHoKTzFMK2VjZzB3SHRON0hqYnZGUDczcDF5TTA4UU1LRzV6ellKUTVJWmEwL3lWK213blJpSjZTcTZEUkgxd1JwYQpHeXpYQWNqYTBJSER0ckJPdCtOQ2grZS8vVU1Gd3B3OS8zMG5rN2JBRVBOcDY3Qks3Q0tnU0FHLzhxcmt4bHRVCi93SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K --keystorelocation validator_key_data/validator_keys/keystore-m_12381_3600_1_0_0-1708952408.json --keystorepass testtest
+```
 
 # Credits
 
