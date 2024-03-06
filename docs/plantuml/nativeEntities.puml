@@ -55,7 +55,7 @@ podMan ||..o{ pod
 withdraw ||.|| podMan
 ' slash ||.|| podMan
 
-del ||...|| pod
+del ||...o| pod
 
 pod |o..o{ val
 
@@ -63,7 +63,7 @@ pod }o....|| bdep
 ' withdraw ||..o{ pod
 
 del |o....o| cluster
-cluster |o..{ ssvOp
+cluster }o..{ ssvOp
 cluster |o..o{ val
 ' ssvOp |o.|o{val
 val }o.{ ssvOp
