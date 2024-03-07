@@ -24,11 +24,14 @@ const handler = async (event) => {
   log(`Network: ${networkName} with chain id (${network.chainId})`);
 
   const eigenPodAddress = addresses[networkName].EIGEN_POD;
+  log(`Resolved EIGEN_POD address to ${eigenPodAddress}`);
 
   const wethAddress = addresses[networkName].WETH_TOKEN;
+  log(`Resolved WETH_TOKEN address to ${wethAddress}`);
   const WETH = new ethers.Contract(wethAddress, erc20Abi, signer);
 
   const nodeDelegatorAddress = addresses[networkName].NODE_DELEGATOR_NATIVE_STAKING;
+  log(`Resolved NODE_DELEGATOR_NATIVE_STAKING address to ${nodeDelegatorAddress}`);
   const nodeDelegator = new ethers.Contract(nodeDelegatorAddress, nodeDelegatorAbi, signer);
 
   const contracts = {
