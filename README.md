@@ -136,6 +136,15 @@ Lint the contracts:
 $ npm lint
 ```
 
+### Pre-commit prettier check
+If you want to have an automatic pre-commit linter check you can add the following script in `.git/hooks/pre-commit`: 
+```
+#!/bin/sh
+
+npm run prettier:check
+```
+With that the commit will fail if prettier:check doesn't pass
+
 ## Testing
 
 ### Unit Tests

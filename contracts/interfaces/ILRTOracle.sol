@@ -2,11 +2,11 @@
 pragma solidity 0.8.21;
 
 interface ILRTOracle {
-    // events
-    event AssetPriceOracleUpdate(address indexed asset, address indexed priceOracle);
+  // events
+  event AssetPriceOracleUpdate(address indexed asset, address indexed priceOracle);
 
-    // methods
-    function getAssetPrice(address asset) external view returns (uint256);
-    function assetPriceOracle(address asset) external view returns (address);
-    function primeETHPrice() external view returns (uint256);
+  // methods
+  function getAssetPrice(address asset) external view returns (uint256);
+  function assetPriceOracle(address asset) external view returns (address);
+  function primeETHPrice() external view returns (uint256);
 }
