@@ -22,18 +22,22 @@ const handler = async (event) => {
   log(`Network: ${networkName} with chain id (${network.chainId})`);
 
   const depositPoolAddress = addresses[networkName].LRT_DEPOSIT_POOL;
+  log(`Resolved LRT_DEPOSIT_POOL address to ${depositPoolAddress}`);
   const depositPool = new ethers.Contract(depositPoolAddress, depositPoolAbi, signer);
 
   const nodeDelegatorAddress = addresses[networkName].NODE_DELEGATOR_NATIVE_STAKING;
+  log(`Resolved NODE_DELEGATOR_NATIVE_STAKING address to ${nodeDelegatorAddress}`);
   const nodeDelegator = new ethers.Contract(nodeDelegatorAddress, nodeDelegatorAbi, signer);
 
   const assetAddress = addresses[networkName].WETH_TOKEN;
+  log(`Resolved WETH_TOKEN address to ${assetAddress}`);
   const asset = new ethers.Contract(assetAddress, erc20Abi, signer);
 
   await depositAssetEL({
     signer,
     depositPool,
     nodeDelegator,
+    symbol: "WETH",
     asset,
     index: 1,
     minDeposit: 32,

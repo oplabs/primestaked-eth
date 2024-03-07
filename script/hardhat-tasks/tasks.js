@@ -45,8 +45,11 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
-    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
     if (taskArgs.symbol === "ALL") {
       const assets = [
         await resolveAsset("OETH", signer),

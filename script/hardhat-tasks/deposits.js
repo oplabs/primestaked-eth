@@ -20,15 +20,13 @@ const depositAssetEL = async ({ signer, asset, depositPool, nodeDelegator, symbo
   const minDepositBN = parseEther(minDeposit.toString());
 
   if (balance.gte(minDepositBN)) {
-    const assetAddress = await asset.address;
-
     log(`About to transfer ${formatUnits(balance)} ${symbol} to Node Delegator with index ${index}`);
-    const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(index, assetAddress, balance);
+    const tx1 = await depositPool.connect(signer).transferAssetToNodeDelegator(index, asset.address, balance);
     await logTxDetails(tx1, "transferAssetToNodeDelegator");
 
     if (symbol != "WETH") {
       log(`About to deposit ${symbol} to EigenLayer`);
-      const tx2 = await nodeDelegator.connect(signer).depositAssetIntoStrategy(assetAddress);
+      const tx2 = await nodeDelegator.connect(signer).depositAssetIntoStrategy(asset.address);
       await logTxDetails(tx2, "depositAssetIntoStrategy");
     }
   } else {
