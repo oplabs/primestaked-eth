@@ -8,10 +8,17 @@ import { CrossChainRateReceiver } from "./CrossChainRateReceiver.sol";
 /// deployed
 /// on
 contract PrimeStakedETHRateReceiver is CrossChainRateReceiver {
-  constructor(uint16 _srcChainId, address _rateProvider, address _layerZeroEndpoint) {
-    rateInfo = RateInfo({ tokenSymbol: "primeETH", baseTokenSymbol: "ETH" });
-    srcChainId = _srcChainId;
-    rateProvider = _rateProvider;
-    layerZeroEndpoint = _layerZeroEndpoint;
-  }
+    constructor(
+        uint16 _srcChainId,
+        address _rateProvider,
+        address _layerZeroEndpoint
+    ) {
+        rateInfo = RateInfo({
+            tokenSymbol: "primeETH",
+            baseTokenSymbol: "ETH"
+        });
+        srcChainId = _srcChainId;
+        rateProvider = _rateProvider;
+        layerZeroEndpoint = _layerZeroEndpoint;
+    }
 }

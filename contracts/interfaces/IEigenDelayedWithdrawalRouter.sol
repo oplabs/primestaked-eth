@@ -2,5 +2,8 @@
 pragma solidity 0.8.21;
 
 interface IEigenDelayedWithdrawalRouter {
-  function claimDelayedWithdrawals(address recipient, uint256 maxNumberOfDelayedWithdrawalsToClaim) external;
+    function claimDelayedWithdrawals(
+        address recipient,
+        uint256 maxNumberOfDelayedWithdrawalsToClaim
+    ) external;
 }
