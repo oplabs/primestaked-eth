@@ -28,7 +28,7 @@ contract DeployNativeETH is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = ;
+        deployBlockNum = 19379670;
     }
 
     function _execute() internal override {
