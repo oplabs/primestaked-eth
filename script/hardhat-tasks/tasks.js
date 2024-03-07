@@ -38,9 +38,9 @@ task("depositPrime").setAction(async (_, __, runSuper) => {
 });
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
-  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "ALL", types.string)
+  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
   .addParam("index", "Index of Node Delegator", 1, types.int)
-  .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 1, types.float)
+  .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 32, types.float)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
@@ -48,9 +48,19 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
     const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
     if (taskArgs.symbol === "ALL") {
-      await depositAllEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+      const assets = [
+        await resolveAsset("OETH", signer),
+        await resolveAsset("SFRXETH", signer),
+        await resolveAsset("METH", signer),
+        await resolveAsset("STETH", signer),
+        await resolveAsset("RETH", signer),
+        await resolveAsset("SWETH", signer),
+        await resolveAsset("ETHX", signer),
+      ];
+      await depositAllEL({ signer, depositPool, nodeDelegator, assets, ...taskArgs });
     } else {
-      await depositAssetEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+      const asset = await resolveAsset(taskArgs.symbol, signer);
+      await depositAssetEL({ signer, depositPool, nodeDelegator, asset, ...taskArgs });
     }
   });
 task("depositEL").setAction(async (_, __, runSuper) => {

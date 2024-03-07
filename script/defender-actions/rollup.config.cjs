@@ -34,4 +34,12 @@ module.exports = [
       format: "cjs",
     },
   },
+  {
+    ...commonConfig,
+    input: "transferWETH.js",
+    output: {
+      file: "dist/transferWETH/index.js",
+      format: "cjs",
+    },
+  },
 ];

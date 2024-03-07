@@ -20,14 +20,15 @@ const handler = async (event) => {
   console.log(`DEBUG env var in handler before being set: "${process.env.DEBUG}"`);
 
   const network = await provider.getNetwork();
-  log(`Network: ${network.name} with chain id (${network.chainId})`);
+  const networkName = network.chainId === 1 ? "mainnet" : "goerli";
+  log(`Network: ${networkName} with chain id (${network.chainId})`);
 
-  const eigenPodAddress = addresses[network.name].EIGEN_POD;
+  const eigenPodAddress = addresses[networkName].EIGEN_POD;
 
-  const wethAddress = addresses[network.name].WETH_TOKEN;
+  const wethAddress = addresses[networkName].WETH_TOKEN;
   const WETH = new ethers.Contract(wethAddress, erc20Abi, signer);
 
-  const nodeDelegatorAddress = addresses[network.name].NODE_DELEGATOR_NATIVE_STAKING;
+  const nodeDelegatorAddress = addresses[networkName].NODE_DELEGATOR_NATIVE_STAKING;
   const nodeDelegator = new ethers.Contract(nodeDelegatorAddress, nodeDelegatorAbi, signer);
 
   const contracts = {
@@ -48,6 +49,7 @@ const handler = async (event) => {
     // how much SSV (expressed in days of runway) gets deposited into SSV
     // network contract on validator registration.
     validatorSpawnOperationalPeriodInDays: 90,
+    stake: true,
   };
 
   await operateValidators({

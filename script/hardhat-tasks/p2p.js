@@ -29,7 +29,7 @@ const ERROR_THRESHOLD = 5;
  *     and start over.
  */
 const operateValidators = async ({ store, signer, contracts, config }) => {
-  const { eigenPodAddress, p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url } = config;
+  const { eigenPodAddress, p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url, stake } = config;
 
   let currentState = await getState(store);
   log("currentState", currentState);

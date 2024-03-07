@@ -356,6 +356,7 @@ export DEFENDER_TEAM_SECRET=
 npx hardhat setActionVars --id 184e6533-9413-48be-ac01-4a63f87c3035
 npx hardhat setActionVars --id 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb
 npx hardhat setActionVars --id 0cfd91ac-1248-4470-ba1f-e58cd8514b3d
+npx hardhat setActionVars --id d990c176-897d-4739-8f20-563fbacf11b0
 
 # Upload Deposit to EigenLayer code
 # The Defender autotask client uses generic env var names so we'll set them first from the values in the .env file
@@ -365,6 +366,7 @@ export API_SECRET=${DEFENDER_TEAM_SECRET}
 npx defender-autotask update-code 7dda695d-56b1-48ba-9e9a-3307c4a2f7bb ./dist/operateValidators
 # Mainnet
 npx defender-autotask update-code 184e6533-9413-48be-ac01-4a63f87c3035 ./dist/depositAllEL
+npx defender-autotask update-code d990c176-897d-4739-8f20-563fbacf11b0 ./dist/transferWETH
 npx defender-autotask update-code 0cfd91ac-1248-4470-ba1f-e58cd8514b3d ./dist/operateValidators
 ```
 
@@ -372,11 +374,12 @@ npx defender-autotask update-code 0cfd91ac-1248-4470-ba1f-e58cd8514b3d ./dist/op
 
 ### Mainnet Defender Actions
 
-| Name                           | ID                                                                                                                                    | Source Code                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Prime - Deposit to EigenLayer  | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/depositAllEL.js](./script/defender-actions/depositAllEL.js)           |
-| Prime - primeETH Price Updater | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                                 |
-| Prime - Add validator          | [0cfd91ac-1248-4470-ba1f-e58cd8514b3d](https://defender.openzeppelin.com/v2/#/actions/automatic/0cfd91ac-1248-4470-ba1f-e58cd8514b3d) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
+| Name                                                  | ID                                                                                                                                    | Source Code                                                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Prime - Deposit LSTs to EigenLayer                    | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/depositAllEL.js](./script/defender-actions/depositAllEL.js)           |
+| Prime - transfer WETH to Native Staking NodeDelegator | [d990c176-897d-4739-8f20-563fbacf11b0](https://defender.openzeppelin.com/v2/#/actions/automatic/d990c176-897d-4739-8f20-563fbacf11b0) | [/script/defender-actions/transferWETH.js](./script/defender-actions/transferWETH.js)           |
+| Prime - primeETH Price Updater                        | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                                 |
+| Prime - Add validator                                 | [0cfd91ac-1248-4470-ba1f-e58cd8514b3d](https://defender.openzeppelin.com/v2/#/actions/automatic/0cfd91ac-1248-4470-ba1f-e58cd8514b3d) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
 
 ### Goerli Defender Actions
 
