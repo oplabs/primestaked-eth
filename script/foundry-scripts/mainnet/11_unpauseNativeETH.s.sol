@@ -14,7 +14,7 @@ import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 contract UnpauseNativeETH is BaseMainnetScript {
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = ;
+        deployBlockNum = 19_386_190;
     }
 
     function _execute() internal override {
