@@ -54,7 +54,6 @@ contract ForkTestBase is Test {
 
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
-        lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
         nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
 
         // Any pending deployments or configuration changes
