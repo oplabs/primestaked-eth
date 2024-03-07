@@ -4,6 +4,7 @@
     "clean": "rm -rf cache out cache_forge artifacts",
     "build": "forge build; hardhat compile",
     "lint": "npm run lint:sol && npm run prettier:check",
+    "lint:write": "forge fmt && npm run prettier:write",
     "lint:sol": "forge fmt --check && solhint {script,src,test}/**/*.sol",
     "prettier:check": "prettier --check **/*.{json,md,yml,js} --ignore-path=.prettierignore",
     "prettier:write": "prettier --write **/*.{json,md,yml,js} --ignore-path=.prettierignore",
