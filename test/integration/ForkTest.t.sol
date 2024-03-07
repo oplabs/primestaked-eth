@@ -60,16 +60,6 @@ contract ForkTestBase is Test {
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
         deployer.run();
-
-        // Unpause Prime Staked if its paused
-        unpausePrime();
-    }
-
-    function unpausePrime() internal {
-        if (lrtDepositPool.paused()) {
-            vm.prank(Addresses.MANAGER_ROLE);
-            lrtDepositPool.unpause();
-        }
     }
 
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
