@@ -3,6 +3,7 @@ const { KeyValueStoreClient } = require("defender-kvstore-client");
 
 const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
+const { snapshot } = require("./snapshot");
 const {
   approveSSV,
   depositSSV,
@@ -67,6 +68,11 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
     }
   });
 task("depositEL").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("snap", "Display the assets in the different layers of PrimeETH").setAction(snapshot);
+task("snap").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
