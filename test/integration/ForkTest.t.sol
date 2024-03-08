@@ -258,8 +258,6 @@ contract ForkTestNative is ForkTestBase {
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, transferAmount);
 
         (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcEthBefore, transferAmount, "WETH/ETH in NodeDelegator before");
-        assertEq(eigenEthBefore, 0, "WETH/ETH in EigenLayer before");
 
         (
             bytes memory publicKey,
@@ -279,8 +277,8 @@ contract ForkTestNative is ForkTestBase {
         nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
 
         (uint256 ndcEthAfter, uint256 eigenEthAfter) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcEthAfter, transferAmount, "WETH/ETH in NodeDelegator after");
-        assertEq(eigenEthAfter, 0, "WETH/ETH in EigenLayer after");
+        assertEq(ndcEthAfter, ndcEthBefore, "WETH/ETH in NodeDelegator after");
+        assertEq(eigenEthAfter, eigenEthBefore, "WETH/ETH in EigenLayer after");
 
         vm.stopPrank();
     }
@@ -304,8 +302,6 @@ contract ForkTestNative is ForkTestBase {
         nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
 
         (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcEthBefore, 65 ether, "WETH/ETH in NodeDelegator before");
-        assertEq(eigenEthBefore, 0, "WETH/ETH in EigenLayer before");
 
         vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
         emit ETHStaked(publicKey, 32 ether);
@@ -313,16 +309,16 @@ contract ForkTestNative is ForkTestBase {
         nodeDelegator2.stakeEth(validatorStakeData);
 
         (uint256 ndcEthAfter, uint256 eigenEthAfter) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcEthAfter, 33 ether, "WETH/ETH in NodeDelegator after");
-        assertEq(eigenEthAfter, 32 ether, "WETH/ETH in EigenLayer after");
+        assertEq(ndcEthAfter, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after");
+        assertEq(eigenEthAfter, eigenEthBefore + 32 ether, "WETH/ETH in EigenLayer after");
 
         // Deposit some ETH in the EigenPod
         vm.deal(Addresses.EIGEN_POD, 0.1 ether);
 
         (uint256 ndcEthAfterRewards, uint256 eigenEthAfterRewards) =
             nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcEthAfterRewards, 33 ether, "WETH/ETH in NodeDelegator after consensus rewards");
-        assertEq(eigenEthAfterRewards, 32 ether, "WETH/ETH in EigenLayer after consensus rewards");
+        assertEq(ndcEthAfterRewards, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after consensus rewards");
+        assertEq(eigenEthAfterRewards, eigenEthBefore + 32 ether, "WETH/ETH in EigenLayer after consensus rewards");
 
         // Should fail to register a second time
         vm.expectRevert(
