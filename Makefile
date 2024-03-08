@@ -17,8 +17,8 @@ deploy-testnet-fork :; IS_FORK=true forge script script/foundry-scripts/goerli/d
 # verify commands
 ## example: contractAddress=<contractAddress> contractPath=<contract-path> make verify-lrt-proxy-testnet
 ## example: contractAddress=0xE7b647ab9e0F49093926f06E457fa65d56cb456e contractPath=contracts/LRTConfig.sol:LRTConfig  make verify-lrt-proxy-testnet
-verify-lrt-proxy-testnet :; forge verify-contract --chain-id 5 --watch --etherscan-api-key ${GOERLI_ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
-verify-lrt-proxy-mainnet :; forge verify-contract --chain-id 1 --watch --etherscan-api-key ${ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
+verify-contract-testnet :; forge verify-contract --chain-id 5 --watch --etherscan-api-key ${GOERLI_ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
+verify-contract-mainnet :; forge verify-contract --chain-id 1 --watch --etherscan-api-key ${ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
 
 # transfer the ownership of the contracts to Multisig
 transfer-ownership-testnet :; forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url ${GOERLI_RPC_URL}  --broadcast -vvv
@@ -35,8 +35,9 @@ deposit-limits-mainnet :; forge script script/foundry-scripts/UpdateDepositLimit
 deposit-limits-fork :; IS_FORK=true forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast
 
 # deploy restaking of Native ETH
-deploy-native-mainnet :; forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url ${MAINNET_RPC_URL}  --broadcast --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
-deploy-native-fork :; IS_FORK=true forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost --broadcast -vvv
+deploy-native-mainnet :; forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url ${MAINNET_RPC_URL}  --broadcast --slow --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv
+deploy-native-fork :; IS_FORK=true forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost -vvv
+deploy-native-local :; forge script script/foundry-scripts/mainnet/10_deployNativeETH.s.sol:DeployNativeETH --rpc-url localhost --broadcast --slow -vvv
 
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)

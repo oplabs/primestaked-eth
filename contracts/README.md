@@ -79,3 +79,11 @@
 ### Storage
 
 ![Config Storage](../docs/LRTConfigStorage.svg)
+
+## PrimeZapper
+
+[PrimeZapper.sol](./utils/PrimeZapper.sol)
+
+### Squashed
+
+![PrimeZapper Squashed](../docs/PrimeZapperSquashed.svg)

@@ -38,19 +38,32 @@ task("depositPrime").setAction(async (_, __, runSuper) => {
 });
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
-  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "ALL", types.string)
+  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
   .addParam("index", "Index of Node Delegator", 1, types.int)
-  .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 1, types.float)
+  .addOptionalParam("minDeposit", "Minimum ETH deposit amount", 32, types.float)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
-    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
     if (taskArgs.symbol === "ALL") {
-      await depositAllEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+      const assets = [
+        await resolveAsset("OETH", signer),
+        await resolveAsset("SFRXETH", signer),
+        await resolveAsset("METH", signer),
+        await resolveAsset("STETH", signer),
+        await resolveAsset("RETH", signer),
+        await resolveAsset("SWETH", signer),
+        await resolveAsset("ETHX", signer),
+      ];
+      await depositAllEL({ signer, depositPool, nodeDelegator, assets, ...taskArgs });
     } else {
-      await depositAssetEL({ signer, depositPool, nodeDelegator, ...taskArgs });
+      const asset = await resolveAsset(taskArgs.symbol, signer);
+      await depositAssetEL({ signer, depositPool, nodeDelegator, asset, ...taskArgs });
     }
   });
 task("depositEL").setAction(async (_, __, runSuper) => {
@@ -210,8 +223,9 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 });
 
 // Defender
-subtask("operateValidators", "Spawns up the required amount of validators and sets them up")
+subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addOptionalParam("stake", "Stake 32 ether after registering a new SSV validator", true, types.boolean)
   .setAction(async (taskArgs) => {
     const storeFilePath = require("path").join(__dirname, "..", "..", ".localKeyValueStorage");
 
@@ -245,6 +259,7 @@ subtask("operateValidators", "Spawns up the required amount of validators and se
       // how much SSV (expressed in days of runway) gets deposited into SSV
       // network contract on validator registration.
       validatorSpawnOperationalPeriodInDays: 90,
+      stake: taskArgs.stake,
     };
 
     await operateValidators({
@@ -273,7 +288,7 @@ task("registerVal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("stakeEth", "Stake ETH into validator")
+subtask("stakeEth", "Stake ETH into validator for testing purposes")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
@@ -285,6 +300,22 @@ subtask("stakeEth", "Stake ETH into validator")
     await stakeEth({ signer, nodeDelegator });
   });
 task("stakeEth").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("decode", "Util to decode tx data")
+  .addParam("data", "data field of tx", undefined, types.string)
+  .addOptionalParam("name", "Identifier of the address in the Solidity addresses file", "SSV_NETWORK", types.string)
+  .addOptionalParam("contract", "Name of the contract or interface", "ISSVNetwork", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress(taskArgs.name);
+    const contract = await ethers.getContractAt(taskArgs.contract, nodeDelegatorAddress);
+
+    const txData = contract.interface.parseTransaction({ data: taskArgs.data });
+    console.log(txData);
+  });
+task("decode").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
@@ -370,7 +401,10 @@ subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contr
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
 
-    await deployNodeDelegator({ signer, ...taskArgs });
+    const wethAddress = await parseAddress("WETH_TOKEN");
+    const weth = await ethers.getContractAt("IWETH", wethAddress);
+
+    await deployNodeDelegator({ weth, signer, ...taskArgs });
   });
 task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();

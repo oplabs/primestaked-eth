@@ -19,6 +19,7 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomicfoundation/hardhat-verify": "^2.0.4",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/defender-autotask-client": "^1.54.1",
     "@openzeppelin/defender-kvstore-client": "^1.54.1",

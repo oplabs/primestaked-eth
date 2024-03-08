@@ -2,6 +2,7 @@ require("dotenv").config();
 
 require("@nomiclabs/hardhat-ethers");
 require("@nomicfoundation/hardhat-foundry");
+require("@nomicfoundation/hardhat-verify");
 
 require("./script/hardhat-tasks/tasks");
 
@@ -36,5 +37,8 @@ module.exports = {
     local: {
       url: "http://localhost:8545",
     },
+  },
+  etherscan: {
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`,
   },
 };

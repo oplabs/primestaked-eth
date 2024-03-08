@@ -16,10 +16,10 @@ object "Stakers" as staker <<account>> {
 object "Manager" as man <<Prime Staked>> <<2/7 multi-sig>> {
 }
 
-' object "Admin" as admin <<Prime Staked>> <<2/7 multi-sig>> {
-' }
+object "Admin" as admin <<Prime Staked>> <<2/7 multi-sig>> {
+}
 
-object "EigenLayer\nOperator" as op <<Prime Staked>> <<2/7 multi-sig>> {
+object "Operator" as op <<Prime Staked>> <<2/7 multi-sig>> {
 }
 
 object "rawPrimeETH" as peth <<Prime Staked>> <<Proxy>> {
@@ -50,10 +50,14 @@ object "Validator 1" as val1 <<P2P>> <<Proxy>> {
 
 staker ..> dep : depositETH
 
-' Main functions
-man ..> dep : transferETHToNodeDelegator
-man ....> del1 : createEigenPod,\nsendETHFromDepositPoolToNDC,\ntransferBackToLRTDepositPool
-op ....> del1 : stakeETH,\nverifyWithdrawalCredentials
+' Main LRTDepositPool functions
+admin ..> dep : addNodeDelegatorContractToQueue,\nremoveNodeDelegatorContractFromQueue,\nunpause
+man ..> dep : pause
+op ..> dep : transferAssetToNodeDelegator,\ntransferAssetsToNodeDelegator
+
+' Main NodeDelegator functions
+man ....> del1 : createEigenPod,\napproveSSV,\ndepositSSV,\nmaxApproveToEigenStrategyManager,\nsendETHFromDepositPoolToNDC,\ntransferBackToLRTDepositPool
+op ....> del1 : registerSsvValidator,\nstakeEth
 
 ' ' All functions
 ' admin ..> dep : setMinAmountToDeposit,\nupdateMaxNodeDelegatorLimit,\nupdateLRTConfig,\nunpause
@@ -72,7 +76,7 @@ peth <. dep : mint,\nburnFrom
 ' oracle ..> config : hasRole,\ngetContract,\ngetSupportedAssetList,\nprimeETH
 ' peth ..> config : hasRole
 
-dep ...> del1 : getETHEigenPodBalance,\nsendETHFromDepositPoolToNDC
+dep ...> del1 : getAssetBalance,\ngetAssetBalances
 
 del1 .> eop
 
@@ -80,8 +84,7 @@ del1 ..> podMan : createPod,\nownerToPod,\nstake
 podMan ..> pod1 : stake,\nwithdrawRestakedBeaconChainETH
 pod1 ..> podMan : getBeaconChainStateRoot,\nrestakeBeaconChainETH,\nrecordOvercommittedBeaconChainETH
 
-del1 ...> pod1 : withdrawBeforeRestaking,\nverifyWithdrawalCredentialsAndBalance
-' any ..> pod1 : verifyWithdrawalCredentialsAndBalance
+del1 ...> pod1 : withdrawBeforeRestaking
 
 pod1 ..> val1
 

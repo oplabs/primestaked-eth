@@ -28,14 +28,13 @@ contract DeployNativeETH is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = ;
+        deployBlockNum = 19_379_670;
     }
 
     function _execute() internal override {
         // Deploy new NodeDelegator with proxy and initialize it
         // This will be done via the Defender Relayer for mainnet but is left in here for fork testing
         newNodeDelegator2 = NodeDelegatorLib.deployInit(1);
-        // newNodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
 
         // Deploy new LTRDepositPool implementation
         newDepositPoolImpl = DepositPoolLib.deployImpl();
@@ -99,6 +98,14 @@ contract DeployNativeETH is BaseMainnetScript {
         console.log("PodOwner = NodeDelegator");
         console.logBytes32(entries[3].topics[2]);
         assert(entries[3].topics[0] == keccak256("EigenPodCreated(address,address)"));
+
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.OETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.STETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.ETHX_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.SWETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.RETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.SFRXETH_TOKEN, 0);
+        LRTConfig(Addresses.LRT_CONFIG).updateAssetDepositLimit(Addresses.METH_TOKEN, 0);
 
         vm.stopPrank();
 
