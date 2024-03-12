@@ -30,6 +30,7 @@ struct ValidatorStakeData {
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH_TOKEN_ADDRESS;
+    address public immutable EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS;
 
     /// @dev The EigenPod is created and owned by this contract
     IEigenPod public eigenPod;
@@ -41,9 +42,13 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _wethAddress) {
+    constructor(address _wethAddress, address _eigenDelayedWithdrawalRouterAddress) {
         UtilLib.checkNonZeroAddress(_wethAddress);
         WETH_TOKEN_ADDRESS = _wethAddress;
+
+        UtilLib.checkNonZeroAddress(_eigenDelayedWithdrawalRouterAddress);
+        EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS = _eigenDelayedWithdrawalRouterAddress;
+
         _disableInitializers();
     }
 
@@ -214,6 +219,23 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             ndcAssets += address(this).balance;
 
             eigenAssets = stakedButNotVerifiedEth;
+
+            if (address(eigenPod) != address(0)) {
+                eigenAssets += address(eigenPod).balance;
+            }
+
+            // Get any ETH in the EigenDelayedWithdrawalRouter
+            IEigenDelayedWithdrawalRouter.DelayedWithdrawal[] memory delayedWithdrawals = IEigenDelayedWithdrawalRouter(
+                EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS
+            ).getUserDelayedWithdrawals(address(this));
+
+            for (uint256 i = 0; i < delayedWithdrawals.length;) {
+                eigenAssets += delayedWithdrawals[i].amount;
+
+                unchecked {
+                    ++i;
+                }
+            }
         } else {
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
@@ -271,6 +293,57 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit ETHStaked(pubkey, 32 ether);
     }
 
+    /// @dev Verifies the withdrawal credentials for a withdrawal
+    /// This will allow the EigenPodManager to verify the withdrawal credentials and credit the OD with shares
+    /// Only manager should call this function
+    /// @param oracleBlockNumber The oracle block number of the withdrawal
+    /// @param validatorIndex The validator index of the withdrawal
+    /// @param proofs The proofs of the withdrawal
+    /// @param validatorFields The validator fields of the withdrawal
+    function verifyWithdrawalCredentials(
+        uint64 oracleBlockNumber,
+        uint40 validatorIndex,
+        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
+        bytes32[] calldata validatorFields
+    )
+        external
+        onlyLRTOperator
+    {
+        eigenPod.verifyWithdrawalCredentialsAndBalance(oracleBlockNumber, validatorIndex, proofs, validatorFields);
+
+        // Decrement the staked but not verified ETH
+        uint64 validatorCurrentBalanceGwei =
+            BeaconChainProofs.getBalanceFromBalanceRoot(validatorIndex, proofs.balanceRoot);
+
+        uint256 gweiToWei = 1e9;
+        stakedButNotVerifiedEth -= (validatorCurrentBalanceGwei * gweiToWei);
+    }
+
+    /// @dev initiate a delayed withdraw of the ETH before the EigenPod is verified
+    /// which will be available to claim after withdrawalDelay blocks
+    function initiateWithdrawRewards() external onlyLRTOperator {
+        uint256 eigenPodBalance = address(eigenPod).balance;
+        uint256 ethValidatorMinBalanceThreshold = 16 ether;
+        if (eigenPodBalance > ethValidatorMinBalanceThreshold) {
+            revert InvalidRewardAmount();
+        }
+
+        eigenPod.withdrawBeforeRestaking();
+        emit ETHRewardsWithdrawInitiated(eigenPodBalance);
+    }
+
+    /// @dev claims back the withdrawal amount initiated to this nodeDelegator contract
+    /// once withdrawal amount is claimable
+    function claimRewards(uint256 maxNumberOfDelayedWithdrawalsToClaim) external onlyLRTOperator {
+        uint256 balanceBefore = address(this).balance;
+        address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
+        IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
+        elDelayedRouter.claimDelayedWithdrawals(address(this), maxNumberOfDelayedWithdrawalsToClaim);
+        uint256 balanceAfter = address(this).balance;
+
+        emit ETHRewardsClaimed(balanceAfter - balanceBefore);
+    }
+
     /// @dev Triggers stopped state. Contract must not be paused.
     function pause() external onlyLRTManager {
         _pause();
@@ -301,6 +374,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
 
+    /// @dev Registers a new validator in the SSV Cluster
     function registerSsvValidator(
         bytes calldata publicKey,
         uint64[] calldata operatorIds,
