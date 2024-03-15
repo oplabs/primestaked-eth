@@ -8,12 +8,12 @@ import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/trans
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
-import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
 
-import { BeaconChainProofs } from "contracts/interfaces/IEigenPod.sol";
+import { BeaconChainProofs } from "contracts/eigen/interfaces/IEigenPod.sol";
 
 contract MockEigenStrategyManager {
     mapping(address depositor => mapping(address strategy => uint256 shares)) public depositorStrategyShareBalances;
@@ -74,16 +74,22 @@ contract MockSSVNetwork {
     {
         IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
     }
+
+    function exitValidator(bytes memory publicKey, uint64[] memory operatorIds) external { }
+
+    function removeValidator(bytes memory publicKey, uint64[] memory operatorIds, Cluster memory cluster) external { }
 }
 
 contract MockEigenPodManager {
     mapping(address => address) public ownerToPod;
 
-    function createPod() external {
-        if (ownerToPod[msg.sender] != address(0)) {
-            return;
+    function createPod() external returns (address pod) {
+        pod = ownerToPod[msg.sender];
+        if (pod != address(0)) {
+            return pod;
         }
-        ownerToPod[msg.sender] = address(new MockEigenPod());
+        pod = address(new MockEigenPod());
+        ownerToPod[msg.sender] = pod;
     }
 
     function stake(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot) external payable {
@@ -92,20 +98,38 @@ contract MockEigenPodManager {
 }
 
 contract MockEigenPod {
-    function verifyWithdrawalCredentialsAndBalance(
-        uint64 oracleBlockNumber,
-        uint40 validatorIndex,
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
-        bytes32[] calldata validatorFields
+    function verifyWithdrawalCredentials(
+        uint64 oracleTimestamp,
+        BeaconChainProofs.StateRootProof calldata stateRootProof,
+        uint40[] calldata validatorIndices,
+        bytes[] calldata withdrawalCredentialProofs,
+        bytes32[][] calldata validatorFields
     )
         external
-        view
-        returns (uint256)
-    {
-        return 32 gwei;
-    }
+    { }
+
+    function verifyBalanceUpdates(
+        uint64 oracleTimestamp,
+        uint40[] calldata validatorIndices,
+        BeaconChainProofs.StateRootProof calldata stateRootProof,
+        bytes[] calldata validatorFieldsProofs,
+        bytes32[][] calldata validatorFields
+    )
+        external
+    { }
 
     receive() external payable { }
+}
+
+contract MockEigenDelayedWithdrawalRouter {
+    struct DelayedWithdrawal {
+        uint224 amount;
+        uint32 blockCreated;
+    }
+
+    function getUserDelayedWithdrawals(address user) external view returns (DelayedWithdrawal[] memory) { }
+    function createDelayedWithdrawal(address podOwner, address recipient) external payable { }
+    function claimDelayedWithdrawals(address recipient, uint256 maxNumberOfDelayedWithdrawalsToClaim) external { }
 }
 
 contract NodeDelegatorTest is LRTConfigTest {
@@ -119,6 +143,7 @@ contract NodeDelegatorTest is LRTConfigTest {
     address public mockLRTDepositPool;
 
     MockEigenPodManager public mockEigenPodManager;
+    MockEigenDelayedWithdrawalRouter public mockEigenDelayedWithdrawalRouter;
 
     event UpdatedLRTConfig(address indexed lrtConfig);
     event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
@@ -141,6 +166,7 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         mockEigenPodManager = new MockEigenPodManager();
         lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, address(mockEigenPodManager));
+        mockEigenDelayedWithdrawalRouter = new MockEigenDelayedWithdrawalRouter();
 
         // add WETH token
         lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
@@ -166,7 +192,7 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         // deploy NodeDelegator
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth));
+        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth), address(mockEigenDelayedWithdrawalRouter));
         TransparentUpgradeableProxy nodeDelProxy =
             new TransparentUpgradeableProxy(address(nodeDelImpl), address(proxyAdmin), "");
 

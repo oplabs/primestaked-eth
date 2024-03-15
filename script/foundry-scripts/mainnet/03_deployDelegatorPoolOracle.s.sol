@@ -43,7 +43,8 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
 
         address lrtDepositPoolImplementation = address(new LRTDepositPool());
         address lrtOracleImplementation = address(new LRTOracle());
-        address nodeDelegatorImplementation = address(new NodeDelegator(Addresses.WETH_TOKEN));
+        address nodeDelegatorImplementation =
+            address(new NodeDelegator(Addresses.WETH_TOKEN, Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER));
         //address chainlinkPriceOracleImplementation = address(new ChainlinkPriceOracle());
         //address ethxPriceOracleImplementation = address(new EthXPriceOracle());
 

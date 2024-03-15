@@ -63,6 +63,7 @@ library Addresses {
     address public constant EIGEN_UNPAUSER = 0x369e6F597e22EaB55fFb173C6d9cD234BD699111;
     address public constant EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
     address public constant EIGEN_POD_MANAGER = 0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338;
+    address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x7Fe7E9CC0F274d2435AD5d56D5fa73E47F6A23D8;
 
     // SSV contracts
     address public constant SSV_TOKEN = 0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54;
@@ -111,6 +112,7 @@ library AddressesGoerli {
     address public constant EIGEN_UNPAUSER = 0x3d9C2c2B40d890ad53E27947402e977155CD2808;
     address public constant EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
     address public constant EIGEN_POD_MANAGER = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
+    address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x89581561f1F98584F88b0d57c2180fb89225388f;
 
     // SSV contracts
     address public constant SSV_TOKEN = 0x3a9f01091C446bdE031E39ea8354647AFef091E7;

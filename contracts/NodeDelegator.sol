@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.21;
 
-import { UtilLib } from "./utils/UtilLib.sol";
-import { LRTConstants } from "./utils/LRTConstants.sol";
-import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
-
-import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
-import { IStrategy } from "./interfaces/IStrategy.sol";
-import { IEigenStrategyManager } from "./interfaces/IEigenStrategyManager.sol";
-import { IOETH } from "./interfaces/IOETH.sol";
-import { IWETH } from "./interfaces/IWETH.sol";
-import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
-
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
-import { IEigenPod } from "./interfaces/IEigenPod.sol";
+import { UtilLib } from "./utils/UtilLib.sol";
+import { LRTConstants } from "./utils/LRTConstants.sol";
+import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
+
+import { IEigenPod, BeaconChainProofs } from "./eigen/interfaces/IEigenPod.sol";
+import { IEigenPodManager } from "./eigen/interfaces/IEigenPodManager.sol";
+import { IStrategyManager } from "./eigen/interfaces/IStrategyManager.sol";
+import { IDelayedWithdrawalRouter } from "./eigen/interfaces/IDelayedWithdrawalRouter.sol";
+import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
+import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
+import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
+import { IOETH } from "./interfaces/IOETH.sol";
+import { IWETH } from "./interfaces/IWETH.sol";
 
 struct ValidatorStakeData {
     bytes pubkey;
@@ -33,7 +33,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     address public immutable EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS;
 
     /// @dev The EigenPod is created and owned by this contract
-    IEigenPod public eigenPod;
+    address public eigenPod;
     /// @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
     uint256 public stakedButNotVerifiedEth;
@@ -65,10 +65,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
     function createEigenPod() external onlyLRTManager {
         IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
-        eigenPodManager.createPod();
-        eigenPod = eigenPodManager.ownerToPod(address(this));
+        eigenPod = eigenPodManager.createPod();
 
-        emit EigenPodCreated(address(eigenPod), address(this));
+        emit EigenPodCreated(eigenPod, address(this));
     }
 
     /// @notice Approves the maximum amount of an asset to the eigen strategy manager
@@ -145,7 +144,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         emit AssetDepositIntoStrategy(asset, strategy, balance);
 
-        IEigenStrategyManager(eigenlayerStrategyManagerAddress).depositIntoStrategy(IStrategy(strategy), token, balance);
+        IStrategyManager(eigenlayerStrategyManagerAddress).depositIntoStrategy(IStrategy(strategy), token, balance);
     }
 
     /// @notice Transfers an asset back to the LRT deposit pool
@@ -214,18 +213,24 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
         ndcAssets += IERC20(asset).balanceOf(address(this));
 
+        // The WETH asset will point to the EigenLayer beaconChainETHStrategy 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
+        address strategy = lrtConfig.assetStrategy(asset);
+        if (strategy != address(0)) {
+            eigenAssets = IStrategy(strategy).userUnderlyingView(address(this));
+        }
+
         if (asset == WETH_TOKEN_ADDRESS) {
             // Add any ETH in the NDC that was earned from EigenLayer
             ndcAssets += address(this).balance;
 
-            eigenAssets = stakedButNotVerifiedEth;
+            eigenAssets += stakedButNotVerifiedEth;
 
-            if (address(eigenPod) != address(0)) {
-                eigenAssets += address(eigenPod).balance;
+            if (eigenPod != address(0)) {
+                eigenAssets += eigenPod.balance;
             }
 
             // Get any ETH in the EigenDelayedWithdrawalRouter
-            IEigenDelayedWithdrawalRouter.DelayedWithdrawal[] memory delayedWithdrawals = IEigenDelayedWithdrawalRouter(
+            IDelayedWithdrawalRouter.DelayedWithdrawal[] memory delayedWithdrawals = IDelayedWithdrawalRouter(
                 EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS
             ).getUserDelayedWithdrawals(address(this));
 
@@ -235,11 +240,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
                 unchecked {
                     ++i;
                 }
-            }
-        } else {
-            address strategy = lrtConfig.assetStrategy(asset);
-            if (strategy != address(0)) {
-                eigenAssets = IStrategy(strategy).userUnderlyingView(address(this));
             }
         }
     }
@@ -296,49 +296,45 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @dev Verifies the withdrawal credentials for a withdrawal
     /// This will allow the EigenPodManager to verify the withdrawal credentials and credit the OD with shares
     /// Only manager should call this function
-    /// @param oracleBlockNumber The oracle block number of the withdrawal
-    /// @param validatorIndex The validator index of the withdrawal
-    /// @param proofs The proofs of the withdrawal
-    /// @param validatorFields The validator fields of the withdrawal
+    /// @param oracleTimestamp is the Beacon Chain timestamp whose state root the `proof` will be proven against.
+    /// @param validatorIndices is the list of indices of the validators being proven, refer to consensus specs
+    /// @param withdrawalCredentialProofs is an array of proofs, where each proof proves each ETH validator's balance
+    /// and withdrawal credentials against a beacon chain state root
+    /// @param validatorFields are the fields of the "Validator Container", refer to consensus specs
     function verifyWithdrawalCredentials(
-        uint64 oracleBlockNumber,
-        uint40 validatorIndex,
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
-        bytes32[] calldata validatorFields
+        uint64 oracleTimestamp,
+        uint40[] calldata validatorIndices,
+        bytes[] calldata withdrawalCredentialProofs,
+        BeaconChainProofs.StateRootProof calldata stateRootProof,
+        bytes32[][] calldata validatorFields
     )
         external
         onlyLRTOperator
     {
-        eigenPod.verifyWithdrawalCredentialsAndBalance(oracleBlockNumber, validatorIndex, proofs, validatorFields);
+        IEigenPod(eigenPod).verifyWithdrawalCredentials(
+            oracleTimestamp, stateRootProof, validatorIndices, withdrawalCredentialProofs, validatorFields
+        );
 
         // Decrement the staked but not verified ETH
-        uint64 validatorCurrentBalanceGwei =
-            BeaconChainProofs.getBalanceFromBalanceRoot(validatorIndex, proofs.balanceRoot);
-
-        uint256 gweiToWei = 1e9;
-        stakedButNotVerifiedEth -= (validatorCurrentBalanceGwei * gweiToWei);
+        stakedButNotVerifiedEth -= 32 ether;
     }
 
     /// @dev initiate a delayed withdraw of the ETH before the EigenPod is verified
     /// which will be available to claim after withdrawalDelay blocks
     function initiateWithdrawRewards() external onlyLRTOperator {
-        uint256 eigenPodBalance = address(eigenPod).balance;
-        uint256 ethValidatorMinBalanceThreshold = 16 ether;
-        if (eigenPodBalance > ethValidatorMinBalanceThreshold) {
-            revert InvalidRewardAmount();
-        }
+        uint256 eigenPodBalance = eigenPod.balance;
+        IEigenPod(eigenPod).withdrawBeforeRestaking();
 
-        eigenPod.withdrawBeforeRestaking();
         emit ETHRewardsWithdrawInitiated(eigenPodBalance);
     }
 
     /// @dev claims back the withdrawal amount initiated to this nodeDelegator contract
     /// once withdrawal amount is claimable
-    function claimRewards(uint256 maxNumberOfDelayedWithdrawalsToClaim) external onlyLRTOperator {
+    function claimRewards(uint256 maxClaims) external onlyLRTOperator {
         uint256 balanceBefore = address(this).balance;
-        address delayedRouterAddr = eigenPod.delayedWithdrawalRouter();
-        IEigenDelayedWithdrawalRouter elDelayedRouter = IEigenDelayedWithdrawalRouter(delayedRouterAddr);
-        elDelayedRouter.claimDelayedWithdrawals(address(this), maxNumberOfDelayedWithdrawalsToClaim);
+        IDelayedWithdrawalRouter(EIGEN_DELAYED_WITHDRAWAL_ROUTER_ADDRESS).claimDelayedWithdrawals(
+            address(this), maxClaims
+        );
         uint256 balanceAfter = address(this).balance;
 
         emit ETHRewardsClaimed(balanceAfter - balanceBefore);
