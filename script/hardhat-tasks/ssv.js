@@ -1,5 +1,5 @@
 const { logTxDetails } = require("../utils/txLogger");
-const { parseEther } = require("ethers/lib/utils");
+const { parseUnits, formatUnits } = require("ethers/lib/utils");
 const { ClusterScanner, NonceScanner } = require("ssv-scanner");
 const { SSVKeys, KeyShares, KeySharesItem, SSVKeysException } = require("ssv-keys");
 const path = require("path");
@@ -13,13 +13,21 @@ const approveSSV = async ({ signer, nodeDelegator }) => {
   await logTxDetails(tx2, "approveSSV");
 };
 
-const depositSSV = async ({ signer, nodeDelegator, amount }) => {
-  const amountBN = parseEther(amount.toString());
+const depositSSV = async (options) => {
+  const { signer, chainId, nodeDelegator, ssvNetwork, amount, operatorids } = options;
+  const amountBN = parseUnits(amount.toString(), 18);
+  log(`Splitting operator IDs ${operatorids}`);
+  const operatorIds = operatorids.split(".").map((id) => parseInt(id));
 
-  // TODO get operatorIds and Cluster details
-  log(`About to deposit more SSV tokens to the SSV Network from NodeDelegator ${nodeDelegator.address}`);
-  const tx2 = await nodeDelegator.connect(signer).depositSSV(amountBN);
-  await logTxDetails(tx2, "depositSSV");
+  // Cluster details
+  const clusterInfo = await getClusterInfo({ chainId, ssvNetwork, operatorids, ownerAddress: nodeDelegator.address });
+
+  log(
+    `About to deposit ${formatUnits(amountBN)} SSV tokens to the SSV Network for NodeDelegator ${nodeDelegator.address} with operator IDs ${operatorIds}`,
+  );
+  log(`Cluster snapshot: ${JSON.stringify(clusterInfo["cluster snapshot"])}`);
+  const tx = await nodeDelegator.connect(signer).depositSSV(operatorIds, amountBN, clusterInfo["cluster snapshot"]);
+  await logTxDetails(tx, "depositSSV");
 };
 
 const pauseDelegator = async ({ signer, nodeDelegator }) => {
@@ -46,7 +54,7 @@ const splitValidatorKey = async ({
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
   const operatorKeys = operatorkeys.split(".");
   const keystoreLocation = path.join(__dirname, "..", "..", keystorelocation);
-  const { nextNonce } = await getClusterInfo({ ownerAddress, operatorids, chainId, ssvNetwork });
+  const nextNonce = await getClusterNonce({ ownerAddress, operatorids, chainId, ssvNetwork });
 
   log(`Reading keystore location: ${keystoreLocation}`);
   log(`For operatorIds: ${operatorIds}`);
@@ -131,13 +139,37 @@ const getClusterInfo = async ({ ownerAddress, operatorids, chainId, ssvNetwork }
     "cluster snapshot": result.cluster,
     cluster: Object.values(result.cluster),
   };
+  log(`Cluster info ${JSON.stringify(cluster)}`);
+  return cluster;
+};
+
+const getClusterNonce = async ({ ownerAddress, operatorids, chainId, ssvNetwork }) => {
+  const operatorIds = operatorids.split(".").map((id) => parseInt(id));
+
+  const ssvNetworkName = chainId === 1 ? "MAINNET" : "PRATER";
+  const providerUrl = chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.GOERLI_RPC_URL;
+
+  const params = {
+    nodeUrl: providerUrl, // this can be an Infura, or Alchemy node, necessary to query the blockchain
+    contractAddress: ssvNetwork, // this is the address of SSV smart contract
+    ownerAddress, // this is the wallet address of the cluster owner
+    /* Based on the network they fetch contract ABIs. See code: https://github.com/bloxapp/ssv-scanner/blob/v1.0.3/src/lib/contract.provider.ts#L16-L22
+     * and the ABIs are fetched from here: https://github.com/bloxapp/ssv-scanner/tree/v1.0.3/src/shared/abi
+     *
+     * Prater seems to work for Goerli at the moment
+     */
+    network: ssvNetworkName,
+    operatorIds: operatorIds, // this is a list of operator IDs chosen by the owner for their cluster
+  };
+
   const nonceScanner = new NonceScanner(params);
   const nextNonce = await nonceScanner.run();
-  return { cluster, nextNonce };
+  return nextNonce;
 };
 
 const printClusterInfo = async (options) => {
-  const { cluster, nextNonce } = await getClusterInfo(options);
+  const cluster = await getClusterInfo(options);
+  const nextNonce = await getClusterNonce(options);
   console.log(JSON.stringify(cluster, null, "  "));
   console.log("Next Nonce:", nextNonce);
 };
