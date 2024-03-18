@@ -234,17 +234,21 @@ activate op
 note right : generate proofs using EigenPod Proofs Generator tool
 return proofs, validatorFields
 
-op -> pod : verifyWithdrawalCredentialsAndBalance(\noracleBlockNumber,\nvalidatorIndex\nproofs,\nvalidatorFields)
+op -> nd : verifyWithdrawalCredentials(\noracleTimestamp,\nvalidatorIndices\nwithdrawalCredentialProofs,\nstateRootProof,\nvalidatorFields)
+activate nd
+nd -> pod : verifyWithdrawalCredentials(\noracleTimestamp,\nvalidatorIndices\nwithdrawalCredentialProofs,\nstateRootProof,\nvalidatorFields)
 activate pod
 note right
 verify validator's balance is >= 32 ETH
 and withdrawal credentials point to EigenPod
 end note
-pod -> podMan : restakeBeaconChainETH(\npodOwner,\namount)
+pod -> podMan : recordBeaconChainETHBalanceUpdate(\npodOwner,\namount)
 activate podMan
-podMan -> stratMan : depositBeaconChainETH(\nstaker,\namount)
-activate stratMan
-note right : add ETH strategy shares to NodeDelegator
+note right : add to NodeDelegator's pod shares
+podMan -> delMan : increaseDelegatedShares(\nstaker,\nstrategy,\namount)
+activate delMan
+note right : add to NodeDelegator's delegated shares
+return
 return
 return
 return

@@ -191,8 +191,8 @@ dep .> oracle : getAssetPrice
 ' del1 .> eop
 ' eop <.. delMan
 
-' del1 ..> stratMan : depositIntoStrategy,\ngetDeposits
-' ' del2 ..> stratMan : depositIntoStrategy,\ngetDeposits
+' del1 ..> stratMan : depositIntoStrategy
+' ' del2 ..> stratMan : depositIntoStrategy
 ' stratMan .> delMan : increaseDelegatedShares,\ndecreaseDelegatedShares
 ' ' delMan ..> slasher
 
