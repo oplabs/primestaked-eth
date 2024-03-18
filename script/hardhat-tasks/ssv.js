@@ -25,8 +25,8 @@ const depositSSV = async (options) => {
   log(
     `About to deposit ${formatUnits(amountBN)} SSV tokens to the SSV Network for NodeDelegator ${nodeDelegator.address} with operator IDs ${operatorIds}`,
   );
-  log(`Cluster snapshot: ${JSON.stringify(clusterInfo["cluster snapshot"])}`);
-  const tx = await nodeDelegator.connect(signer).depositSSV(operatorIds, amountBN, clusterInfo["cluster snapshot"]);
+  log(`Cluster: ${JSON.stringify(clusterInfo.snapshot)}`);
+  const tx = await nodeDelegator.connect(signer).depositSSV(operatorIds, amountBN, clusterInfo.cluster);
   await logTxDetails(tx, "depositSSV");
 };
 
@@ -136,7 +136,7 @@ const getClusterInfo = async ({ ownerAddress, operatorids, chainId, ssvNetwork }
   const result = await clusterScanner.run(params.operatorIds);
   const cluster = {
     block: result.payload.Block,
-    "cluster snapshot": result.cluster,
+    snapshot: result.cluster,
     cluster: Object.values(result.cluster),
   };
   log(`Cluster info ${JSON.stringify(cluster)}`);
@@ -170,7 +170,8 @@ const getClusterNonce = async ({ ownerAddress, operatorids, chainId, ssvNetwork 
 const printClusterInfo = async (options) => {
   const cluster = await getClusterInfo(options);
   const nextNonce = await getClusterNonce(options);
-  console.log(JSON.stringify(cluster, null, "  "));
+  console.log(`block ${cluster.block}`);
+  console.log(`Cluster: ${JSON.stringify(cluster.snapshot, null, "  ")}`);
   console.log("Next Nonce:", nextNonce);
 };
 
