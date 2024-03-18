@@ -178,6 +178,37 @@ contract ForkTestNative is ForkTestBase {
         nodeDelegator2.approveSSV();
     }
 
+    // This test will probably have to be removed as balance will change and can't simply be queried from the SSV
+    // Network contract
+    // Use the following to get the latest cluster SSV balance
+    // npx hardhat getClusterInfo --network local --operatorids 63.65.157.198
+    function test_depositSSV() public {
+        uint256 amount = 3e18;
+        deal(address(Addresses.SSV_TOKEN), Addresses.MANAGER_ROLE, amount);
+
+        vm.prank(Addresses.MANAGER_ROLE);
+
+        Cluster memory cluster = Cluster({
+            validatorCount: 1,
+            networkFeeIndex: 60_025_270_074,
+            index: 291_898_093_718,
+            active: true,
+            balance: 4_747_140_052_000_000_000
+        });
+
+        // These are the operatorIds for the first SSV Cluster. These will not be used going forward
+        uint64[] memory operatorIds = new uint64[](4);
+        operatorIds[0] = 63;
+        operatorIds[1] = 65;
+        operatorIds[2] = 157;
+        operatorIds[3] = 198;
+
+        vm.expectEmit(Addresses.SSV_TOKEN);
+        emit Transfer(address(nodeDelegator2), Addresses.SSV_NETWORK, amount);
+
+        nodeDelegator2.depositSSV(operatorIds, amount, cluster);
+    }
+
     function test_deposit_WETH() public {
         deposit(Addresses.WETH_TOKEN, wWhale, 20 ether);
     }

@@ -63,3 +63,16 @@ tx 2
 `tx2uml value 0x7d1e4958d23c06af4169652077189425124da327c26d183f189cbd65723d3181,0x741d167a0d5065efce9a61621d61ee71b7d8b8e748f81f803d90490ebc4f7f6b -v -cf ./prime.config.json -hf`
 
 ![transferAssetsToNodeDelegator value](./v7d1e3181741d7f6b.svg)
+
+## Deposit OETH into EigenLayer Strategy
+
+tx
+[0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197](https://etherscan.io/tx/0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197)
+
+`tx2uml 0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197 -v -cf ./prime.config.json -x -d 3`
+
+![depositAssetsIntoStrategy](./bb9c1197.svg)
+
+`tx2uml value 0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197 -v -cf ./prime.config.json -hf`
+
+![depositAssetsIntoStrategy value](./vbb9c1197.svg)
