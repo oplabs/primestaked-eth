@@ -232,6 +232,7 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .addOptionalParam("stake", "Stake 32 ether after registering a new SSV validator", true, types.boolean)
+  .addOptionalParam("days", "SSV Cluster operational time in days", 1, types.int)
   .setAction(async (taskArgs) => {
     const storeFilePath = require("path").join(__dirname, "..", "..", ".localKeyValueStorage");
 
@@ -262,9 +263,10 @@ subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
       eigenPodAddress,
       p2p_api_key,
       p2p_base_url,
-      // how much SSV (expressed in days of runway) gets deposited into SSV
-      // network contract on validator registration.
-      validatorSpawnOperationalPeriodInDays: 90,
+      // how much SSV (expressed in days of runway) gets deposited into the
+      // SSV Network contract on validator registration. This is calculated
+      // at a Cluster level rather than a single validator.
+      validatorSpawnOperationalPeriodInDays: taskArgs.days,
       stake: taskArgs.stake,
     };
 
