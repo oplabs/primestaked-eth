@@ -63,7 +63,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
           signer,
           store,
           currentState.uuid,
-          currentState.metadata.validatorRegistrationRawTx.data,
+          currentState.metadata,
           contracts.nodeDelegator,
         );
         currentState = await getState(store);
@@ -314,13 +314,23 @@ const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
   }
 };
 
-const broadcastRegisterValidator = async (signer, store, uuid, registerValidatorData, nodeDelegator) => {
+const broadcastRegisterValidator = async (signer, store, uuid, metadata, nodeDelegator) => {
   const registerTransactionParams = utils.defaultAbiCoder.decode(
-    ["bytes", "uint64[]", "bytes", "uint256", '"tuple(uint32, uint64, uint64, bool, uint256)'],
-    utils.hexDataSlice(registerValidatorData, 4),
+    ["bytes", "uint64[]", "bytes", "uint256", "tuple(uint32, uint64, uint64, bool, uint256)"],
+    utils.hexDataSlice(metadata.registerValidatorData, 4),
   );
+  // the publicKey and sharesData params are not encoded correctly by P2P so we will ignore them
+  const [_publicKey, operatorIds, _sharesData, amount, cluster] = registerTransactionParams;
+  // get publicKey and sharesData state storage
+  const publicKey = metadata.depositData.pubkey;
+  if (!publicKey) {
+    throw Error(`pubkey not found in metadata.depositData: ${metadata?.depositData}`);
+  }
+  const { sharesData } = metadata;
+  if (!sharesData) {
+    throw Error(`sharesData not found in metadata: ${metadata}`);
+  }
 
-  const [publicKey, operatorIds, sharesData, amount, cluster] = registerTransactionParams;
   log(`About to register validator with:`);
   log(`publicKey: ${publicKey}`);
   log(`operatorIds: ${operatorIds}`);
@@ -355,15 +365,19 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
     if (response.error != null) {
       log(`Error processing request uuid: ${uuid} error: ${response}`);
     } else if (response.result.status === "ready") {
+      const registerValidatorData = response.result.validatorRegistrationTxs[0].data;
       const depositData = response.result.depositData[0];
+      const sharesData = response.result.encryptedShares[0].sharesData;
       await updateState(uuid, "validator_creation_confirmed", store, {
-        validatorRegistrationRawTx: response.result.validatorRegistrationTxs[0],
+        registerValidatorData,
         depositData,
+        sharesData,
       });
       log(`Validator created using uuid: ${uuid} is ready`);
       log(`Primary key: ${depositData.pubkey}`);
       log(`signature: ${depositData.signature}`);
       log(`depositDataRoot: ${depositData.depositDataRoot}`);
+      log(`sharesData: ${sharesData}`);
       return true;
     } else {
       log(`Validator created using uuid: ${uuid} not yet ready. State: ${response.result.status}`);
@@ -391,12 +405,18 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
 const registerVal = async ({ nodeDelegator, signer }) => {
   // Hard coded values for testing
   const publicKey =
-    "0x9969056e9899b1259375fe12ba724e1e38acf9cdb076b7970553847d05b40d16b6ca368bd2c54291753c04f26bb054f0";
+    "0xb61d41588d1c4552e1866ca7f8475007e23cebb74c533b4b9d0f89a3836c135604267446744e6d4faaf6db0dde641173";
   const operatorIds = [192, 195, 200, 201];
   const sharesData =
-    "0x90eadc9e0276d478a9b1f1f906815ec6858ffed4d0eeba8cdee3665ddd67238ff8b8142733e00b7d4817e774f8d233000f35e75b38d7393fc50420fbbb3ac0a37f605e0b0fbe3106dbddd4c28f205e0f297c35423b545766cf396ca8cfcedd02b88d7ebf855c7ebb8cd94b15b2be113b032326d86c50ad288e73448d6b7b889934cd63fde2500f151fb46008dc0b7c0fb8ed68bb8d466e6860a6d776c0ac0c27e1ca75dd6ddd2862c2f2490e2823270183e8e029bd29233ae4c10034c2871d6d9484ef7c26a9e7a416d5fd44996ef6dc30ab808418db936f63484023845bedab4eb7d226e17550a1852221b9b91b11a3839dfa5511ef64d8194f0af748996466aa284d4ca74c708b56c311da532e6bb4e465a1b1cd8f92022a939c26f16ed5ce15b658d6235abdbf9cd46e6f9c7e4a51fdc1e9fb722affec3844d0dc38be41bdef39cc780e1d56cdc8c09c7baa457fd97cad730c647af7eaca9be239c5ef7893d7d1ea3487c8bd87049c8f192cbab0824f4f18e59d7aff709176398efb23590690bb9dba79ac8c4a3d59681acfcd8b4226e03b73754c2bfdfd5930fd47ff19384aae382e31a80b7fcca5aa643d44bb2c156851a9c3e472ba4530d90ed30a44a7d03349b53699b07876e3c119b9ab9600f3e0fa12f921843cdac5d8e9fdbf3bd4f6c2be546d4d4df0a9d747264b075bab6212bb227d707bad8b1c7e85a52738e1a265b6ee4c30232478c0920c68389ea3e6578c8661c2e8bc8a57f09987ecfd1fa7ecab2bddcc6576d29a907df368dd0611a66ba8093ed7faf2b7f9d9f864c149ef441822f4eb939842ee1048672d3902dd07271ca290923776f603cb6337246bcd31f9cefd3d0b56983fe67695a5a3203027977b17a90916d9ae5cf7278e4bcf79c2d57d608569cbea725201278736f84e933f5d222e9789bb760059521bdff3c2a39fc3fd0ae47a9b8050fe80aa181f9c4fe3a74485ee52a87ecb0d6b4dbaa6efb23c5db23768d8f4a099b8a2104fafb7433f0e859d35af3438b2c039811c3024b751dd2509a4a30ddf355da8a2a2f5ce6e509ff20edc6ade2a7348e38f48312192e0940e1b7ee8c05778f89214853de6ad173a9d80c7da9b5afb45c55daf594556575b779804a465ae3b616bfa959d21b84fcffbb0d30a912340cd3f01cf8ff2b9279eb9c4de79f4332a23496443b9145eddb56012e44c866d1733956e99d7b466232482d4d8368490b75192483ae6f6ece1fd2ea3698b6f92de4da37039e1c3240af90e970db94f501f7d4e87ef27d5e1651690fe83114a3bd846b0e7a85b71e96ab61a078834645e1cd94d5a7f5a8a5a33bc0cf5d450f3fb61d3c533fb426d8a4c3bc023d0c636170c40751b3103f7ea0ea20e8230224fa8ef5883eb70175ba88bfea0103c39a0dd18325c2983ce3a53fc525fb17c23df13984043eb93f2192f6abce3ebce0f3c5bb316984f5c739d70422405a565cfb9824ad8763743fe5345f65ed18b24171f3b57f955719c2862ae781b38462eceb614d4828ad86f733aa7e174097e78bc9df9206b5fa377d0085af44ad54e0446290eb4d34e416bf6c2266bd3fb3ed4a7b02426c156fd09e55d0b52bef5c1dccc1be6a1f47444151d4d2f27918b5560994679d57837d6a0b0e5ea5e2f54f4cc0d8494f0b3cbc8e2bc01f2ecb227b0ca77d636b21a064194f31c00b8d1f173d4c13a7f8119ab6bc4a56021dd57591f85aeb663e8fe6e2550470ac6d15b5223989956a20bfed6d327859237236965b15fe3a7f042189c4dc3160ac30354d98cb5e216cab56e289eb2cc4ea0416a3b4de018889734fa1452a35b5fb05d43f97357094a643268f9860c93";
+    "0x86a062e4c406806d931845c91156979fc8004d4989225c375ea2ea12bcefb25975e3db8f0b7c347d6dddd0b051e0013c1109cff961baf78a216f02e30165896d76cd38e03f547087c842b1788362fddbc977d553dc4a523b0f2341e12a811daab0797bcc58d0987f17601d06bffd2684e188e2f2d3c72d4cdab2cc33bb89108ac09140219f8615424e621b8b10a01b6d876954b3f14e6a5b0f5d48f605b51cbce8e44bb21b203eb8ea7d435a578b2a8cb2590021f513fafd4b6b90227c7383709663e0c18cdc5075d4c59a1ea94dda4e97a8393e31d13425122f25970c8dff77c35d359ee9b36dcf61597d0e6319993f84a8cfbc4db6dea726b6fdba37962a7b5c4bd71446faca59419ab055c74d984909c68c364d4a754842af9bd00f17fa4721282861b173001fa327cf9bbd0e993fd41de7fbe766fc7d651e26ac4f8742ce2f109c3ad3edd8800ec93a94c28e7f4299d3dd56b26f67dc1ec1ec1444d2f01450b46731c41345b39491e5427cbdf0285ed16804a456cc32de62ab89e86c44cb4a2aacd1ce43f90643180a0f70b03528288b56933f7c4ed6bc3bac30b969c8c81d9e7bc0e016c6c5770f16d3ba57713cea5bcd2bb446a8b7f4e714e809eca93e1a6e73aec1505d93ed8c292a29ca927e126a551b06e5329d7cbf914ca1b99c38c9ed18c487a77b0ee849608556aa918f9b95a8ea3dc56a757abbde244d9ec705b153cc2b071dc832ffba3643cb5a9141032c2bc098b0e6e876c0d2bf7e23fc498d3016deec21f983016b1f31c329fa48c590af51cc7a2fb4587c442c40ec2426ed68df24def08f527704f038292f83d1cac50510f4de6563aaf0b1e29ef4a6cb2372868e482d3996ddd62689a23b77aabc342e30394b73b0aa04b529d1bcc1f46fa3dc86db9c160ce71c07c7851ecda788d3b7f73cfdcaa25741117d0c4e1e6c4f32b9feee9089defa6e399e752e43523662fe646788f96d2cb78e8980a0c66c1318e37f45d8561fa37e47b2651253fdc02b315a3941c3ea2d4391067945e94c103fcd7d494d205bb1c0ef61589f5204620088cd020cfa0bb3eb4507a806370be71396da0c36be9c0450ab049e2be2fb2faad9ae40c15a43eced4fe9800502676a38a98416be089b3260533354eb225a44e2d3b2d47d2043d1252a39a758e4a7aeb7b866a5d668f98fac5797c53c52181322e296bfc80db678e995ed800ed13951b71c0b874137b313bb0550f26b8ae31b0c54b65312ae404b4012f790e6a9eddff9ab4cc51817d79b6963d429396ab57747df95909bb820e3df0d3481c963275d4026d46814e27dcd2125cc13a44ba82f9936be129bc9db18430595a721c2ee1485bd2ec7075b6953cc448ca91625d381968b0e27452bbe1d84be8ad9d9d86a72fba7b5a6a528b40e6aba956319dc4a9c33f8a41277a5f39b49c567bc34cf40aabc124d2d637a1e8f5f39c89de22c4d4d74dcf2eb734727243047324ff6cdd453ff6047c08062da4519ba26e938ee7cd43273bda57243ceacebdc7982d05666d34e3111ebd0da3e58e20037650b792f113513e892a51be796923d3bd2529ed460f7f7b7a30d8d7f6ac4bf8b75c58cf1ae7ccd9281790c5feeb2fd9490e4e776b3d555bb47f9adce00e922839c63474fb2cd48940945177194a5b8a5d21932e7d5251bb94109975f33e0034e735203b010a1c5d57cc085f25d507e3d78d4862882c9a521595a6d62a77ea3c9c9d548c0912ad2dd7e75f2fd8776303be72e1cbb9d37069b18e97256dca15d0db29a810d8781e2f8a9f248342f1c42a5795eecedf0253092e57876ae5723b392a49b60d1f2b79d8190463c052c738d10d05be22d";
   const amount = "2000000000000000000";
-  const cluster = { validatorCount: 0, networkFeeIndex: 0, index: 0, active: true, balance: 0 };
+  const cluster = {
+    validatorCount: 3,
+    networkFeeIndex: 63383020962,
+    index: 61133914500,
+    active: true,
+    balance: "5997482766900000000",
+  };
 
   const tx = await nodeDelegator
     .connect(signer)
@@ -407,10 +427,10 @@ const registerVal = async ({ nodeDelegator, signer }) => {
 
 const stakeEth = async ({ signer, nodeDelegator }) => {
   // hardcode values for testing
-  const pubkey = "0x9969056e9899b1259375fe12ba724e1e38acf9cdb076b7970553847d05b40d16b6ca368bd2c54291753c04f26bb054f0";
+  const pubkey = "0xb61d41588d1c4552e1866ca7f8475007e23cebb74c533b4b9d0f89a3836c135604267446744e6d4faaf6db0dde641173";
   const signature =
-    "0xaa1b3cd9fc849d6f3a915b2d899abcf631348498092efa1024b404ed56d57714fc4c2a4595dbbee0dac7abd92fc6f299170e1dc58a10ba2b32f78fee3dec94e86d308681ec078a988dd84a1cf9936a1da25b3f1096e42646245b184c944d3640";
-  const depositDataRoot = "0x23263573a59b7d2128604196fb45878df06cf69ca08a89420fa8bc800f1efe71";
+    "0xb36304981e7b416ee44ce3e279949690df68f00677265842ef8ea70e67d5ea625b42db4358fa1e1124e2da516cebae2207ac99c2d2bbce9edf7c25bab5c5918c1df62fb61d928a17bf84b79cdfa79f8377ac1b79086701fe090bc4b4110bb7fe";
+  const depositDataRoot = "0x571c988682ab057d4d81fc914a3ae52179f731b821608e68305916b40ded2e3d";
 
   const tx = await nodeDelegator.connect(signer).stakeEth([[pubkey, signature, depositDataRoot]]);
 
