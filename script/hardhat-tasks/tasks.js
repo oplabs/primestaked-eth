@@ -233,6 +233,7 @@ subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .addOptionalParam("stake", "Stake 32 ether after registering a new SSV validator", true, types.boolean)
   .addOptionalParam("days", "SSV Cluster operational time in days", 1, types.int)
+  .addOptionalParam("clear", "Clear storage", true, types.boolean)
   .setAction(async (taskArgs) => {
     const storeFilePath = require("path").join(__dirname, "..", "..", ".localKeyValueStorage");
 
@@ -268,6 +269,7 @@ subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
       // at a Cluster level rather than a single validator.
       validatorSpawnOperationalPeriodInDays: taskArgs.days,
       stake: taskArgs.stake,
+      clear: taskArgs.clear,
     };
 
     await operateValidators({

@@ -51,8 +51,11 @@ const handler = async (event) => {
     p2p_base_url,
     // how much SSV (expressed in days of runway) gets deposited into SSV
     // network contract on validator registration.
-    validatorSpawnOperationalPeriodInDays: 90,
+    validatorSpawnOperationalPeriodInDays: 1,
+    // Stake the 32 ETH into the validator
     stake: true,
+    // Clear the local state of the Defender Action
+    clear: true,
   };
 
   await operateValidators({
