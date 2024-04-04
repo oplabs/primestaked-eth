@@ -29,10 +29,15 @@ const ERROR_THRESHOLD = 5;
  *     and start over.
  */
 const operateValidators = async ({ store, signer, contracts, config }) => {
-  const { eigenPodAddress, p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url, stake } = config;
+  const { clear, eigenPodAddress, p2p_api_key, validatorSpawnOperationalPeriodInDays, p2p_base_url, stake } = config;
 
   let currentState = await getState(store);
   log("currentState", currentState);
+
+  if (clear && currentState?.uuid) {
+    await clearState(currentState.uuid, store);
+    currentState = undefined;
+  }
 
   if (!(await nodeDelegatorHas32Eth(contracts))) {
     log(`Node delegator doesn't have enough ETH, exiting`);
@@ -63,7 +68,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
           signer,
           store,
           currentState.uuid,
-          currentState.metadata.validatorRegistrationRawTx.data,
+          currentState.metadata,
           contracts.nodeDelegator,
         );
         currentState = await getState(store);
@@ -84,13 +89,7 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
       if (!stake) break;
 
       if (currentState.state === "validator_registered") {
-        await depositEth(
-          signer,
-          store,
-          currentState.uuid,
-          contracts.nodeDelegator,
-          currentState.metadata.depositData[0],
-        );
+        await depositEth(signer, store, currentState.uuid, contracts.nodeDelegator, currentState.metadata.depositData);
         currentState = await getState(store);
       }
 
@@ -320,13 +319,23 @@ const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
   }
 };
 
-const broadcastRegisterValidator = async (signer, store, uuid, registerValidatorData, nodeDelegator) => {
+const broadcastRegisterValidator = async (signer, store, uuid, metadata, nodeDelegator) => {
   const registerTransactionParams = utils.defaultAbiCoder.decode(
-    ["bytes", "uint64[]", "bytes", "uint256", '"tuple(uint32, uint64, uint64, bool, uint256)'],
-    utils.hexDataSlice(registerValidatorData, 4),
+    ["bytes", "uint64[]", "bytes", "uint256", "tuple(uint32, uint64, uint64, bool, uint256)"],
+    utils.hexDataSlice(metadata.registerValidatorData, 4),
   );
+  // the publicKey and sharesData params are not encoded correctly by P2P so we will ignore them
+  const [_publicKey, operatorIds, _sharesData, amount, cluster] = registerTransactionParams;
+  // get publicKey and sharesData state storage
+  const publicKey = metadata.depositData.pubkey;
+  if (!publicKey) {
+    throw Error(`pubkey not found in metadata.depositData: ${metadata?.depositData}`);
+  }
+  const { sharesData } = metadata;
+  if (!sharesData) {
+    throw Error(`sharesData not found in metadata: ${metadata}`);
+  }
 
-  const [publicKey, operatorIds, sharesData, amount, cluster] = registerTransactionParams;
   log(`About to register validator with:`);
   log(`publicKey: ${publicKey}`);
   log(`operatorIds: ${operatorIds}`);
@@ -361,11 +370,19 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
     if (response.error != null) {
       log(`Error processing request uuid: ${uuid} error: ${response}`);
     } else if (response.result.status === "ready") {
+      const registerValidatorData = response.result.validatorRegistrationTxs[0].data;
+      const depositData = response.result.depositData[0];
+      const sharesData = response.result.encryptedShares[0].sharesData;
       await updateState(uuid, "validator_creation_confirmed", store, {
-        validatorRegistrationRawTx: response.result.validatorRegistrationTxs[0],
-        depositData: response.result.depositData,
+        registerValidatorData,
+        depositData,
+        sharesData,
       });
       log(`Validator created using uuid: ${uuid} is ready`);
+      log(`Primary key: ${depositData.pubkey}`);
+      log(`signature: ${depositData.signature}`);
+      log(`depositDataRoot: ${depositData.depositDataRoot}`);
+      log(`sharesData: ${sharesData}`);
       return true;
     } else {
       log(`Validator created using uuid: ${uuid} not yet ready. State: ${response.result.status}`);
@@ -393,12 +410,18 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
 const registerVal = async ({ nodeDelegator, signer }) => {
   // Hard coded values for testing
   const publicKey =
-    "0x896b5102d5f600aa30687c5cd0088d2e43c3afa7f643600edb12e31cd4b0b2b23e556b33de0168ab94abd4730a18225f";
-  const operatorIds = [60, 79, 220, 349];
+    "0xb61d41588d1c4552e1866ca7f8475007e23cebb74c533b4b9d0f89a3836c135604267446744e6d4faaf6db0dde641173";
+  const operatorIds = [192, 195, 200, 201];
   const sharesData =
-    "0xaebf72c2bd0899798a4fe51235f669debe4bc59dd49df29394ae2adf1e585e45bdee7c0f462ec9c6d531ff36c98e2e9712149e5ecd20365848073e93ad8550fe178c8ebbee9b924351533d869e63a08707ee12309b499ff3452597aca0336e4c80f04654a67fccc2e3e349608819195829a44b21a836a75836f639babd14b6aa46a49e26f02632ed13678f730d4f2ed08612225c95aca932fd0813cd605b9a61c1e0504917c94eab588ba2d619e89f339e9b804f6fffc9ad4ead1fcaa4706dca97a56d2efeefab016832d143b160aed03307ad12f83d91fe50cd1a3e3b80f4cdd91a660657c0fea9259014331dfce1759330bc9a1aae91f3c64511f937a648595757b692895b6eeb7a886551c8b1990ee9a820a412e2d1ba79e2e6b200d990153ea459cc20c1ed030c9aa5635130b583f356e81fc48db7e76e99f7eeb646449e05524d3e6377f68c8a4e4c235cce3baf566ca94f46278d144ca6f0d8c0fb692dcb1e40cc5d1727c94948381df3f52b1b7a517322063000a964714cbfa4b0093533b00c041e0693e56bcce55d03908dd3419797477cbc7240964d8a7566c02739564f7f48fec29d19e7c00a63bdd49432230cb7bc1ef6075c43d9d081157c14554bcc7551999eba0fd0531af488601c21603fd285a89ef1478fb52ed6b8d3ab811602df305543a44cd698abb6ca6e067bf1573007f4e67ca8c3ecc35b56679d3ea8798efbe3d7074f7da1305596eb17c8c1adbfc408f1edab9985cacd9475ffee1cd64cec8a9f1b10fdc0ed2334fddf0b1f89c5781c9d8f38f6778f002d63bd325b7414d7a604dd3df8e1ddaf896d1de9ea9f803eef0557f186fef7cba29d2d6d85f4cd0ec62fb768f66b626a48198916b75e8f85e14c43e8ed8ef5870895cd68bbcafdcd3a4cce352088daf59180cd44352f490415d97636fb8a646cca38bf001d2d813d9a819f9d717bd44b52c0a2405f25a6dc56d508cc2a74db28189f428cf776f64421c55a30092cd4786d1ba30984e2571911f0b54c1f92f68a706c8a28607ff648b010b25df19a8ed69e5be864a8e0447a5771eaa17cb8abc250e83b728707f8a5ea113862c2d1c3cde561d9ff6250e163db18f02cc741aaabebba1de8053e30c248b81ae6148ed3866d29f4df06e86ef8cde1beb89631b1e67620895c29d48bb89cd81e05773c32d3d6ede945ae0f3e3d3eac5bcb08806aec9935caa118edb9aa7f3f7ef9cef3ce4e064b18492bd82224c10d56b1ffb1072751cffe8deb61a6dd06c0046ffc7392a6d76499b593182543251399dc59327934cd8013b02434cd586f75ccbacea3c36fc0d71318a1db057a7a47bda9eb9c38f6cfbe2ca172b5619dfb9118edc6bea2906802b18668e9bec8a3acf196df592fe4c000f516fd330645af1d06740d03aa309863d6d68fb8202c31bd8d8f7ddb80e541f573e9ba6a0e4965e15b9e9ea83e7bcc9cf9fd06ae99fe4aaae5820498393dd29f5b7ba57e6e39f7bd077279912653fbbf8f54d9d8401c79e2582f0f0fc0cd176ad5003a1d8fd20583f50efd51c11a902c83215ac5518f974d699c01febaee637bf9129a15fc4abaf983165f70c8ad584a41e0c04b2c15afafd04b69b3c188fae146567791e92a339bbfa6397202345ce0b8a34ca012dfbc0711699208bfa3c9e9377ed676e3a63088dfa61c8dced0dc26c485d1507a659e14ce3eb7ca620aa31289c2658f3b479f72598cb3310afbdd1b55022553fab4e45f4a7bee9ca232b862e092d77cac486fed8d4006aa68d7abd71381e0208aa6b5c1dfb335c3ad91cf05324e498a6fb519967e907da608faed80c71448e056b234bb95c851fe4dc15e25dae3";
-  const amount = "2002546440000000000";
-  const cluster = { validatorCount: 0, networkFeeIndex: 0, index: 0, active: true, balance: 0 };
+    "0x86a062e4c406806d931845c91156979fc8004d4989225c375ea2ea12bcefb25975e3db8f0b7c347d6dddd0b051e0013c1109cff961baf78a216f02e30165896d76cd38e03f547087c842b1788362fddbc977d553dc4a523b0f2341e12a811daab0797bcc58d0987f17601d06bffd2684e188e2f2d3c72d4cdab2cc33bb89108ac09140219f8615424e621b8b10a01b6d876954b3f14e6a5b0f5d48f605b51cbce8e44bb21b203eb8ea7d435a578b2a8cb2590021f513fafd4b6b90227c7383709663e0c18cdc5075d4c59a1ea94dda4e97a8393e31d13425122f25970c8dff77c35d359ee9b36dcf61597d0e6319993f84a8cfbc4db6dea726b6fdba37962a7b5c4bd71446faca59419ab055c74d984909c68c364d4a754842af9bd00f17fa4721282861b173001fa327cf9bbd0e993fd41de7fbe766fc7d651e26ac4f8742ce2f109c3ad3edd8800ec93a94c28e7f4299d3dd56b26f67dc1ec1ec1444d2f01450b46731c41345b39491e5427cbdf0285ed16804a456cc32de62ab89e86c44cb4a2aacd1ce43f90643180a0f70b03528288b56933f7c4ed6bc3bac30b969c8c81d9e7bc0e016c6c5770f16d3ba57713cea5bcd2bb446a8b7f4e714e809eca93e1a6e73aec1505d93ed8c292a29ca927e126a551b06e5329d7cbf914ca1b99c38c9ed18c487a77b0ee849608556aa918f9b95a8ea3dc56a757abbde244d9ec705b153cc2b071dc832ffba3643cb5a9141032c2bc098b0e6e876c0d2bf7e23fc498d3016deec21f983016b1f31c329fa48c590af51cc7a2fb4587c442c40ec2426ed68df24def08f527704f038292f83d1cac50510f4de6563aaf0b1e29ef4a6cb2372868e482d3996ddd62689a23b77aabc342e30394b73b0aa04b529d1bcc1f46fa3dc86db9c160ce71c07c7851ecda788d3b7f73cfdcaa25741117d0c4e1e6c4f32b9feee9089defa6e399e752e43523662fe646788f96d2cb78e8980a0c66c1318e37f45d8561fa37e47b2651253fdc02b315a3941c3ea2d4391067945e94c103fcd7d494d205bb1c0ef61589f5204620088cd020cfa0bb3eb4507a806370be71396da0c36be9c0450ab049e2be2fb2faad9ae40c15a43eced4fe9800502676a38a98416be089b3260533354eb225a44e2d3b2d47d2043d1252a39a758e4a7aeb7b866a5d668f98fac5797c53c52181322e296bfc80db678e995ed800ed13951b71c0b874137b313bb0550f26b8ae31b0c54b65312ae404b4012f790e6a9eddff9ab4cc51817d79b6963d429396ab57747df95909bb820e3df0d3481c963275d4026d46814e27dcd2125cc13a44ba82f9936be129bc9db18430595a721c2ee1485bd2ec7075b6953cc448ca91625d381968b0e27452bbe1d84be8ad9d9d86a72fba7b5a6a528b40e6aba956319dc4a9c33f8a41277a5f39b49c567bc34cf40aabc124d2d637a1e8f5f39c89de22c4d4d74dcf2eb734727243047324ff6cdd453ff6047c08062da4519ba26e938ee7cd43273bda57243ceacebdc7982d05666d34e3111ebd0da3e58e20037650b792f113513e892a51be796923d3bd2529ed460f7f7b7a30d8d7f6ac4bf8b75c58cf1ae7ccd9281790c5feeb2fd9490e4e776b3d555bb47f9adce00e922839c63474fb2cd48940945177194a5b8a5d21932e7d5251bb94109975f33e0034e735203b010a1c5d57cc085f25d507e3d78d4862882c9a521595a6d62a77ea3c9c9d548c0912ad2dd7e75f2fd8776303be72e1cbb9d37069b18e97256dca15d0db29a810d8781e2f8a9f248342f1c42a5795eecedf0253092e57876ae5723b392a49b60d1f2b79d8190463c052c738d10d05be22d";
+  const amount = "2000000000000000000";
+  const cluster = {
+    validatorCount: 3,
+    networkFeeIndex: 63383020962,
+    index: 61133914500,
+    active: true,
+    balance: "5997482766900000000",
+  };
 
   const tx = await nodeDelegator
     .connect(signer)
@@ -409,10 +432,10 @@ const registerVal = async ({ nodeDelegator, signer }) => {
 
 const stakeEth = async ({ signer, nodeDelegator }) => {
   // hardcode values for testing
-  const pubkey = "0x896b5102d5f600aa30687c5cd0088d2e43c3afa7f643600edb12e31cd4b0b2b23e556b33de0168ab94abd4730a18225f";
+  const pubkey = "0xb61d41588d1c4552e1866ca7f8475007e23cebb74c533b4b9d0f89a3836c135604267446744e6d4faaf6db0dde641173";
   const signature =
-    "0xb2f24a0115546169976cdd8784d6c896febefd58964158f81ab9427e577d5eb055b40f384f4a09b5ff8d2b834277fa861632758a3fcb564dae759922f466a8eaa2af9d2406906646adda22baa86967a4a90b616527c0c077794657da9076b198";
-  const depositDataRoot = "0xc9d1dd6024731da7ab57d15c20a3b6f2b14e15337684f73f3e96ff5c962f369a";
+    "0xb36304981e7b416ee44ce3e279949690df68f00677265842ef8ea70e67d5ea625b42db4358fa1e1124e2da516cebae2207ac99c2d2bbce9edf7c25bab5c5918c1df62fb61d928a17bf84b79cdfa79f8377ac1b79086701fe090bc4b4110bb7fe";
+  const depositDataRoot = "0x571c988682ab057d4d81fc914a3ae52179f731b821608e68305916b40ded2e3d";
 
   const tx = await nodeDelegator.connect(signer).stakeEth([[pubkey, signature, depositDataRoot]]);
 

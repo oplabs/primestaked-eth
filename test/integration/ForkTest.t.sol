@@ -33,7 +33,7 @@ contract ForkTestBase is Test {
     LRTConfig public lrtConfig;
     NodeDelegator public nodeDelegator1;
 
-    address internal constant stWhale = 0xd8d041705735cd770408AD31F883448851F2C39d;
+    address internal constant stWhale = 0xE53FFF67f9f384d20Ebea36F43b93DC49Ed22753;
     address internal constant xWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
     address internal constant oWhale = 0xEADB3840596cabF312F2bC88A4Bb0b93A4E1FF5F;
     address internal constant mWhale = 0xf89d7b9c864f589bbF53a82105107622B35EaA40;
@@ -144,7 +144,7 @@ contract ForkTestNative is ForkTestBase {
 
     address internal constant wWhale = 0xF04a5cC80B1E94C69B48f5ee68a08CD2F09A7c3E;
     // WETH whale that is not a contract
-    address internal constant wWhale2 = 0x267ed5f71EE47D3E45Bb1569Aa37889a2d10f91e;
+    address internal constant wWhale2 = 0x8EB8a3b98659Cce290402893d0123abb75E3ab28;
 
     // Get the result.validatorRegistrationTxs[0].data from the P2P Check Status Request
     // removed the 0x06e8fb9c function signature (4 bytes) from the validatorRegistrationTxs.data
@@ -177,6 +177,37 @@ contract ForkTestNative is ForkTestBase {
         emit Approval(address(nodeDelegator2), Addresses.SSV_NETWORK, type(uint256).max);
 
         nodeDelegator2.approveSSV();
+    }
+
+    // This test will probably have to be removed as balance will change and can't simply be queried from the SSV
+    // Network contract
+    // Use the following to get the latest cluster SSV balance
+    // npx hardhat getClusterInfo --network local --operatorids 63.65.157.198
+    function test_depositSSV() public {
+        uint256 amount = 3e18;
+        deal(address(Addresses.SSV_TOKEN), Addresses.MANAGER_ROLE, amount);
+
+        vm.prank(Addresses.MANAGER_ROLE);
+
+        Cluster memory cluster = Cluster({
+            validatorCount: 1,
+            networkFeeIndex: 60_025_270_074,
+            index: 291_898_093_718,
+            active: true,
+            balance: 4_747_140_052_000_000_000
+        });
+
+        // These are the operatorIds for the first SSV Cluster. These will not be used going forward
+        uint64[] memory operatorIds = new uint64[](4);
+        operatorIds[0] = 63;
+        operatorIds[1] = 65;
+        operatorIds[2] = 157;
+        operatorIds[3] = 198;
+
+        vm.expectEmit(Addresses.SSV_TOKEN);
+        emit Transfer(address(nodeDelegator2), Addresses.SSV_NETWORK, amount);
+
+        nodeDelegator2.depositSSV(operatorIds, amount, cluster);
     }
 
     function test_deposit_WETH() public {

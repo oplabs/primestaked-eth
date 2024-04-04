@@ -32,7 +32,7 @@ subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
     const network = await ethers.provider.getNetwork();
 
-    await depositPrime({ signer, depositPool, networkId: network.chainId, ...taskArgs });
+    await depositPrime({ ...taskArgs, signer, depositPool, networkId: network.chainId });
   });
 task("depositPrime").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -61,10 +61,10 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
         await resolveAsset("SWETH", signer),
         await resolveAsset("ETHX", signer),
       ];
-      await depositAllEL({ signer, depositPool, nodeDelegator, assets, ...taskArgs });
+      await depositAllEL({ ...taskArgs, signer, depositPool, nodeDelegator, assets });
     } else {
       const asset = await resolveAsset(taskArgs.symbol, signer);
-      await depositAssetEL({ signer, depositPool, nodeDelegator, asset, ...taskArgs });
+      await depositAssetEL({ ...taskArgs, signer, depositPool, nodeDelegator, asset });
     }
   });
 task("depositEL").setAction(async (_, __, runSuper) => {
@@ -86,7 +86,7 @@ subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
     const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
-    await approveSSV({ signer, nodeDelegator, ...taskArgs });
+    await approveSSV({ ...taskArgs, signer, nodeDelegator });
   });
 task("approveSSV").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -133,10 +133,10 @@ subtask("splitValidatorKey", "Splits the full validator key in DVT share key")
     const ssvNetwork = await parseAddress("SSV_NETWORK");
 
     await splitValidatorKey({
+      ...taskArgs,
       ownerAddress,
       chainId: network.chainId,
       ssvNetwork,
-      ...taskArgs,
     });
   });
 task("splitValidatorKey").setAction(async (_, __, runSuper) => {
@@ -167,7 +167,7 @@ subtask("getClusterInfo", "Print out information regarding SSV cluster")
     log(
       `Fetching cluster info for cluster owner ${ownerAddress} with operator ids: ${taskArgs.operatorids} from the ${network.name} network.`,
     );
-    await printClusterInfo({ ownerAddress, chainId: network.chainId, ssvNetwork, ...taskArgs });
+    await printClusterInfo({ ...taskArgs, ownerAddress, chainId: network.chainId, ssvNetwork });
   });
 task("getClusterInfo").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -176,14 +176,21 @@ task("getClusterInfo").setAction(async (_, __, runSuper) => {
 subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeDelegator")
   .addParam("amount", "Amount of SSV tokens to deposit", undefined, types.float)
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    undefined,
+    types.string,
+  )
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
+    const network = await ethers.provider.getNetwork();
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
-    await depositSSV({ signer, nodeDelegator, ...taskArgs });
+    await depositSSV({ ...taskArgs, signer, nodeDelegator, chainId: network.chainId });
   });
 task("depositSSV").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -199,7 +206,7 @@ subtask("pauseDelegator", "Manager pause a NodeDelegator")
     const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
-    await pauseDelegator({ signer, nodeDelegator, ...taskArgs });
+    await pauseDelegator({ ...taskArgs, signer, nodeDelegator });
   });
 task("pauseDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -214,7 +221,7 @@ subtask("unpauseDelegator", "Admin unpause a NodeDelegator")
     const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
 
-    await unpauseDelegator({ signer, nodeDelegator, ...taskArgs });
+    await unpauseDelegator({ ...taskArgs, signer, nodeDelegator });
   });
 task("unpauseDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -232,6 +239,8 @@ task("setActionVars").setAction(async (_, __, runSuper) => {
 subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .addOptionalParam("stake", "Stake 32 ether after registering a new SSV validator", true, types.boolean)
+  .addOptionalParam("days", "SSV Cluster operational time in days", 1, types.int)
+  .addOptionalParam("clear", "Clear storage", true, types.boolean)
   .setAction(async (taskArgs) => {
     const storeFilePath = require("path").join(__dirname, "..", "..", ".localKeyValueStorage");
 
@@ -262,10 +271,12 @@ subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
       eigenPodAddress,
       p2p_api_key,
       p2p_base_url,
-      // how much SSV (expressed in days of runway) gets deposited into SSV
-      // network contract on validator registration.
-      validatorSpawnOperationalPeriodInDays: 90,
+      // how much SSV (expressed in days of runway) gets deposited into the
+      // SSV Network contract on validator registration. This is calculated
+      // at a Cluster level rather than a single validator.
+      validatorSpawnOperationalPeriodInDays: taskArgs.days,
       stake: taskArgs.stake,
+      clear: taskArgs.clear,
     };
 
     await operateValidators({
@@ -382,7 +393,7 @@ subtask("depositWETH", "Deposit ETH into WETH")
     const wethAddress = await parseAddress("WETH_TOKEN");
     const weth = await ethers.getContractAt("IWETH", wethAddress);
 
-    await depositWETH({ weth, signer, ...taskArgs });
+    await depositWETH({ ...taskArgs, weth, signer });
   });
 task("depositWETH").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -396,7 +407,7 @@ subtask("withdrawWETH", "Withdraw ETH from WETH")
     const wethAddress = await parseAddress("WETH_TOKEN");
     const weth = await ethers.getContractAt("IWETH", wethAddress);
 
-    await withdrawWETH({ weth, signer, ...taskArgs });
+    await withdrawWETH({ ...taskArgs, weth, signer });
   });
 task("withdrawWETH").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -410,7 +421,7 @@ subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contr
     const wethAddress = await parseAddress("WETH_TOKEN");
     const weth = await ethers.getContractAt("IWETH", wethAddress);
 
-    await deployNodeDelegator({ weth, signer, ...taskArgs });
+    await deployNodeDelegator({ ...taskArgs, weth, signer });
   });
 task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
   return runSuper();

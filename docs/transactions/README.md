@@ -76,5 +76,3 @@ tx
 `tx2uml value 0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197 -v -cf ./prime.config.json -hf`
 
 ![depositAssetsIntoStrategy value](./vbb9c1197.svg)
-
-
