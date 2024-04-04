@@ -18,7 +18,7 @@ const handler = async (event) => {
   console.log(`DEBUG env var in handler before being set: "${process.env.DEBUG}"`);
 
   const network = await provider.getNetwork();
-  const networkName = network.chainId === 1 ? "mainnet" : "goerli";
+  const networkName = network.chainId === 1 ? "mainnet" : "holesky";
   log(`Network: ${networkName} with chain id (${network.chainId})`);
 
   const depositPoolAddress = addresses[networkName].LRT_DEPOSIT_POOL;

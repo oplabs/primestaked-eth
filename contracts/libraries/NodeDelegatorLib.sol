@@ -9,7 +9,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 library NodeDelegatorLib {
@@ -45,32 +45,32 @@ library NodeDelegatorLib {
     }
 
     function deployInit(uint256 index) internal returns (NodeDelegator nodeDelegator) {
-        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesGoerli.WETH_TOKEN;
+        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
         address eigenDelayWithdrawalRouterAddress = block.chainid == 1
             ? Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER
-            : AddressesGoerli.EIGEN_DELAYED_WITHDRAWAL_ROUTER;
+            : AddressesHolesky.EIGEN_DELAYED_WITHDRAWAL_ROUTER;
 
         // Deploy the new contract
         address nodeDelegatorImpl = address(new NodeDelegator(wethAddress, eigenDelayWithdrawalRouterAddress));
         console.log("NodeDelegator implementation deployed at: %s", nodeDelegatorImpl);
 
-        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
+        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", index));
 
-        address proxyFactoryAddress = block.chainid == 1 ? Addresses.PROXY_FACTORY : AddressesGoerli.PROXY_FACTORY;
+        address proxyFactoryAddress = block.chainid == 1 ? Addresses.PROXY_FACTORY : AddressesHolesky.PROXY_FACTORY;
         address nodeDelegatorProxy =
             ProxyFactory(proxyFactoryAddress).create(nodeDelegatorImpl, proxyAdminAddress, salt);
         nodeDelegator = NodeDelegator(payable(nodeDelegatorProxy));
 
         // init new NodeDelegator
-        address lrtConfigProxy = block.chainid == 1 ? Addresses.LRT_CONFIG : AddressesGoerli.LRT_CONFIG;
+        address lrtConfigProxy = block.chainid == 1 ? Addresses.LRT_CONFIG : AddressesHolesky.LRT_CONFIG;
         nodeDelegator.initialize(lrtConfigProxy);
 
         console.log("Native staking node delegator (proxy) deployed at: ", nodeDelegatorProxy);
     }
 
     function upgrade(address proxyAddress, address newImpl) internal returns (NodeDelegator) {
-        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
+        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
 

@@ -1,8 +1,8 @@
 {
-  "name": "lrt",
+  "name": "prime-staked-eth",
   "scripts": {
     "clean": "rm -rf cache out cache_forge artifacts",
-    "build": "forge build; hardhat compile",
+    "build": "forge build; npx hardhat compile",
     "lint": "npm run lint:sol && npm run prettier:check",
     "lint:write": "forge fmt && npm run prettier:write",
     "lint:sol": "forge fmt --check && solhint {script,src,test}/**/*.sol",

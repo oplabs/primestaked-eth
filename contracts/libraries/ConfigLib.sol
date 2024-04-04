@@ -8,7 +8,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import { LRTConfig } from "contracts/LRTConfig.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 
@@ -35,14 +35,15 @@ library ConfigLib {
 
     function initialize(LRTConfig config, address adminAddress, address primeETHAddress) internal {
         // initialize new LRTConfig contract
-        address stETH = block.chainid == 1 ? Addresses.STETH_TOKEN : AddressesGoerli.STETH_TOKEN;
-        address ethx = block.chainid == 1 ? Addresses.ETHX_TOKEN : AddressesGoerli.ETHX_TOKEN;
+        address stETH = block.chainid == 1 ? Addresses.STETH_TOKEN : AddressesHolesky.STETH_TOKEN;
+        // Note mainnet and Goerli use ETHx while Holesky uses rETH
+        address ethx = block.chainid == 1 ? Addresses.ETHX_TOKEN : AddressesHolesky.RETH_TOKEN;
 
         config.initialize(adminAddress, stETH, ethx, primeETHAddress);
     }
 
     function upgrade(address proxyAddress, address newImpl) internal returns (LRTConfig) {
-        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
+        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
 

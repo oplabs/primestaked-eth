@@ -20,7 +20,7 @@ const handler = async (event) => {
   console.log(`DEBUG env var in handler before being set: "${process.env.DEBUG}"`);
 
   const network = await provider.getNetwork();
-  const networkName = network.chainId === 1 ? "mainnet" : "goerli";
+  const networkName = network.chainId === 1 ? "mainnet" : network.chainId === 5 ? "goerli" : "holesky";
   log(`Network: ${networkName} with chain id (${network.chainId})`);
 
   const eigenPodAddress = addresses[networkName].EIGEN_POD;
@@ -39,11 +39,11 @@ const handler = async (event) => {
     WETH,
   };
 
-  const p2p_api_key = network.chainId === 1 ? event.secrets.P2P_MAINNET_API_KEY : event.secrets.P2P_GOERLI_API_KEY;
+  const p2p_api_key = network.chainId === 1 ? event.secrets.P2P_MAINNET_API_KEY : event.secrets.P2P_HOLESKY_API_KEY;
   if (!p2p_api_key) {
-    throw new Error("Secret with P2P API key not set. Add the P2P_MAINNET_API_KEY or P2P_GOERLI_API_KEY secret");
+    throw new Error("Secret with P2P API key not set. Add the P2P_MAINNET_API_KEY or P2P_HOLESKY_API_KEY secret");
   }
-  const p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test.p2p.org";
+  const p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test-holesky.p2p.org";
 
   const config = {
     eigenPodAddress,

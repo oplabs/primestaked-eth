@@ -118,3 +118,50 @@ library AddressesGoerli {
     address public constant SSV_TOKEN = 0x3a9f01091C446bdE031E39ea8354647AFef091E7;
     address public constant SSV_NETWORK = 0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D;
 }
+
+library AddressesHolesky {
+    // address public constant ADMIN_MULTISIG = ;
+    address public constant DEPLOYER = 0xd79226d276F7327C1Ad30Ec2c20dd8e0d641407F;
+    address public constant RELAYER = 0x3C6B0c7835a2E2E0A45889F64DcE4ee14c1D5CB4;
+
+    address public constant ADMIN_ROLE = RELAYER;
+    address public constant MANAGER_ROLE = RELAYER;
+    address public constant OPERATOR_ROLE = RELAYER;
+
+    address public constant PROXY_OWNER = DEPLOYER;
+    address public constant PROXY_FACTORY = 0x41923EFBA04Fe85d6403BaC9EE34fb51B6295f0A;
+    address public constant PROXY_ADMIN = 0x167867cE6aCB280e134DD604dfb4464233ac3AFC;
+
+    address public constant PRIME_STAKED_ETH = 0x946e085C1708636ab2342942d04dcF4198BAD88A;
+
+    address public constant LRT_CONFIG = 0x9dcAbEBaDdbA80967Ba3ddCBeA7ff009c4c49bcD;
+    address public constant LRT_ORACLE = 0xF8dA123bAE1E1C004C60c7ec6f478D2038280b7F;
+    address public constant LRT_DEPOSIT_POOL = 0xD237De57Cfe4e963807C5C8159264c2744Fa024f;
+    address public constant NODE_DELEGATOR = 0xc4611f14600C74e2678569B2D6a6Ba6c45574862;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x0F31C1a71439790a2763fE30207396B78fC65598;
+    address public constant EIGEN_POD = 0x0F31C1a71439790a2763fE30207396B78fC65598;
+    address public constant PRIME_ZAPPER = 0x7a2a061B1F3AB751957551E2370364a93170FEB1;
+
+    address public constant CHAINLINK_ORACLE_PROXY = 0xB1C8039E3aeF5f9Ce94c90cda7DDAa8DF8ba16b8;
+
+    address public constant STETH_TOKEN = 0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034;
+    address public constant STETH_EIGEN_STRATEGY = 0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3;
+    address public constant STETH_ORACLE = 0x6De6be06545a6598F4bd616F80c5D01e5a7dB24e;
+
+    // rETH is used instead of ETHx when deploying on Holesky
+    address public constant RETH_TOKEN = 0x7322c24752f79c05FFD1E2a6FCB97020C1C264F1;
+    address public constant RETH_EIGEN_STRATEGY = 0x3A8fBdf9e77DFc25d09741f51d3E181b25d0c4E0;
+    address public constant RETH_ORACLE = 0x202Dba33a0fd5771D7758E98CBc57b2B3b7993Ef;
+
+    address public constant WETH_TOKEN = 0x94373a4919B3240D86eA41593D5eBa789FEF3848;
+    address public constant WETH_ORACLE_PROXY = 0xdde085494FBeddb40D1023984cbb130a4651fAa4;
+
+    address public constant EIGEN_UNPAUSER = 0x28Ade60640fdBDb2609D8d8734D1b5cBeFc0C348;
+    address public constant EIGEN_STRATEGY_MANAGER = 0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6;
+    address public constant EIGEN_POD_MANAGER = 0x30770d7E3e71112d7A6b7259542D1f680a70e315;
+    address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x642c646053eaf2254f088e9019ACD73d9AE0FA32;
+
+    // SSV contracts
+    address public constant SSV_TOKEN = 0xad45A78180961079BFaeEe349704F411dfF947C6;
+    address public constant SSV_NETWORK = 0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA;
+}
