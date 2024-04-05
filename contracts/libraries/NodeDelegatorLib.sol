@@ -9,15 +9,15 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { Addresses, AddressesGoerli, AddressesHolesky } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 library NodeDelegatorLib {
     function deployImpl() internal returns (address implementation) {
-        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesGoerli.WETH_TOKEN;
+        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
         address eigenDelayWithdrawalRouterAddress = block.chainid == 1
             ? Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER
-            : AddressesGoerli.EIGEN_DELAYED_WITHDRAWAL_ROUTER;
+            : AddressesHolesky.EIGEN_DELAYED_WITHDRAWAL_ROUTER;
 
         // Deploy the new contract
         implementation = address(new NodeDelegator(wethAddress, eigenDelayWithdrawalRouterAddress));

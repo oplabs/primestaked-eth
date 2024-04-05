@@ -18,6 +18,8 @@ artifacts
 
 # foundry files
 broadcast
+args.txt
+tmp
 
 # Metrics report
 metrics.md

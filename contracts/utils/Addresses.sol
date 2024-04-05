@@ -128,33 +128,33 @@ library AddressesHolesky {
     address public constant MANAGER_ROLE = RELAYER;
     address public constant OPERATOR_ROLE = RELAYER;
 
-    address public constant PROXY_OWNER = DEPLOYER;
-    address public constant PROXY_FACTORY = 0x41923EFBA04Fe85d6403BaC9EE34fb51B6295f0A;
-    address public constant PROXY_ADMIN = 0x167867cE6aCB280e134DD604dfb4464233ac3AFC;
+    address public constant PROXY_OWNER = RELAYER;
+    address public constant PROXY_FACTORY = 0x4deEfb03b91A95af4513c1b6108BC6AA55caD4f8;
+    address public constant PROXY_ADMIN = 0x7920617D9e72e9f0dFbEad1d61c953202fA90764;
 
-    address public constant PRIME_STAKED_ETH = 0x946e085C1708636ab2342942d04dcF4198BAD88A;
+    address public constant PRIME_STAKED_ETH = 0x1Cf578969B0770c5aa93A159F58402235A9Ec17A;
 
-    address public constant LRT_CONFIG = 0x9dcAbEBaDdbA80967Ba3ddCBeA7ff009c4c49bcD;
-    address public constant LRT_ORACLE = 0xF8dA123bAE1E1C004C60c7ec6f478D2038280b7F;
-    address public constant LRT_DEPOSIT_POOL = 0xD237De57Cfe4e963807C5C8159264c2744Fa024f;
-    address public constant NODE_DELEGATOR = 0xc4611f14600C74e2678569B2D6a6Ba6c45574862;
-    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x0F31C1a71439790a2763fE30207396B78fC65598;
-    address public constant EIGEN_POD = 0x0F31C1a71439790a2763fE30207396B78fC65598;
-    address public constant PRIME_ZAPPER = 0x7a2a061B1F3AB751957551E2370364a93170FEB1;
+    address public constant LRT_CONFIG = 0x52998428a824566D5957F28594543caF09BC8141;
+    address public constant LRT_ORACLE = 0xd4dA06592Fc3179625ebCb42666560dd411DA406;
+    address public constant LRT_DEPOSIT_POOL = 0xD68ff8e68612AE1D104D525525Fa592CCC5fdD39;
+    address public constant NODE_DELEGATOR = 0x6a54C908919dDA2738dFC3A362F42E1a424A44FD;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0xfeA78Ed4221Fc4c51cF71E617C3eceF808a3DE3f;
+    address public constant EIGEN_POD = 0xEdF4d52cCaa70CEE5B2EFBFDC87610ac35323325;
+    address public constant PRIME_ZAPPER = 0x2885FcdA389CaA523b3B0c1Ec23FCd81182ab364;
 
-    address public constant CHAINLINK_ORACLE_PROXY = 0xB1C8039E3aeF5f9Ce94c90cda7DDAa8DF8ba16b8;
+    address public constant CHAINLINK_ORACLE_PROXY = 0x2419D438f89dcfD67014045Bd3BD444DAf7a1fF7;
 
     address public constant STETH_TOKEN = 0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034;
     address public constant STETH_EIGEN_STRATEGY = 0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3;
-    address public constant STETH_ORACLE = 0x6De6be06545a6598F4bd616F80c5D01e5a7dB24e;
+    address public constant STETH_ORACLE = 0x7925A509d5768FA45c7E3DB103b130151926eED5;
 
     // rETH is used instead of ETHx when deploying on Holesky
     address public constant RETH_TOKEN = 0x7322c24752f79c05FFD1E2a6FCB97020C1C264F1;
     address public constant RETH_EIGEN_STRATEGY = 0x3A8fBdf9e77DFc25d09741f51d3E181b25d0c4E0;
-    address public constant RETH_ORACLE = 0x202Dba33a0fd5771D7758E98CBc57b2B3b7993Ef;
+    address public constant RETH_ORACLE = 0x541020A2BE2223aed686B8B9578652e880eD275D;
 
     address public constant WETH_TOKEN = 0x94373a4919B3240D86eA41593D5eBa789FEF3848;
-    address public constant WETH_ORACLE_PROXY = 0xdde085494FBeddb40D1023984cbb130a4651fAa4;
+    address public constant WETH_ORACLE_PROXY = 0xf0edc8bA05485Cc304f546D2682D78084bB25924;
 
     address public constant EIGEN_UNPAUSER = 0x28Ade60640fdBDb2609D8d8734D1b5cBeFc0C348;
     address public constant EIGEN_STRATEGY_MANAGER = 0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6;

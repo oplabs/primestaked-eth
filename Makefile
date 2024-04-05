@@ -15,10 +15,16 @@ deploy-holesky-local :; forge script script/foundry-scripts/holesky/deployHolesk
 deploy-holesky-fork :; IS_FORK=true forge script script/foundry-scripts/holesky/deployHolesky.s.sol:DeployHolesky --rpc-url localhost -vvv
 
 # verify commands
-## example: contractAddress=<contractAddress> contractPath=<contract-path> make verify-lrt-proxy-testnet
+## example: contractAddress=<contractAddress> contractPath=<contract-path> make verify-contract-testnet
+## example: contractAddress=<contractAddress> contractPath=<contract-path> argsFile=args.txt make verify-contract-testnet
 ## example: contractAddress=0xE7b647ab9e0F49093926f06E457fa65d56cb456e contractPath=contracts/LRTConfig.sol:LRTConfig  make verify-contract-testnet
-verify-contract-testnet :; forge verify-contract --chain-id 17000 --watch --etherscan-api-key ${HOLESKY_ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
-verify-contract-mainnet :; forge verify-contract --chain-id 1 --watch --etherscan-api-key ${ETHERSCAN_API_KEY} ${contractAddress} ${contractPath}
+# example with constructor args
+# contractAddress=0x8F4d72289f89C62B4CbA974934FACba7843A28F8 contractPath=contracts/NodeDelegator.sol:NodeDelegator argsFile=args.txt make verify-contract-testnet
+ifneq ($(argsFile),)
+    CONSTRUCTOR_ARGS=--constructor-args-path ${argsFile}
+endif
+verify-contract-testnet :; forge verify-contract --chain-id 17000 --watch --etherscan-api-key ${HOLESKY_ETHERSCAN_API_KEY} ${contractAddress} ${contractPath} ${CONSTRUCTOR_ARGS}
+verify-contract-mainnet :; forge verify-contract --chain-id 1 --watch --etherscan-api-key ${ETHERSCAN_API_KEY} ${contractAddress} ${contractPath} ${CONSTRUCTOR_ARGS}
 
 # transfer the ownership of the contracts to Multisig
 transfer-ownership-testnet :; forge script script/foundry-scripts/TransferOwnership.s.sol:TransferOwnership --rpc-url ${HOLESKY_RPC_URL}  --broadcast -vvv

@@ -3,7 +3,7 @@
 pragma solidity 0.8.21;
 
 import "forge-std/console.sol";
-import { Addresses, AddressesGoerli, AddressesHolesky } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 
 library PrimeZapperLib {
