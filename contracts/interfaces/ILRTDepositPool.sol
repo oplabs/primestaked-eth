@@ -3,15 +3,15 @@ pragma solidity 0.8.21;
 
 interface ILRTDepositPool {
     //errors
-    error TokenTransferFailed();
-    error InvalidAmountToDeposit();
-    error NotEnoughAssetToTransfer();
-    error MaximumDepositLimitReached();
-    error MaximumNodeDelegatorLimitReached();
-    error InvalidMaximumNodeDelegatorLimit();
-    error MinimumAmountToReceiveNotMet();
-    error NodeDelegatorNotFound();
-    error NodeDelegatorHasAssetBalance(address assetAddress, uint256 assetBalance);
+    error TokenTransferFailed(); // 0x045c4b02
+    error InvalidAmountToDeposit(); // 0x91c6ba02
+    error NotEnoughAssetToTransfer(); // 0x21d9b3bb
+    error MaximumDepositLimitReached(); // 0x1751ef83
+    error MaximumNodeDelegatorLimitReached(); // 0x9aca5e24
+    error InvalidMaximumNodeDelegatorLimit(); // 0xe1a3dd92
+    error MinimumAmountToReceiveNotMet(); // 0x1ec9a894
+    error NodeDelegatorNotFound(); // 0xa5cddd8f
+    error NodeDelegatorHasAssetBalance(address assetAddress, uint256 assetBalance); // 0xef008f08
 
     //events
     event MaxNodeDelegatorLimitUpdated(uint256 maxNodeDelegatorLimit);

@@ -11,11 +11,11 @@ interface INodeDelegator {
     event ETHRewardsClaimed(uint256 amount);
 
     // errors
-    error TokenTransferFailed();
-    error StrategyIsNotSetForAsset();
-    error InvalidETHSender();
-    error InsufficientWETH(uint256 balance);
-    error ValidatorAlreadyStaked(bytes pubkey);
+    error TokenTransferFailed(); // 0x045c4b02
+    error StrategyIsNotSetForAsset(); // 0x615c938
+    error InvalidETHSender(); // 0xe811a0c2
+    error InsufficientWETH(uint256 balance); // 0x2ed796b4
+    error ValidatorAlreadyStaked(bytes pubkey); // 0x2229546d
 
     // methods
     function depositAssetIntoStrategy(address asset) external;

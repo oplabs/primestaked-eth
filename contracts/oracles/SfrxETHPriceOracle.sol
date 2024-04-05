@@ -20,7 +20,7 @@ contract SfrxETHPriceOracle is IPriceFetcher {
     address public immutable sfrxETHContractAddress;
     IDualOracle public immutable fraxDualOracle;
 
-    error InvalidAsset();
+    error InvalidAsset(); // 0xc891add2
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _sfrxETHContractAddress, address _fraxDualOracle) {

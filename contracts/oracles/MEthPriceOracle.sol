@@ -13,7 +13,7 @@ contract MEthPriceOracle is OneETHPriceOracle {
     address public immutable mEthAddress;
     IMEthStaking public immutable mEthStaking;
 
-    error InvalidAsset();
+    error InvalidAsset(); // 0xc891add2
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _mEthAddress, address _mEthStaking) {
