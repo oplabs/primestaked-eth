@@ -145,11 +145,13 @@ library AddressesHolesky {
     address public constant CHAINLINK_ORACLE_PROXY = 0x2419D438f89dcfD67014045Bd3BD444DAf7a1fF7;
 
     address public constant STETH_TOKEN = 0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034;
+    address public constant STETH_WHALE = 0x66b25CFe6B9F0e61Bd80c4847225Baf4EE6Ba0A2;
     address public constant STETH_EIGEN_STRATEGY = 0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3;
     address public constant STETH_ORACLE = 0x7925A509d5768FA45c7E3DB103b130151926eED5;
 
     // rETH is used instead of ETHx when deploying on Holesky
     address public constant RETH_TOKEN = 0x7322c24752f79c05FFD1E2a6FCB97020C1C264F1;
+    address public constant RETH_WHALE = 0x570EDBd50826eb9e048aA758D4d78BAFa75F14AD;
     address public constant RETH_EIGEN_STRATEGY = 0x3A8fBdf9e77DFc25d09741f51d3E181b25d0c4E0;
     address public constant RETH_ORACLE = 0x541020A2BE2223aed686B8B9578652e880eD275D;
 

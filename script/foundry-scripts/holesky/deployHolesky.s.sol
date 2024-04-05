@@ -74,12 +74,9 @@ contract DeployHolesky is Script {
         lrtConfig.setContract(LRTConstants.SSV_TOKEN, AddressesHolesky.SSV_TOKEN);
         lrtConfig.setContract(LRTConstants.SSV_NETWORK, AddressesHolesky.SSV_NETWORK);
 
-        // grant MANAGER_ROLE to deployer and Holesky Defender Relayer
-        lrtConfig.grantRole(LRTConstants.MANAGER, deployerAddress);
+        // grant roles to Holesky Defender Relayer
         lrtConfig.grantRole(LRTConstants.MANAGER, AddressesHolesky.RELAYER);
-        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, deployerAddress);
         lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.RELAYER);
-        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, deployerAddress);
         lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, AddressesHolesky.RELAYER);
 
         // add minter role to lrtDepositPool so it mints primeETH
@@ -203,9 +200,18 @@ contract DeployHolesky is Script {
         // update prETHPrice
         lrtOracle.updatePrimeETHPrice();
 
-        // Uncomment when Defender Relayer supports Holesky
         proxyAdmin.transferOwnership(AddressesHolesky.PROXY_OWNER);
         console.log("ProxyAdmin ownership transferred to: ", AddressesHolesky.PROXY_OWNER);
+
+        // transfer Admin role to Relayer
+        // grant MANAGER_ROLE to deployer and Goerli Defender Relayer
+        lrtConfig.grantRole(LRTConstants.MANAGER, AddressesHolesky.RELAYER);
+        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.RELAYER);
+        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, AddressesHolesky.RELAYER);
+
+        // transfer Manager role to Relayer
+
+        // transfer Operator role to Relayer
 
         if (isForked) {
             vm.stopPrank();

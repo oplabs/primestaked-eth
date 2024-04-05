@@ -36,7 +36,7 @@ library ConfigLib {
     function initialize(LRTConfig config, address adminAddress, address primeETHAddress) internal {
         // initialize new LRTConfig contract
         address stETH = block.chainid == 1 ? Addresses.STETH_TOKEN : AddressesHolesky.STETH_TOKEN;
-        // Note mainnet and Goerli use ETHx while Holesky uses rETH
+        // Note mainnet use ETHx while Holesky uses rETH
         address ethx = block.chainid == 1 ? Addresses.ETHX_TOKEN : AddressesHolesky.RETH_TOKEN;
 
         config.initialize(adminAddress, stETH, ethx, primeETHAddress);
@@ -50,6 +50,11 @@ library ConfigLib {
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(proxyAddress), newImpl);
         console.log("Upgraded LRTConfig proxy %s to new implementation %s", proxyAddress, newImpl);
 
+        return LRTConfig(payable(proxyAddress));
+    }
+
+    function get() internal returns (LRTConfig) {
+        address proxyAddress = block.chainid == 1 ? Addresses.LRT_CONFIG : AddressesHolesky.LRT_CONFIG;
         return LRTConfig(payable(proxyAddress));
     }
 }

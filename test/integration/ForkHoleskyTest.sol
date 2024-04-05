@@ -9,62 +9,42 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
-import { AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { AddressesHolesky } from "contracts/utils/Addresses.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract LRTIntegrationTest is Test {
+contract ForkHoleskyTest is Test {
     uint256 public fork;
 
-    LRTDepositPool public lrtDepositPool;
-    LRTConfig public lrtConfig;
-    PrimeStakedETH public preth;
-    LRTOracle public lrtOracle;
-    NodeDelegator public nodeDelegator1;
+    LRTDepositPool public constant lrtDepositPool = LRTDepositPool(payable(AddressesHolesky.LRT_DEPOSIT_POOL));
+    LRTConfig public constant lrtConfig = LRTConfig(AddressesHolesky.LRT_CONFIG);
+    PrimeStakedETH public constant primeETH = PrimeStakedETH(AddressesHolesky.PRIME_STAKED_ETH);
+    LRTOracle public constant lrtOracle = LRTOracle(AddressesHolesky.LRT_ORACLE);
+    NodeDelegator public constant nodeDelegator1 = NodeDelegator(payable(AddressesHolesky.NODE_DELEGATOR));
 
-    address public admin;
-    address public manager;
+    address public constant admin = AddressesHolesky.ADMIN_ROLE;
+    address public constant manager = AddressesHolesky.MANAGER_ROLE;
+    address public constant deployer = AddressesHolesky.DEPLOYER;
 
-    address public stETHAddress;
-    address public ethXAddress;
+    address public constant stETHAddress = AddressesHolesky.STETH_TOKEN;
+    address public constant rEthAddress = AddressesHolesky.RETH_TOKEN;
 
-    address public stWhale;
-    address public ethXWhale;
+    address public constant stWhale = AddressesHolesky.STETH_WHALE;
+    address public constant rEthWhale = AddressesHolesky.RETH_WHALE;
 
-    address public stEthOracle;
-    address public ethxPriceOracle;
+    address public constant stEthOracle = AddressesHolesky.CHAINLINK_ORACLE_PROXY;
+    address public constant rEthPriceOracle = AddressesHolesky.CHAINLINK_ORACLE_PROXY;
 
-    uint256 public minPrimeAmount;
-    string public referralId = "0";
-
-    uint256 amountToTransfer;
+    uint256 public constant minPrimeAmount = 0;
+    string public constant referralId = "ref id";
+    uint256 public constant amountToTransfer = 1 ether;
 
     uint256 indexOfNodeDelegator;
 
     function setUp() public virtual {
-        string memory goerliRPC = vm.envString("PROVIDER_URL_TESTNET");
-        fork = vm.createSelectFork(goerliRPC);
-
-        admin = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
-        manager = 0xb3d125BCab278bD478CA251ae6b34334ad89175f;
-
-        stWhale = 0xD5d883B90030311530620E0ABEe93189c8aAe032;
-        ethXWhale = 0xF6349eEe20aEcD62C9891159fB714a1b5adE93Cd;
-
-        stEthOracle = 0x46E6D75E5784200F21e4cCB7d8b2ff8e20996f52;
-        ethxPriceOracle = 0x4df5Cea2954CEafbF079c2d23a9271681D15cf67;
-
-        lrtDepositPool = LRTDepositPool(payable(0x551125a39bCf4E85e9B62467DfD2c1FeF3998f19));
-        lrtConfig = LRTConfig(0x4BF4cc0e5970Cee11D67f5d716fF1241fA593ca4);
-        preth = PrimeStakedETH(0xA265e2387fc0da67CB43eA6376105F3Df834939a);
-        lrtOracle = LRTOracle(0xDE2336F1a4Ed7749F08F994785f61b5995FcD560);
-        nodeDelegator1 = NodeDelegator(payable(0xfFEB12Eb6C339E1AAD48A7043A98779F6bF03Cfd));
-
-        stETHAddress = AddressesGoerli.STETH_TOKEN;
-        ethXAddress = AddressesGoerli.ETHX_TOKEN;
-
-        amountToTransfer = 1 ether;
+        string memory url = vm.envString("FORK_RPC_URL");
+        fork = vm.createSelectFork(url);
 
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), amountToTransfer);
@@ -97,7 +77,7 @@ contract LRTIntegrationTest is Test {
     function test_RevertWhenDepositAmountIsZeroForDepositAsset() external {
         vm.expectRevert(ILRTDepositPool.InvalidAmountToDeposit.selector);
 
-        lrtDepositPool.depositAsset(ethXAddress, 0, minPrimeAmount, referralId);
+        lrtDepositPool.depositAsset(rEthAddress, 0, minPrimeAmount, referralId);
     }
 
     function test_RevertWhenAssetIsNotSupportedForDepositAsset() external {
@@ -117,7 +97,7 @@ contract LRTIntegrationTest is Test {
         uint256 amountToDeposit = 2 ether;
 
         // stWhale balance of prETH before deposit
-        uint256 stWhaleBalanceBefore = preth.balanceOf(stWhale);
+        uint256 stWhaleBalanceBefore = primeETH.balanceOf(stWhale);
         // total asset deposits before deposit for stETH
         uint256 totalAssetDepositsBefore = lrtDepositPool.getTotalAssetDeposits(stETHAddress);
         // balance of lrtDepositPool before deposit
@@ -133,7 +113,7 @@ contract LRTIntegrationTest is Test {
         console.log("whale stETH amount transfer:", whaleStETHBalBefore - whaleStETHBalAfter);
 
         // stWhale balance of prETH after deposit
-        uint256 stWhaleBalanceAfter = preth.balanceOf(address(stWhale));
+        uint256 stWhaleBalanceAfter = primeETH.balanceOf(address(stWhale));
 
         assertApproxEqAbs(
             lrtDepositPool.getTotalAssetDeposits(stETHAddress),
@@ -150,39 +130,39 @@ contract LRTIntegrationTest is Test {
         assertGt(stWhaleBalanceAfter, stWhaleBalanceBefore, "Alice balance is not set");
     }
 
-    function test_DepositAssetETHXWorksWhenUsingTheCorrectConditions() external {
+    function test_DepositAssetRETHWorksWhenUsingTheCorrectConditions() external {
         uint256 amountToDeposit = 2 ether;
 
-        // ethXWhale balance of prETH before deposit
-        uint256 ethXWhaleBalanceBefore = preth.balanceOf(ethXWhale);
-        // total asset deposits before deposit for ethXETH
-        uint256 totalAssetDepositsBefore = lrtDepositPool.getTotalAssetDeposits(ethXAddress);
+        // rEthWhale balance of prETH before deposit
+        uint256 rEthWhaleBalanceBefore = primeETH.balanceOf(rEthWhale);
+        // total asset deposits before deposit for rETH
+        uint256 totalAssetDepositsBefore = lrtDepositPool.getTotalAssetDeposits(rEthAddress);
         // balance of lrtDepositPool before deposit
-        uint256 lrtDepositPoolBalanceBefore = ERC20(ethXAddress).balanceOf(address(lrtDepositPool));
+        uint256 lrtDepositPoolBalanceBefore = ERC20(rEthAddress).balanceOf(address(lrtDepositPool));
 
-        uint256 whaleethXBalBefore = ERC20(ethXAddress).balanceOf(address(ethXWhale));
-        vm.startPrank(ethXWhale);
-        ERC20(ethXAddress).approve(address(lrtDepositPool), amountToDeposit);
-        lrtDepositPool.depositAsset(ethXAddress, amountToDeposit, minPrimeAmount, referralId);
+        uint256 whaleBalBefore = ERC20(rEthAddress).balanceOf(address(rEthWhale));
+        vm.startPrank(rEthWhale);
+        ERC20(rEthAddress).approve(address(lrtDepositPool), amountToDeposit);
+        lrtDepositPool.depositAsset(rEthAddress, amountToDeposit, minPrimeAmount, referralId);
         vm.stopPrank();
-        uint256 whaleethXBalAfter = ERC20(ethXAddress).balanceOf(address(ethXWhale));
+        uint256 whaleBalAfter = ERC20(rEthAddress).balanceOf(address(rEthWhale));
 
-        console.log("whale ethXETH amount transfer:", whaleethXBalBefore - whaleethXBalAfter);
+        console.log("whale amount transfer:", whaleBalBefore - whaleBalAfter);
 
-        // ethXWhale balance of prETH after deposit
-        uint256 ethXWhaleBalanceAfter = preth.balanceOf(address(ethXWhale));
+        // rEthWhale balance of prETH after deposit
+        uint256 rEthWhaleBalanceAfter = primeETH.balanceOf(address(rEthWhale));
 
         assertEq(
-            lrtDepositPool.getTotalAssetDeposits(ethXAddress),
+            lrtDepositPool.getTotalAssetDeposits(rEthAddress),
             totalAssetDepositsBefore + amountToDeposit,
             "Total asset deposits check is incorrect"
         );
         assertEq(
-            ERC20(ethXAddress).balanceOf(address(lrtDepositPool)),
+            ERC20(rEthAddress).balanceOf(address(lrtDepositPool)),
             lrtDepositPoolBalanceBefore + amountToDeposit,
             "lrtDepositPool balance is not set"
         );
-        assertGt(ethXWhaleBalanceAfter, ethXWhaleBalanceBefore, "Alice balance is not set");
+        assertGt(rEthWhaleBalanceAfter, rEthWhaleBalanceBefore, "Alice balance is not set");
     }
 
     function test_GetCurrentAssetLimitAfterAssetIsDepositedInLRTDepositPool() external {
@@ -239,8 +219,8 @@ contract LRTIntegrationTest is Test {
         assertEq(lrtDepositPool.nodeDelegatorQueue(indexOfNodeDelegator_), randomAddress, "Node delegator is not added");
     }
 
-    function test_RevertWhenCallingTransferAssetToNodeDelegatorWhenNotCalledByManager() external {
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+    function test_RevertWhenCallingTransferAssetToNodeDelegatorWhenNotCalledByOperator() external {
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         indexOfNodeDelegator = 0;
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, stETHAddress, 1 ether);
     }
@@ -291,16 +271,16 @@ contract LRTIntegrationTest is Test {
         );
     }
 
-    function test_TransferAssetETHXToNodeDelegatorWhenCalledbyManager() external {
-        uint256 lrtDepositPoolBalanceBefore = ERC20(ethXAddress).balanceOf(address(lrtDepositPool));
+    function test_TransferAssetRETHToNodeDelegatorWhenCalledbyManager() external {
+        uint256 lrtDepositPoolBalanceBefore = ERC20(rEthAddress).balanceOf(address(lrtDepositPool));
 
-        vm.startPrank(ethXWhale);
-        ERC20(ethXAddress).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(ethXAddress, amountToTransfer, minPrimeAmount, referralId);
+        vm.startPrank(rEthWhale);
+        ERC20(rEthAddress).approve(address(lrtDepositPool), amountToTransfer);
+        lrtDepositPool.depositAsset(rEthAddress, amountToTransfer, minPrimeAmount, referralId);
         vm.stopPrank();
 
         assertEq(
-            ERC20(ethXAddress).balanceOf(address(lrtDepositPool)),
+            ERC20(rEthAddress).balanceOf(address(lrtDepositPool)),
             lrtDepositPoolBalanceBefore + amountToTransfer,
             "lrtDepositPool balance is not set"
         );
@@ -315,17 +295,17 @@ contract LRTIntegrationTest is Test {
             }
         }
 
-        uint256 getTotalAssetDepositsBeforeDeposit = lrtDepositPool.getTotalAssetDeposits(ethXAddress);
+        uint256 getTotalAssetDepositsBeforeDeposit = lrtDepositPool.getTotalAssetDeposits(rEthAddress);
 
-        uint256 nodeDelegator1BalanceBefore = ERC20(ethXAddress).balanceOf(address(nodeDelegator1));
+        uint256 nodeDelegator1BalanceBefore = ERC20(rEthAddress).balanceOf(address(nodeDelegator1));
 
         vm.prank(manager);
-        lrtDepositPool.transferAssetToNodeDelegator(_indexOfNodeDelegator, ethXAddress, amountToTransfer);
+        lrtDepositPool.transferAssetToNodeDelegator(_indexOfNodeDelegator, rEthAddress, amountToTransfer);
 
-        uint256 nodeDelegator1BalanceAfter = ERC20(ethXAddress).balanceOf(address(nodeDelegator1));
+        uint256 nodeDelegator1BalanceAfter = ERC20(rEthAddress).balanceOf(address(nodeDelegator1));
 
         assertEq(
-            lrtDepositPool.getTotalAssetDeposits(ethXAddress),
+            lrtDepositPool.getTotalAssetDeposits(rEthAddress),
             getTotalAssetDepositsBeforeDeposit,
             "Total asset deposits has not changed when transfering asset from deposit pool to node delegator"
         );
@@ -381,16 +361,17 @@ contract LRTIntegrationTest is Test {
 
         // tokens
         assertEq(stETHAddress, lrtConfig.getLSTToken(LRTConstants.ST_ETH_TOKEN), "stETH token");
-        assertEq(ethXAddress, lrtConfig.getLSTToken(LRTConstants.ETHX_TOKEN), "ETHx token");
-        assertEq(address(preth), lrtConfig.primeETH(), "primeETH token");
+        // Is ETHX_TOKEN and not R_ETH_TOKEN as the second token is hardcoded in LRTConfig
+        assertEq(rEthAddress, lrtConfig.getLSTToken(LRTConstants.ETHX_TOKEN), "rETH token");
+        assertEq(address(primeETH), lrtConfig.primeETH(), "primeETH token");
 
         assertTrue(lrtConfig.isSupportedAsset(stETHAddress));
-        assertTrue(lrtConfig.isSupportedAsset(ethXAddress));
+        assertTrue(lrtConfig.isSupportedAsset(rEthAddress));
 
-        assertEq(AddressesGoerli.EIGEN_STRATEGY_MANAGER, lrtConfig.assetStrategy(stETHAddress), "Eigen stETH strategy");
-        assertEq(AddressesGoerli.ETHX_EIGEN_STRATEGY, lrtConfig.assetStrategy(ethXAddress), "Eigen ETHx strategy");
+        assertEq(AddressesHolesky.STETH_EIGEN_STRATEGY, lrtConfig.assetStrategy(stETHAddress), "Eigen stETH strategy");
+        assertEq(AddressesHolesky.RETH_EIGEN_STRATEGY, lrtConfig.assetStrategy(rEthAddress), "Eigen rETH strategy");
 
-        assertEq(AddressesGoerli.EIGEN_STRATEGY_MANAGER, lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
+        assertEq(AddressesHolesky.EIGEN_STRATEGY_MANAGER, lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
         assertEq(address(lrtDepositPool), lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL));
         assertEq(address(lrtOracle), lrtConfig.getContract(LRTConstants.LRT_ORACLE));
     }
@@ -398,13 +379,13 @@ contract LRTIntegrationTest is Test {
     function test_LRTConfigIsAlreadyInitialized() public {
         // attempt to initialize LRTConfig again reverts
         vm.expectRevert("Initializable: contract is already initialized");
-        lrtConfig.initialize(admin, stETHAddress, ethXAddress, address(preth));
+        lrtConfig.initialize(admin, stETHAddress, rEthAddress, address(primeETH));
     }
 
     function test_RevertWhenCallingAddNewAssetByANonLRTManager() external {
         address randomAssetAddress = makeAddr("randomAssetAddress");
         uint256 randomAssetDepositLimit = 100 ether;
-        // Example of error message. Unfortunaly vm.expectRevert does not support the result of string casting.
+        // Example of error message. Unfortunately vm.expectRevert does not support the result of string casting.
         // string memory errorMessage = string(
         //     abi.encodePacked(
         //         "AccessControl: account ",
@@ -472,10 +453,6 @@ contract LRTIntegrationTest is Test {
     }
 
     function test_RevertWhenSameStrategyWasAlreadyAddedBeforeForAsset() external {
-        // TODO: remove when contract is upgraded
-        console.log("Skipping UpdateStrategy tests until contract is upgraded");
-        vm.skip(true);
-
         address strategy = lrtConfig.assetStrategy(stETHAddress);
         vm.startPrank(admin);
         // revert when same strategy was already added before for asset
@@ -485,10 +462,6 @@ contract LRTIntegrationTest is Test {
     }
 
     function test_UpdateAssetStrategy() external {
-        // TODO: remove when contract is upgraded
-        console.log("Skipping UpdateStrategy tests until contract is upgraded");
-        vm.skip(true);
-
         address strategy = makeAddr("strategy"); // TODO: Deploy a mock strategy contract
 
         vm.prank(admin);
@@ -506,7 +479,7 @@ contract LRTIntegrationTest is Test {
         lrtConfig.setPrimeETH(newPRETH);
     }
 
-    function test_RevertSetPrimeETHIfPRETHAddressIsZero() external {
+    function test_RevertSetPrimeETHIfPrimeETHAddressIsZero() external {
         vm.startPrank(admin);
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
         lrtConfig.setPrimeETH(address(0));
@@ -590,14 +563,14 @@ contract LRTIntegrationTest is Test {
     }
 
     function test_LRTOracleSetup() public {
-        assertLt(lrtOracle.getAssetPrice(ethXAddress), 1.2 ether);
-        assertGt(lrtOracle.getAssetPrice(ethXAddress) + 1, 1 ether);
+        assertLt(lrtOracle.getAssetPrice(rEthAddress), 1.2 ether);
+        assertGt(lrtOracle.getAssetPrice(rEthAddress) + 1, 1 ether);
 
         assertLt(lrtOracle.getAssetPrice(stETHAddress), 1.2 ether);
         assertGt(lrtOracle.getAssetPrice(stETHAddress), 0.9 ether);
 
         assertEq(lrtOracle.assetPriceOracle(stETHAddress), stEthOracle, "stETH Oracle address");
-        assertEq(lrtOracle.assetPriceOracle(ethXAddress), ethxPriceOracle, "ETHx Oracle address");
+        assertEq(lrtOracle.assetPriceOracle(rEthAddress), rEthPriceOracle, "rETH Oracle address");
     }
 
     function test_LRTOracleIsAlreadyInitialized() public {
@@ -606,11 +579,11 @@ contract LRTIntegrationTest is Test {
         lrtOracle.initialize(address(lrtConfig));
     }
 
-    function test_RevertWhenCallingUpdatePriceOracleForByANonLRTManager() external {
+    function test_RevertWhenCallingUpdatePriceOracleForByANonLRTAdmin() external {
         address randomAssetAddress = makeAddr("randomAssetAddress");
         address randomPriceOracleAddress = makeAddr("randomPriceOracleAddress");
 
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigAdmin.selector);
         lrtOracle.updatePriceOracleFor(randomAssetAddress, randomPriceOracleAddress);
     }
 
@@ -623,67 +596,65 @@ contract LRTIntegrationTest is Test {
         assertEq(lrtOracle.assetPriceOracle(stETHAddress), randomPriceOracleAddress);
     }
 
-    function test_PRETHSetup() public {
+    function test_PrimeETHSetup() public {
         // check if lrtDepositPool has MINTER role
         assertTrue(lrtConfig.hasRole(LRTConstants.MINTER_ROLE, address(lrtDepositPool)));
 
         // check if lrtConfig is set in prETH
-        assertEq(address(preth.lrtConfig()), address(lrtConfig));
+        assertEq(address(primeETH.lrtConfig()), address(lrtConfig));
     }
 
-    function test_PRETHIsAlreadyInitialized() public {
-        // Skipping as the admin has been removed from initialize but contract not yet redeployed to Goerli
-        vm.skip(true);
+    function test_primeEthIsAlreadyInitialized() public {
         // attempt to initialize PrimeStakedETH again reverts
         vm.expectRevert("Initializable: contract is already initialized");
-        preth.initialize(address(lrtConfig));
+        primeETH.initialize(address(lrtConfig));
     }
 
     function test_RevertWhenCallerIsNotLRTManager() external {
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        preth.pause();
+        primeETH.pause();
     }
 
     function test_RevertWhenContractIsAlreadyPaused() external {
         vm.startPrank(manager);
-        preth.pause();
+        primeETH.pause();
 
         vm.expectRevert("Pausable: paused");
-        preth.pause();
+        primeETH.pause();
 
         vm.stopPrank();
     }
 
     function test_Pause() external {
         vm.startPrank(manager);
-        preth.pause();
+        primeETH.pause();
 
         vm.stopPrank();
 
-        assertTrue(preth.paused(), "Contract is not paused");
+        assertTrue(primeETH.paused(), "Contract is not paused");
     }
 
     function test_Unpause() external {
         vm.prank(manager);
-        preth.pause();
+        primeETH.pause();
 
-        assertTrue(preth.paused(), "Contract is not paused");
+        assertTrue(primeETH.paused(), "Contract is not paused");
 
         vm.prank(admin);
-        preth.unpause();
+        primeETH.unpause();
 
-        assertFalse(preth.paused(), "Contract is not unpaused");
+        assertFalse(primeETH.paused(), "Contract is not unpaused");
     }
 
     function test_RevertWhenCallingUpdateLRTConfigAndCallerIsNotLRTAdmin() external {
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigAdmin.selector);
-        preth.updateLRTConfig(address(lrtConfig));
+        primeETH.updateLRTConfig(address(lrtConfig));
     }
 
     function test_RevertWhenCallingUpdateLRTConfigAndLRTConfigIsZeroAddress() external {
         vm.startPrank(admin);
         vm.expectRevert(UtilLib.ZeroAddressNotAllowed.selector);
-        preth.updateLRTConfig(address(0));
+        primeETH.updateLRTConfig(address(0));
         vm.stopPrank();
     }
 
@@ -692,9 +663,9 @@ contract LRTIntegrationTest is Test {
         ILRTConfig newLRTConfig = ILRTConfig(newLRTConfigAddress);
 
         vm.prank(admin);
-        preth.updateLRTConfig(address(newLRTConfig));
+        primeETH.updateLRTConfig(address(newLRTConfig));
 
-        assertEq(address(newLRTConfig), address(preth.lrtConfig()), "LRT config address is not set");
+        assertEq(address(newLRTConfig), address(primeETH.lrtConfig()), "LRT config address is not set");
     }
 
     function test_NodeDelegatorIsAlreadyInitialized() public {
@@ -780,8 +751,9 @@ contract LRTIntegrationTest is Test {
         nodeDelegator1.depositAssetIntoStrategy(randomAddress);
     }
 
-    function test_RevertWhenCallingDepositAssetIntoStrategyAndCallerIsNotManager() external {
-        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+    function test_RevertWhenCallingDepositAssetIntoStrategyAndCallerIsNotOperator() external {
+        vm.prank(deployer);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
     }
 
