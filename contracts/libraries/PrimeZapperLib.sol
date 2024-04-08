@@ -7,9 +7,7 @@ import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 
 library PrimeZapperLib {
-    function deploy() internal returns (address contractAddress) {
-        address primeEthAddress = block.chainid == 1 ? Addresses.PRIME_STAKED_ETH : AddressesHolesky.PRIME_STAKED_ETH;
-        address depositPoolAddress = block.chainid == 1 ? Addresses.LRT_DEPOSIT_POOL : AddressesHolesky.LRT_DEPOSIT_POOL;
+    function deploy(address primeEthAddress, address depositPoolAddress) internal returns (address contractAddress) {
         address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
 
         contractAddress = address(new PrimeZapper(primeEthAddress, depositPoolAddress, wethAddress));

@@ -186,7 +186,7 @@ contract DeployHolesky is Script {
         console.log("Mock rETH Oracle: %s", rETHPriceFeed);
 
         // Deploy new Prime Zapper
-        PrimeZapperLib.deploy();
+        PrimeZapperLib.deploy(address(primeETH), address(depositPool));
 
         // setup
         setUpByAdmin();

@@ -140,7 +140,7 @@ library AddressesHolesky {
     address public constant NODE_DELEGATOR = 0x6a54C908919dDA2738dFC3A362F42E1a424A44FD;
     address public constant NODE_DELEGATOR_NATIVE_STAKING = 0xfeA78Ed4221Fc4c51cF71E617C3eceF808a3DE3f;
     address public constant EIGEN_POD = 0xEdF4d52cCaa70CEE5B2EFBFDC87610ac35323325;
-    address public constant PRIME_ZAPPER = 0x2885FcdA389CaA523b3B0c1Ec23FCd81182ab364;
+    address public constant PRIME_ZAPPER = 0xb0BA5b3814b0329a83379555946eF2d54b703092;
 
     address public constant CHAINLINK_ORACLE_PROXY = 0x2419D438f89dcfD67014045Bd3BD444DAf7a1fF7;
 

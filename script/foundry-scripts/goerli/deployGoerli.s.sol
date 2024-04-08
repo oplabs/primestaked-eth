@@ -191,7 +191,7 @@ contract DeployGoerli is Script {
         stETHPriceFeed = address(new MockPriceAggregator());
 
         // Deploy new Prime Zapper
-        PrimeZapperLib.deploy();
+        PrimeZapperLib.deploy(address(primeETH), address(depositPool));
 
         // setup
         setUpByAdmin();
