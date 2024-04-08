@@ -114,8 +114,8 @@ const splitValidatorKey = async ({
 const getClusterInfo = async ({ ownerAddress, operatorids, chainId, ssvNetwork }) => {
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
 
-  const ssvNetworkName = chainId === 1 ? "MAINNET" : "PRATER";
-  const providerUrl = chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.GOERLI_RPC_URL;
+  const ssvNetworkName = chainId === 1 ? "MAINNET" : "HOLESKY";
+  const providerUrl = chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.HOLESKY_RPC_URL;
 
   const params = {
     nodeUrl: providerUrl, // this can be an Infura, or Alchemy node, necessary to query the blockchain
@@ -146,8 +146,8 @@ const getClusterInfo = async ({ ownerAddress, operatorids, chainId, ssvNetwork }
 const getClusterNonce = async ({ ownerAddress, operatorids, chainId, ssvNetwork }) => {
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
 
-  const ssvNetworkName = chainId === 1 ? "MAINNET" : "PRATER";
-  const providerUrl = chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.GOERLI_RPC_URL;
+  const ssvNetworkName = chainId === 1 ? "MAINNET" : "HOLESKY";
+  const providerUrl = chainId === 1 ? process.env.MAINNET_RPC_URL : process.env.HOLESKY_RPC_URL;
 
   const params = {
     nodeUrl: providerUrl, // this can be an Infura, or Alchemy node, necessary to query the blockchain
