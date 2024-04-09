@@ -76,3 +76,29 @@ tx
 `tx2uml value 0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197 -v -cf ./prime.config.json -hf`
 
 ![depositAssetsIntoStrategy value](./vbb9c1197.svg)
+
+## Register validator
+
+tx
+[0xe7c4c1f58c79c3739a4bd629674128236e56fd064b2eeb46f01ac64eaab616c5](https://etherscan.io/tx/0xe7c4c1f58c79c3739a4bd629674128236e56fd064b2eeb46f01ac64eaab616c5)
+
+`tx2uml 0xe7c4c1f58c79c3739a4bd629674128236e56fd064b2eeb46f01ac64eaab616c5 -v -x -cf ./prime.config.json`
+
+![registerSsvValidator](./e7c416c5.svg)
+
+`tx2uml value 0xe7c4c1f58c79c3739a4bd629674128236e56fd064b2eeb46f01ac64eaab616c5 -v -cf ./prime.config.json -hf`
+
+![registerSsvValidator value](./ve7c416c5.svg)
+
+## Stake ETH in validator
+
+tx
+[0x79995230480dc31a1abd0812f57f969d2d0b2dd2d4b9291d2dbc33c967f496a2](https://etherscan.io/tx/0x79995230480dc31a1abd0812f57f969d2d0b2dd2d4b9291d2dbc33c967f496a2)
+
+`tx2uml 0x79995230480dc31a1abd0812f57f969d2d0b2dd2d4b9291d2dbc33c967f496a2 -v -x --noAddresses 0x0000000000000000000000000000000000000002 -cf ./prime.config.json`
+
+![registerSsvValidator](./799996a2.svg)
+
+`tx2uml value 0x79995230480dc31a1abd0812f57f969d2d0b2dd2d4b9291d2dbc33c967f496a2 -v -cf ./prime.config.json -hf`
+
+![registerSsvValidator value](./v799996a2.svg)

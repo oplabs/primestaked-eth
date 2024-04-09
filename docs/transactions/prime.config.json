@@ -11,6 +11,10 @@
     "protocolName": "Prime Staked",
     "contractName": "NodeDelegator"
   },
+  "0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087": {
+    "protocolName": "Prime Staked",
+    "contractName": "NodeDelegator"
+  },
   "0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32": {
     "protocolName": "Prime Staked",
     "contractName": "LRTOracle"
@@ -26,6 +30,14 @@
   "0xc513bDfbC308bC999cccc852AF7C22aBDF44A995": {
     "protocolName": "Prime Staked",
     "contractName": "OETHPriceOracle"
+  },
+  "0x91e677b07f7af907ec9a428aafa9fc14a0d3a338": {
+    "protocolName": "EigenLayer",
+    "contractName": "EigenPodManager"
+  },
+  "0x42791aa09bf53b5d2c0c74ac948e74a66a2fe35e": {
+    "protocolName": "EigenLayer",
+    "contractName": "EigenPod"
   },
   "0x584902BCe4282003E420Cf5b7ae5063D6C1c182a": {
     "protocolName": "Frax",
