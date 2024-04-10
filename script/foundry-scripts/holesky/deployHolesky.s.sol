@@ -44,8 +44,8 @@ contract DeployHolesky is Script {
     NodeDelegator public node2;
     address[] public nodeDelegatorContracts;
 
-    address stETHPriceFeed;
-    address rETHPriceFeed;
+    MockPriceAggregator stETHPriceFeed;
+    MockPriceAggregator rETHPriceFeed;
 
     uint256 public minAmountToDeposit;
 
@@ -64,6 +64,7 @@ contract DeployHolesky is Script {
         // add contracts to LRT config
         lrtConfig.setContract(LRTConstants.LRT_DEPOSIT_POOL, address(depositPool));
         lrtConfig.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, AddressesHolesky.EIGEN_STRATEGY_MANAGER);
+        lrtConfig.setContract(LRTConstants.EIGEN_DELEGATION_MANAGER, AddressesHolesky.EIGEN_DELEGATION_MANAGER);
         lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, AddressesHolesky.EIGEN_POD_MANAGER);
 
         // call updateAssetStrategy for each asset in LRTConfig
@@ -74,13 +75,14 @@ contract DeployHolesky is Script {
         lrtConfig.setContract(LRTConstants.SSV_TOKEN, AddressesHolesky.SSV_TOKEN);
         lrtConfig.setContract(LRTConstants.SSV_NETWORK, AddressesHolesky.SSV_NETWORK);
 
-        // grant roles to Holesky Defender Relayer
-        lrtConfig.grantRole(LRTConstants.MANAGER, AddressesHolesky.RELAYER);
-        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.RELAYER);
-        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, AddressesHolesky.RELAYER);
+        // grant roles to the deployer
+        lrtConfig.grantRole(LRTConstants.MANAGER, deployerAddress);
+        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, deployerAddress);
+        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, deployerAddress);
 
-        // add minter role to lrtDepositPool so it mints primeETH
+        // add minter and burner roles to lrtDepositPool so it can mint/burn primeETH
         lrtConfig.grantRole(LRTConstants.MINTER_ROLE, address(depositPool));
+        lrtConfig.grantRole(LRTConstants.BURNER_ROLE, address(depositPool));
 
         // add nodeDelegators to LRTDepositPool queue
         nodeDelegatorContracts.push(address(node1));
@@ -97,9 +99,9 @@ contract DeployHolesky is Script {
     function setUpByManager() internal {
         // Add chainlink oracles for supported assets in ChainlinkPriceOracle
         ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
-            AddressesHolesky.STETH_TOKEN, stETHPriceFeed
+            AddressesHolesky.STETH_TOKEN, address(stETHPriceFeed)
         );
-        ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(AddressesHolesky.RETH_TOKEN, rETHPriceFeed);
+        ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(AddressesHolesky.RETH_TOKEN, address(rETHPriceFeed));
 
         // call updatePriceOracleFor for each asset in LRTOracle
         lrtOracle.updatePriceOracleFor(AddressesHolesky.STETH_TOKEN, chainlinkPriceOracleAddress);
@@ -180,10 +182,12 @@ contract DeployHolesky is Script {
         IERC20(AddressesHolesky.SSV_TOKEN).transfer(address(node2), 30 ether);
 
         // Mock aggregators
-        stETHPriceFeed = address(new MockPriceAggregator());
-        console.log("Mock stETH Oracle: %s", stETHPriceFeed);
-        rETHPriceFeed = address(new MockPriceAggregator());
-        console.log("Mock rETH Oracle: %s", rETHPriceFeed);
+        stETHPriceFeed = new MockPriceAggregator();
+        stETHPriceFeed.setPrice(0.9985 ether);
+        console.log("Mock stETH Oracle: %s", address(stETHPriceFeed));
+        rETHPriceFeed = new MockPriceAggregator();
+        stETHPriceFeed.setPrice(0.996 ether);
+        console.log("Mock rETH Oracle: %s", address(rETHPriceFeed));
 
         // Deploy new Prime Zapper
         PrimeZapperLib.deploy(address(primeETH), address(depositPool));
@@ -200,18 +204,17 @@ contract DeployHolesky is Script {
         // update prETHPrice
         lrtOracle.updatePrimeETHPrice();
 
+        // transfer ownership from the deployer to the ProxyAdmin
         proxyAdmin.transferOwnership(AddressesHolesky.PROXY_OWNER);
         console.log("ProxyAdmin ownership transferred to: ", AddressesHolesky.PROXY_OWNER);
 
-        // transfer Admin role to Relayer
-        // grant MANAGER_ROLE to deployer and Goerli Defender Relayer
+        // transfer roles from the deployer to Relayer
+        lrtConfig.revokeRole(LRTConstants.MANAGER, deployerAddress);
         lrtConfig.grantRole(LRTConstants.MANAGER, AddressesHolesky.RELAYER);
-        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.RELAYER);
         lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, AddressesHolesky.RELAYER);
-
-        // transfer Manager role to Relayer
-
-        // transfer Operator role to Relayer
+        lrtConfig.revokeRole(LRTConstants.OPERATOR_ROLE, deployerAddress);
+        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.RELAYER);
+        lrtConfig.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, deployerAddress);
 
         if (isForked) {
             vm.stopPrank();

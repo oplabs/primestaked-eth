@@ -4,8 +4,10 @@ pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
 import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
@@ -16,9 +18,6 @@ import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/Nod
 import { UtilLib } from "contracts/utils/UtilLib.sol";
 import { AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
-
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ForkHoleskyTestBase is Test {
     uint256 public fork;
@@ -53,6 +52,15 @@ contract ForkHoleskyTestBase is Test {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
     event ETHRewardsWithdrawInitiated(uint256 amount);
+    event WithdrawalRequested(
+        address indexed withdrawer,
+        address indexed asset,
+        address indexed strategy,
+        uint256 primeETHAmount,
+        uint256 assetAmount,
+        uint256 sharesAmount
+    );
+    event WithdrawalClaimed(address indexed withdrawer, address indexed asset, uint256 assets);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -75,11 +83,11 @@ contract ForkHoleskyTestBase is Test {
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, stETHAddress, amountToTransfer);
     }
 
-    function deposit(address asset, address whale, uint256 amountToTransfer) internal {
+    function deposit(address asset, address whale, uint256 depositAmount) internal {
         vm.startPrank(whale);
 
-        IERC20(asset).approve(address(lrtDepositPool), amountToTransfer);
-        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
+        IERC20(asset).approve(address(lrtDepositPool), depositAmount);
+        lrtDepositPool.depositAsset(asset, depositAmount, depositAmount * 99 / 100, referralId);
 
         vm.stopPrank();
     }
@@ -831,6 +839,107 @@ contract ForkHoleskyTestLST is ForkHoleskyTestBase {
     }
 }
 
+contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
+    function setUp() public override {
+        super.setUp();
+
+        vm.startPrank(manager);
+        nodeDelegator1.maxApproveToEigenStrategyManager(stETHAddress);
+        nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
+        vm.stopPrank();
+    }
+
+    function test_requestWithdrawal() external {
+        console.log("Staker's primeETH: ", primeETH.balanceOf(address(stWhale)));
+
+        uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
+
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.recordLogs();
+
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+        console.log("logs from requestWithdrawal", requestLogs.length);
+
+        // Transfer event from PrimeStakedETH to burn primeETH tokens
+        assertEq(requestLogs[0].topics[0], keccak256("Transfer(address,address,uint256)"));
+        assertEq(requestLogs[0].topics[0], 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef);
+        assertEq(requestLogs[0].topics[1], bytes32(uint256(uint160(stWhale))));
+        assertEq(requestLogs[0].topics[2], bytes32(0)); // zero address
+        console.log("primeETH burnt ", abi.decode(requestLogs[0].data, (uint256)));
+        uint256 expectPrimeEthBurnt = 0.5976 ether;
+        assertEq(requestLogs[0].data, abi.encode(expectPrimeEthBurnt));
+
+        assertEq(primeETH.balanceOf(address(stWhale)), primeETHBalanceBefore - expectPrimeEthBurnt, "stETH whale's primeETH balance");
+
+        // WithdrawalQueued from EigenLayer's DelegationManager
+        console.logBytes32(requestLogs[1].topics[0]);
+        assertEq(requestLogs[1].topics[0], 0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9);
+        // assertEq(
+        //     entries[2].topics[0],
+        //     keccak256("WithdrawalQueued(bytes32,(address,address,address,uint256,uint32,address[],uint256[])"),
+        //     "decoded WithdrawalQueued"
+        // );
+
+        // WithdrawalRequested event on the LRTDepositPool contract
+        assertEq(
+            requestLogs[2].topics[0], keccak256("WithdrawalRequested(address,address,address,uint256,uint256,uint256)")
+        );
+        assertEq(requestLogs[2].topics[0], 0x92072c627ec1da81f8268b3cfb3c02bbbeedc12c21134faf4457469147619947);
+
+        // (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+        //     lrtDepositPool.getAssetDistributionData(stETHAddress);
+        // assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not
+        // change");
+        // assertEq(assetsInNDCsAfter, assetsInNDCsBefore, "stETH balance in NodeDelegators should not change");
+        // // assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not
+        // change");
+    }
+
+    function test_claimWithdrawal() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.recordLogs();
+
+        vm.startPrank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+        vm.stopPrank();
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+        console.log("Logs length ", requestLogs.length);
+
+        // decode the withdrawalRoot and withdrawal event data
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        // Move forward 10 blocks
+        // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
+        vm.roll(block.number + 11);
+
+        vm.startPrank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        vm.stopPrank();
+
+        // (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+        //     lrtDepositPool.getAssetDistributionData(stETHAddress);
+        // assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not
+        // change");
+        // assertEq(assetsInNDCsAfter, assetsInNDCsBefore, "stETH balance in NodeDelegators should not change");
+        // assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not change");
+    }
+}
+
 contract ForkHoleskyTestNative is ForkHoleskyTestBase {
     NodeDelegator public nodeDelegator2;
     PrimeZapper public primeZapper;
@@ -862,11 +971,11 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
 
         // Latest SSV Cluster data
         cluster = Cluster({
-            validatorCount: 1,
-            networkFeeIndex: 41_966_195_056,
-            index: 52_348_337_478,
+            validatorCount: 0,
+            networkFeeIndex: 0,
+            index: 0,
             active: true,
-            balance: 2_267_120_984_000_000_000
+            balance: 0
         });
 
         // SSV Cluster operator ids

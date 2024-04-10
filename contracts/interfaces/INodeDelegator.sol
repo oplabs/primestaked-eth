@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.21;
 
+import { IDelegationManager } from "../eigen/interfaces/IDelegationManager.sol";
+
 interface INodeDelegator {
     // event
     event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
@@ -16,10 +18,28 @@ interface INodeDelegator {
     error InvalidETHSender(); // 0xe811a0c2
     error InsufficientWETH(uint256 balance); // 0x2ed796b4
     error ValidatorAlreadyStaked(bytes pubkey); // 0x2229546d
+    error NotStakersWithdrawal(); // 0x6c7a619c
+    error NotInternalWithdrawal(); // 0xb1345ad5
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
     function depositAssetsIntoStrategy(address[] calldata assets) external;
+
+    function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external;
+    function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external;
+    function claimWithdrawal(
+        address asset,
+        IDelegationManager.Withdrawal calldata withdrawal,
+        address staker
+    )
+        external
+        returns (uint256 assets);
+    function claimInternalWithdrawal(
+        address asset,
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
+        external
+        returns (uint256 assets);
 
     function maxApproveToEigenStrategyManager(address asset) external;
 

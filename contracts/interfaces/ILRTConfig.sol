@@ -11,6 +11,7 @@ interface ILRTConfig {
     error CallerNotLRTConfigOperator(); // 0x5d0e4dee
     error CallerNotLRTConfigAllowedRole(string role); // 0x2cd56641
     error CannotUpdateStrategyAsItHasFundsNDCFunds(address ndc, uint256 amount); // 0x0c7652d9
+    error CallerNotLRTDepositPool(); // 0x69b4678f
 
     // Events
     event SetToken(bytes32 key, address indexed tokenAddr);

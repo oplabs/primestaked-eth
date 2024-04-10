@@ -32,6 +32,7 @@ library LRTConstants {
     bytes32 public constant LRT_ORACLE = keccak256("LRT_ORACLE");
     bytes32 public constant LRT_DEPOSIT_POOL = keccak256("LRT_DEPOSIT_POOL");
     bytes32 public constant EIGEN_STRATEGY_MANAGER = keccak256("EIGEN_STRATEGY_MANAGER");
+    bytes32 public constant EIGEN_DELEGATION_MANAGER = keccak256("EIGEN_DELEGATION_MANAGER");
 
     //Roles
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
