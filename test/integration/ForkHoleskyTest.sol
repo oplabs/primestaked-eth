@@ -880,17 +880,16 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         assertEq(
             primeETH.balanceOf(address(stWhale)),
             primeETHBalanceBefore - expectPrimeEthBurnt,
-            "stETH whale's primeETH balance"
+            "stETH whale's primeETH balance should reduce"
         );
 
         // WithdrawalQueued from EigenLayer's DelegationManager
-        console.logBytes32(requestLogs[1].topics[0]);
+        assertEq(
+            requestLogs[1].topics[0],
+            keccak256("WithdrawalQueued(bytes32,(address,address,address,uint256,uint32,address[],uint256[]))"),
+            "decoded WithdrawalQueued"
+        );
         assertEq(requestLogs[1].topics[0], 0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9);
-        // assertEq(
-        //     entries[2].topics[0],
-        //     keccak256("WithdrawalQueued(bytes32,(address,address,address,uint256,uint32,address[],uint256[])"),
-        //     "decoded WithdrawalQueued"
-        // );
 
         // WithdrawalRequested event on the LRTDepositPool contract
         assertEq(
@@ -898,14 +897,17 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         );
         assertEq(requestLogs[2].topics[0], 0x92072c627ec1da81f8268b3cfb3c02bbbeedc12c21134faf4457469147619947);
 
-        // (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
-        //     lrtDepositPool.getAssetDistributionData(stETHAddress);
-        // assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not
-        // change");
-        // assertEq(assetsInNDCsAfter, assetsInNDCsBefore, "stETH balance in NodeDelegators should not change");
-        // // assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not
-        // change");
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+        assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not change");
+        assertEq(assetsInNDCsAfter, assetsInNDCsBefore, "stETH balance in NodeDelegators should not change");
+        assertApproxEqAbs(assetsInEigenLayerAfter, assetsInEigenLayerBefore - stEthWithdrawalAmount, 2, "stETH balance in EigenLayer should reduce by withdraw amount with 2 wei tolerance");
     }
+
+    // requestWithdrawal with not enough primeETH
+    // requestWithdrawal with not enough LST in EigenLayer
+    // requestWithdrawal with invalid asset
+    // requestWithdrawal with WETH
 
     function test_claimWithdrawal() external {
         uint256 stEthWithdrawalAmount = 0.6 ether;
@@ -916,6 +918,9 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         vm.startPrank(stWhale);
         lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
         vm.stopPrank();
+
+        uint256 stETHBalanceBefore = IERC20(stETHAddress).balanceOf(address(stWhale));
+        uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
 
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
         console.log("Logs length ", requestLogs.length);
@@ -935,13 +940,27 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
         vm.stopPrank();
 
-        // (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
-        //     lrtDepositPool.getAssetDistributionData(stETHAddress);
-        // assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not
-        // change");
-        // assertEq(assetsInNDCsAfter, assetsInNDCsBefore, "stETH balance in NodeDelegators should not change");
-        // assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not change");
+        assertApproxEqAbs(
+            IERC20(stETHAddress).balanceOf(address(stWhale)),
+            stETHBalanceBefore + stEthWithdrawalAmount,
+            2,
+            "Whale's stETH balance should increase with 2 wei tolerance"
+        );
+        assertEq(
+            primeETH.balanceOf(address(stWhale)),
+            primeETHBalanceBefore,
+            "stETH whale's primeETH balance should not change as it was burnt in requestWithdrawal"
+        );
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+        assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not change");
+        assertApproxEqAbs(assetsInNDCsAfter, assetsInNDCsBefore, 2, "stETH balance in NodeDelegator should not change with tolerance of 2 wei");
+        assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not change");
     }
+
+    // requestInternalWithdrawal
+    // claimInternalWithdrawal
 }
 
 contract ForkHoleskyTestNative is ForkHoleskyTestBase {
