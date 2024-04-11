@@ -1,7 +1,7 @@
 const { subtask, task, types } = require("hardhat/config");
 const { KeyValueStoreClient } = require("defender-kvstore-client");
 
-const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
+const { depositPrime, depositAssetEL, depositAllEL, requestWithdrawal, claimWithdrawal } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
 const { snapshot } = require("./snapshot");
 const {
@@ -23,6 +23,7 @@ const { deployNodeDelegator } = require("./deploy");
 const log = require("../utils/logger")("task");
 
 // Prime Staked
+// Staker functions
 subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or WETH", "OETH", types.string)
   .addParam("amount", "Deposit amount", undefined, types.float)
@@ -37,6 +38,40 @@ subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
 task("depositPrime").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
+
+subtask("requestWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
+  .addParam("amount", "Withdraw amount", undefined, types.float)
+  .addOptionalParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or WETH", "OETH", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
+    const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+    const network = await ethers.provider.getNetwork();
+
+    await requestWithdrawal({ ...taskArgs, signer, depositPool, networkId: network.chainId });
+  });
+task("requestWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("claimWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
+  .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
+  .addOptionalParam("symbol", "Symbol of the LST. eg OETH, stETH, mETH. Can not be WETH.", "OETH", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
+    const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+    const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
+    const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
+    const network = await ethers.provider.getNetwork();
+
+    await claimWithdrawal({ ...taskArgs, signer, depositPool, delegationManager, networkId: network.chainId });
+  });
+task("claimWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// Operator functions
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
