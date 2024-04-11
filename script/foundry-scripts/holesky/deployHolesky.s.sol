@@ -101,7 +101,9 @@ contract DeployHolesky is Script {
         ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
             AddressesHolesky.STETH_TOKEN, address(stETHPriceFeed)
         );
-        ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(AddressesHolesky.RETH_TOKEN, address(rETHPriceFeed));
+        ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
+            AddressesHolesky.RETH_TOKEN, address(rETHPriceFeed)
+        );
 
         // call updatePriceOracleFor for each asset in LRTOracle
         lrtOracle.updatePriceOracleFor(AddressesHolesky.STETH_TOKEN, chainlinkPriceOracleAddress);

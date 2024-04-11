@@ -877,7 +877,11 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         uint256 expectPrimeEthBurnt = 0.5976 ether;
         assertEq(requestLogs[0].data, abi.encode(expectPrimeEthBurnt));
 
-        assertEq(primeETH.balanceOf(address(stWhale)), primeETHBalanceBefore - expectPrimeEthBurnt, "stETH whale's primeETH balance");
+        assertEq(
+            primeETH.balanceOf(address(stWhale)),
+            primeETHBalanceBefore - expectPrimeEthBurnt,
+            "stETH whale's primeETH balance"
+        );
 
         // WithdrawalQueued from EigenLayer's DelegationManager
         console.logBytes32(requestLogs[1].topics[0]);
@@ -946,9 +950,30 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
 
     uint64[] operatorIds;
     Cluster public cluster;
+    // The test SSV validator data is the P2P APIs
+    // 1. Call the Create SSV Request API
+    // https://docs.p2p.org/reference/ssv-request-create
+    // The `withdrawalAddress` is the EigenPod attached to the native staking NodeDelegator.
+    // The `feeRecipientAddress` is the native staking NodeDelegator
+    // The `ssvOwnerAddress` is the native staking NodeDelegator
+    // 2. Call the SSV Request Status API
+    // https://docs.p2p.org/reference/ssv-request-status
+    // The following data is in the API response paths
+    // sharesData: result.encryptedShares.sharesData
+    // pubkey: result.depositData.pubkey
+    // signature: result.depositData.signature
+    // depositDataRoot: result.depositData.depositDataRoot
+    // The leading 0x is removed when using hex in Solidity
     bytes internal constant sharesData =
     // solhint-disable-next-line max-line-length
-        hex"8dd18b66d455376e47fbb92ef5017b378b98bf4507abcbb6d4a854685719f777eb43c57192b4c3583f67b0401e07ae510564c57cfb76e3edb87a9ce9cbc789c634589d6418536215f173d55a79bf96f1e2006e6b812bf182ca3415cc4812b9cb955cb772a6cf4306e88414ed3bfae7cf7105c6bfe32d57f256074f8fe576ba9f6af48b673b3bbc117f114446e9fd9fc9b5d35a90a1832ad3a5e61e7963b517bdbe1ee3f6825fdb6657dfce43780515458f4dfc2aeb69fcd37981965ba595b3fc838ab000986b05b026b1ebf05900e6fe45a606a3f7581c32d2ae194f8345a3a07e3fd58e306cd71571b23e248ba427e8b27cf0412bd878f2594e5883065c141891ea943b90167ff8cce307ed670e8a36c69187a6b00ac88bce8ca71e9ecf331390a0b8b46259d8c3f95101b9128f218ba5c6d901c586564f563110e097c3ee6dcf1a4a5aa2f81f59f027148bc51558ac9ffe5b24090aa69649678540878c0cc09463144a3773b667558b1799f64cbf1c29a94b2ebec2c6a764088974aee68fe38fb5983b4493ff47ab9f8e66fd06d8d92af5b8374075ecf6f1094f927ff35500e30e0742eb567c02f51c146a739a3ce85b0939aa9778197defe9c2e1d9cec8482430a324b0837f13fa492241f0dd510886d7aa81502a33136153b1ea9965100eb708b8b13009af373544971072ca5b28403024873f69077829ac83c3bdf3ea0e8b9900a4ad85e9c16ea01b306a8ee6703df4ee25feff456a3e74b804c0a98f411b910fb1aa44442d3706fa7688ee77442147cd99b9eef2ff3f556937e0f6bc504692651f13b7afa4412062cfe7cb2d64fb23a013a49aff9c8254ae048534d8855c884cc58d690ef11c6e7d8f6353eec59053cac6ad837afe24e71b8d792ca5d36101fa4bcc9e344351000546b4d9f30a3b693d97698b6a957560b8a271a089569caeebf6a1edba8704eaf78787751c4becd77a4f83ab1aa42f2ffa80f7f538669084aa37415cf3061237ba5509b7ea80489fc7775b354ec89b73b369c2b734bc3dc8e28bae508e9f39da79a1086e01b1e12a76db69311ef8ab39bedf190ee19e7f5e3fcdd6b1ea7b2eb4d3e91eec4f22fc0ce0cc97c85440e250b28bbadfa78488493e2241e80e7a6ccad07f0c7061fdeb5793ff0745d24df326a278150f0b36645ff4c0f34cff7aaf102c4af869e27e4ec640f3e022329da68e8735562daaa9d58e0f00e836902bc83f09be1b66b492f0c06d9c6d33ad2887516ad6ae9d295becdabcc81e7d5e129051cb604f0feb568fdb46f15594e979da76b09adf874f5b1e76a5cf98bead9d920f72f685506c5e5d615cbdd029eff09cabf04374f1b1e0190a44a7495fec92ded4bdbd57e626a966aff37351972007dea8b3b15653e32e5ddd28e121944730ae293b661b3db1535b5f24369f41577554adab337268e5a4d0152d4c366da3b6d37345a6ed37c23ca3b0e08eeed2235615175f5fe48338420f4587fb3ad182bae9614f2a29ce713d32129049d12cf248e6a9699c8d37e8eff549e16ccd760a7a5c9a1dca4f7626ad821a0e98bdc28b98ff5c9148b0e6ad25153efc62ebcd7c91123b1393bb37936451228a2fc040d1ee7e494807616bb3b61027b009aefbaa53a3dce727ad7639eae42d562148dbf30f3d6e8464a3e88708e214c7d1bf62d5d572663e3e521b876ce14fbf74c1ac590c2cdc281b483d794624af59b0619a43fb9f92e9d2c8195d29b5c9f0a4d2054e53e230740f10114f3cd462eebe18e955ed9cc8de7867e9dcf83b80548c91a04da9851f02a0023cb53dc78cb2d509badd0b97832046e866660c09d3350662a2531e63ce450053ec741e";
+        hex"911a288a6fd6a3ef2ec6596d308bfbd4e98bd4d711f1757f6f70c875d6ce4fe2b4e5c80def263f05168cd09d7e2c60850714a890dfacdc3238711e9f62093510fd94c7731f85afaefd9f6963132848ba6cf7fe3eef2660d1cdc9f9fa7adc2f9496570731994e5771f4d48ceef082cb476c09013319d48e2d8e848984329ab3f9ade70dccf2da8305e4216236d7cb98e08bffbe4721479934eb60d9b6a4c9da9ff2ad2144c2bdad1968426c0732ebc685863d6ca10b7a434572cd5c107ad895c6b8670ec0d3efc622f7e9ef8213dbed5e81d3c56cdb26f2c6c0864093e2325b700b034d8cd846cd4a3b31d979ad5a2cb0a0b16154723143b998e2cf462ebe206c2e804c35828dfff1cde301d0d5b8185553e6197801e619595e7c97cd68491bd1b9ef5fca12bac249e2ab3dc4cc5412e38088e9c3dc9369d80289909583dfec9d3c360105d73f9c49305cdafe1d82eb8123200ad3b4d54308a4e9c957f8e41bca0c5ad2f3d4071a8116f2f58ca0a42d9ed5fc81453dfa29d41b0d05cc19d502e0d3e194e174d2d2ae41662640e3113940c73cfb9595f9b33fd3c7fe5243d10ca493361c5994a9ad76f0040d211dc33fcd1a233ccc5c45ed9bc9d2dda52dc0b9d20726451bb3c2286aed397cb032e2999040e3bc3365b6b9842eb5c06c92828233280c20d6000323c107760465a4658230d93a1e70ab37120d7b232a9456db0b1ccfbd125402b49c2f7617226abeeaf3741cf08698c3e0383e850cf655ec2bb58c3ddb1ac257f13ac5905f9a03f6d3b17b47009519e4a4fbddadefca91d3d3cbe4d24010c95e755f281a3bf147b6e44aa28b4a10860f3c74be658f5b5015f13fa2f2131da13ba5b4f78b28ef8b116e30a9c504ed013a4396af9264ff9781131bbda75d54665fea5d3d99ebdf10f6ef1a295f9b64c640eccb630c697b3471269562558e6c4742f8ad5bfedbc906dcb97dd191caf3ee57a1b654159d82d65fbe7d55a5e99e4c6fe9fa6ec08fef9b38f1754266034fac7b04777ab185695fad87ede35db2c4b21a6e2e0b22a0957ec15723895fd17a7a5df0862f14eed608042538689771eb85f1e13f2b6b8e1a6617418cf59aed03b4006b55699c250404dbecd4ba113ddd1ccbd7ccb627802c5d99762d601bf36a4f53380e434eea71f8731c6f3050b9c93a304004ec087ec8aa3fed95878c803d0ae975a4efe6af984d3eef9fb1b39bb788e57159c3e8ba81ff95642e6ec3e17d3d46df0b1fbb6fa43a43732f614b7a7f44f0c79969ddeed8d078a5d8f02b8eb988d69ece5e9df64cf76f75b9a2b35eef53e089b34fbb216e2904bbef236758cf93ad850db275714467de3be7f390383cf0f9d64fef2ffbc8da3eb257a538777ff3cafea1affc57c67d9ebdd3fe74f0f9debba10844e911cbfecd45c75b9650fffe35c4f93abb83fda09a06f3f31003483eddd453c5ccd58a7fe37b1045503904136419165bed069b8550eb6f82bca44c2bfa48b2746974476cfa7b62c7e0d31f970ac5dec59465b0b896a44ec4605e297eb16c9d0d5a0d7ab60ad86e87ee5cc0957bedb44f749be47d2ee62461b8f940d113dbfa5009c58e56f8dc20ba194cdf32f2fbdc73648b77358f17e6ecb01daf7cbe7e5db9be1eb52f339d65cafa3f308cb01433d338fde9510139609abc5a339ffa9e2b33c6ca7c88ea43f309a32f1d555c0296f4082ad90720a7fdb82a9c78314bc0cf98b2c2946401bdb2ac62d2d4bb68758623fee85df8be1f3e5cd6f722961ab37e1cfd1957d16604e686af44724116befdd9028b1cca99a35353ea416a72566b9d50856fa3201440dfc40f75f4fda58e18adeefc2c01ed72477c";
+    bytes internal constant pubkey =
+        hex"abe1410bd0e704bf98724dfc3ed93b9f8486cb036900ae3cacebee284412a42a6b2935e39f735cb9902fd03e9e7f8c08";
+    // solhint-disable-next-line max-line-length
+    bytes internal constant signature =
+        hex"8b17cbc6bf74af4c991f251aa983d58bcd7e358bbc1cfd586f79295fb880257af4aad65742bb36195ea08c90c0c31f0d0a6960688b3780d29d93a4c411bb86d26ba0b48ebef5808bdfec1c8e92cdaeb5e8c998a7aae6d34ff9274b302e9f2baf";
+    bytes32 internal constant depositDataRoot = 0x98ca90962cc311b2f7487a5b383bc4136e63eca90261eb095e2f79211548a622;
+
     uint256 internal constant ssvAmount = 1 ether;
     ValidatorStakeData[] internal validatorStakeData;
 
@@ -961,27 +986,24 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
         primeZapper = PrimeZapper(payable(AddressesHolesky.PRIME_ZAPPER));
 
         validatorStakeData.push(
-            ValidatorStakeData({
-                pubkey: hex"a49f46e5436c3d6bc6cad10e01d7e28d040ff7ed25a461f0c0316802da94f2e81ce9de4876269c72ad10e04a27fb4d89",
-                // solhint-disable-next-line max-line-length
-                signature: hex"b7f0a76e4c219500b5f957dcbbfd77b8e7315d0f68674f09f002c8829ce7c35a68dbb331be861257c09244ce02a312570a574ac4c0c16f3fcfe1a01723aa73d36b51c3f972de29aefbc19372dbe4ca1b3cb5c62b218175f76fef46618ff5dbed",
-                depositDataRoot: 0xa42e1c2f202f28e94c8d31040787f5ddd39c828ba8b2582a2c129bc72bb9daf4
-            })
+            ValidatorStakeData({ pubkey: pubkey, signature: signature, depositDataRoot: depositDataRoot })
         );
 
-        // Latest SSV Cluster data
+        // Use the following Hardhat task to get the latest SSV Cluster data
+        // npx hardhat getClusterInfo --network local --operatorids 111.119.139.252
+        // TODO get this data dynamically from the logs of the last SSV tx
         cluster = Cluster({
-            validatorCount: 0,
-            networkFeeIndex: 0,
-            index: 0,
+            validatorCount: 1,
+            networkFeeIndex: 42_611_440_888,
+            index: 53_800_140_600,
             active: true,
-            balance: 0
+            balance: 2_267_120_984_000_000_000
         });
 
         // SSV Cluster operator ids
         operatorIds.push(111);
         operatorIds.push(119);
-        operatorIds.push(230);
+        operatorIds.push(139);
         operatorIds.push(252);
 
         wWhale = makeAddr("wethWhale");
@@ -1001,8 +1023,6 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
 
     // This test will probably have to be removed as balance will change and can't simply be queried from the SSV
     // Network contract
-    // Use the following to get the latest cluster SSV balance
-    // npx hardhat getClusterInfo --network local --operatorids 111.119.230.252
     function test_depositSSV() public {
         uint256 amount = 3e18;
         deal(address(AddressesHolesky.SSV_TOKEN), AddressesHolesky.MANAGER_ROLE, amount);
