@@ -909,10 +909,102 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         );
     }
 
+    // requestWithdrawal when LRTDepositPool paused
+    function test_revertRequestWithdrawalDepositPoolPaused() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.prank(manager);
+        lrtDepositPool.pause();
+
+        vm.expectRevert("Pausable: paused");
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
+    // requestWithdrawal when NodeDelegator paused
+    function test_revertRequestWithdrawalNodeDelegatorPaused() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.prank(manager);
+        nodeDelegator1.pause();
+
+        vm.expectRevert("Pausable: paused");
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
     // requestWithdrawal with not enough primeETH
-    // requestWithdrawal with not enough LST in EigenLayer
-    // requestWithdrawal with invalid asset
+    function test_revertRequestWithdrawalNoPrimeETH() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        // Should fail to withdraw with no primeETH tokens
+        vm.expectRevert("ERC20: burn amount exceeds balance");
+        vm.prank(makeAddr("randomUser"));
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
+    // requestWithdrawal with zero amount
+    function test_revertRequestWithdrawalZeroAmount() external {
+        uint256 stEthWithdrawalAmount = 0 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.expectRevert(ILRTDepositPool.ZeroAmount.selector);
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
+    // requestWithdrawal over max primeETH amount
+    function test_revertRequestWithdrawalOverMaxBurn() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.59 ether;
+
+        vm.expectRevert(ILRTDepositPool.MaxBurnAmount.selector);
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
     // requestWithdrawal with WETH
+    function test_revertRequestWithdrawalWETH() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.expectRevert(ILRTDepositPool.OnlyLSTWithdrawals.selector);
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(AddressesHolesky.WETH_TOKEN, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
+    // requestWithdrawal with unsupported LST asset
+    function test_revertRequestWithdrawalUnsupportedAsset() external {
+        uint256 stEthWithdrawalAmount = 0.6 ether;
+        uint256 maxPrimeEthAmount = 0.7 ether;
+
+        vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(makeAddr("randomAsset"), stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
+
+    // requestWithdrawal with not enough LST in EigenLayer
+    function test_revertRequestWithdrawalStrategyLiquidity() external {
+        uint256 stEthWithdrawalAmount = 1.5 ether;
+        uint256 maxPrimeEthAmount = 1.6 ether;
+
+        // Transfer some rETH to the stETH whale
+        vm.prank(rWhale);
+        ERC20(rEthAddress).transfer(stWhale, amountToTransfer);
+
+        // deposit more rETH so we have enough PrimeETH to withdraw
+        vm.startPrank(stWhale);
+        ERC20(rEthAddress).approve(address(lrtDepositPool), amountToTransfer);
+        lrtDepositPool.depositAsset(rEthAddress, amountToTransfer, minPrimeAmount, referralId);
+        vm.stopPrank();
+
+        vm.expectRevert("StrategyManager._removeShares: shareAmount too high");
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+    }
 
     function test_claimWithdrawal() external {
         uint256 stEthWithdrawalAmount = 0.6 ether;
