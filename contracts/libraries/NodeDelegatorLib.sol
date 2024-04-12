@@ -28,12 +28,12 @@ library NodeDelegatorLib {
         address implementation,
         ProxyAdmin proxyAdmin,
         ProxyFactory proxyFactory,
-        uint256 index
+        uint256 saltIndex
     )
         internal
         returns (NodeDelegator nodeDelegator)
     {
-        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", index));
+        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", saltIndex));
         address proxy = proxyFactory.create(implementation, address(proxyAdmin), salt);
         console.log("NodeDelegator proxy deployed at: ", proxy);
 
@@ -44,7 +44,7 @@ library NodeDelegatorLib {
         nodeDelegator.initialize(address(config));
     }
 
-    function deployInit(uint256 index) internal returns (NodeDelegator nodeDelegator) {
+    function deployInit(uint256 saltIndex) internal returns (NodeDelegator nodeDelegator) {
         address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
         address eigenDelayWithdrawalRouterAddress = block.chainid == 1
             ? Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER
@@ -55,7 +55,7 @@ library NodeDelegatorLib {
         console.log("NodeDelegator implementation deployed at: %s", nodeDelegatorImpl);
 
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
-        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", index));
+        bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", saltIndex));
 
         address proxyFactoryAddress = block.chainid == 1 ? Addresses.PROXY_FACTORY : AddressesHolesky.PROXY_FACTORY;
         address nodeDelegatorProxy =

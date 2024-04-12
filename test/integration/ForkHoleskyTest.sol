@@ -8,6 +8,7 @@ import { ERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
+import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
 import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
@@ -850,9 +851,8 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
     }
 
     function test_requestWithdrawal() external {
-        console.log("Staker's primeETH: ", primeETH.balanceOf(address(stWhale)));
-
         uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
+        console.log("Staker's primeETH before: ", primeETHBalanceBefore);
 
         (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
@@ -920,9 +920,8 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
 
         vm.recordLogs();
 
-        vm.startPrank(stWhale);
+        vm.prank(stWhale);
         lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
-        vm.stopPrank();
 
         uint256 stETHBalanceBefore = IERC20(stETHAddress).balanceOf(address(stWhale));
         uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
@@ -941,9 +940,8 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
         vm.roll(block.number + 11);
 
-        vm.startPrank(stWhale);
+        vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
-        vm.stopPrank();
 
         assertApproxEqAbs(
             IERC20(stETHAddress).balanceOf(address(stWhale)),
@@ -975,8 +973,88 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not change");
     }
 
-    // requestInternalWithdrawal
-    // claimInternalWithdrawal
+    function test_requestInternalWithdrawalPartial() external {
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        uint256 stEthWithdrawalAmount = 0.9 ether;
+
+        vm.recordLogs();
+
+        vm.prank(AddressesHolesky.OPERATOR_ROLE);
+        nodeDelegator1.requestInternalWithdrawal(AddressesHolesky.STETH_EIGEN_STRATEGY, stEthWithdrawalAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+        console.log("logs from requestInternalWithdrawal", requestLogs.length);
+
+        // WithdrawalQueued from EigenLayer's DelegationManager
+        assertEq(
+            requestLogs[0].topics[0],
+            keccak256("WithdrawalQueued(bytes32,(address,address,address,uint256,uint32,address[],uint256[]))"),
+            "decoded WithdrawalQueued"
+        );
+        assertEq(requestLogs[0].topics[0], 0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9);
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+        assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not change");
+        assertEq(assetsInNDCsAfter, assetsInNDCsBefore, "stETH balance in NodeDelegators should not change");
+        assertApproxEqAbs(
+            assetsInEigenLayerAfter, assetsInEigenLayerBefore, 2, "stETH balance in EigenLayer should not change"
+        );
+    }
+
+    function test_claimInternalWithdrawalPartial() external {
+        uint256 stEthShares = 0.8 ether;
+        uint256 stEthExpected = IStrategy(AddressesHolesky.STETH_EIGEN_STRATEGY).sharesToUnderlying(stEthShares);
+
+        vm.recordLogs();
+
+        vm.prank(AddressesHolesky.OPERATOR_ROLE);
+        nodeDelegator1.requestInternalWithdrawal(AddressesHolesky.STETH_EIGEN_STRATEGY, stEthShares);
+
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawalRoot and withdrawal event data
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[0].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 10 blocks
+        // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
+        vm.roll(block.number + 11);
+
+        vm.recordLogs();
+
+        vm.prank(AddressesHolesky.OPERATOR_ROLE);
+        nodeDelegator1.claimInternalWithdrawal(stETHAddress, withdrawal);
+
+        requestLogs = vm.getRecordedLogs();
+        console.log("logs from claimInternalWithdrawal", requestLogs.length);
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+        assertApproxEqAbs(
+            assetsInDepositPoolAfter,
+            assetsInDepositPoolBefore + stEthExpected,
+            2,
+            "stETH balance in deposit pool should not change with 2 wei variance"
+        );
+        assertApproxEqAbs(
+            assetsInNDCsAfter,
+            assetsInNDCsBefore,
+            2,
+            "stETH balance in NodeDelegators should not change with 2 wei variance"
+        );
+        assertApproxEqAbs(
+            assetsInEigenLayerAfter,
+            assetsInEigenLayerBefore - stEthExpected,
+            2,
+            "stETH balance in EigenLayer should not change with 2 wei variance"
+        );
+    }
 }
 
 contract ForkHoleskyTestNative is ForkHoleskyTestBase {

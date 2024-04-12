@@ -20,6 +20,7 @@ interface INodeDelegator {
     error ValidatorAlreadyStaked(bytes pubkey); // 0x2229546d
     error NotStakersWithdrawal(); // 0x6c7a619c
     error NotInternalWithdrawal(); // 0xb1345ad5
+    error NotSingleStrategyWithdrawal(); // 0xc18ea890
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
