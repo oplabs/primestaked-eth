@@ -509,6 +509,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     )
         external
         onlyLRTOperator
+        onlySupportedAsset(asset)
         returns (uint256 assets)
     {
         // Make sure not withdrawing a staker's requested withdrawal
