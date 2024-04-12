@@ -18,7 +18,7 @@ interface INodeDelegator {
     error InvalidETHSender(); // 0xe811a0c2
     error InsufficientWETH(uint256 balance); // 0x2ed796b4
     error ValidatorAlreadyStaked(bytes pubkey); // 0x2229546d
-    error NotStakersWithdrawal(); // 0x6c7a619c
+    error StakersWithdrawalNotFound(); // 0x0110c83d
     error NotInternalWithdrawal(); // 0xb1345ad5
     error NotSingleStrategyWithdrawal(); // 0xc18ea890
 

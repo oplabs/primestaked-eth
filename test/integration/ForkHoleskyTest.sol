@@ -841,7 +841,7 @@ contract ForkHoleskyTestLST is ForkHoleskyTestBase {
 }
 
 contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
-    function setUp() public override {
+    function setUp() public virtual override {
         super.setUp();
 
         vm.startPrank(manager);
@@ -849,6 +849,10 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
         vm.stopPrank();
     }
+
+    ////////////////////////////////////////////////////////////////
+    ///                     requestWithdrawal
+    ////////////////////////////////////////////////////////////////
 
     function test_requestWithdrawal() external {
         uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
@@ -1006,64 +1010,20 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
     }
 
-    function test_claimWithdrawal() external {
+    // malicious user calls requestWithdrawal on the NodeDelegator 
+    function test_revertClaimWithdrawalToNodeDelegator() external {
         uint256 stEthWithdrawalAmount = 0.6 ether;
-        uint256 maxPrimeEthAmount = 0.7 ether;
 
-        vm.recordLogs();
+        address maliciousUser = makeAddr("maliciousUser");
 
-        vm.prank(stWhale);
-        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
-
-        uint256 stETHBalanceBefore = IERC20(stETHAddress).balanceOf(address(stWhale));
-        uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
-
-        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
-        console.log("Logs length ", requestLogs.length);
-
-        // decode the withdrawalRoot and withdrawal event data
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
-
-        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
-            lrtDepositPool.getAssetDistributionData(stETHAddress);
-
-        // Move forward 10 blocks
-        // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
-        vm.roll(block.number + 11);
-
-        vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
-
-        assertApproxEqAbs(
-            IERC20(stETHAddress).balanceOf(address(stWhale)),
-            stETHBalanceBefore + stEthWithdrawalAmount,
-            3,
-            "Whale's stETH balance should increase with 3 wei tolerance"
-        );
-        // This currently fails as wei is lost on the stETH transfers
-        // assertGe(
-        //     IERC20(stETHAddress).balanceOf(address(stWhale)),
-        //     stETHBalanceBefore + stEthWithdrawalAmount,
-        //     "Whale's stETH balance should increase by at least the requested amount"
-        // );
-        assertEq(
-            primeETH.balanceOf(address(stWhale)),
-            primeETHBalanceBefore,
-            "stETH whale's primeETH balance should not change as it was burnt in requestWithdrawal"
-        );
-
-        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
-            lrtDepositPool.getAssetDistributionData(stETHAddress);
-        assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not change");
-        assertApproxEqAbs(
-            assetsInNDCsAfter,
-            assetsInNDCsBefore,
-            2,
-            "stETH balance in NodeDelegator should not change with tolerance of 2 wei"
-        );
-        assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not change");
+        vm.expectRevert(ILRTConfig.CallerNotLRTDepositPool.selector);
+        vm.prank(maliciousUser);
+        nodeDelegator1.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maliciousUser);
     }
+
+    ////////////////////////////////////////////////////////////////
+    ///                requestInternalWithdrawal
+    ////////////////////////////////////////////////////////////////
 
     function test_requestInternalWithdrawalPartial() external {
         (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
@@ -1095,6 +1055,10 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
             assetsInEigenLayerAfter, assetsInEigenLayerBefore, 2, "stETH balance in EigenLayer should not change"
         );
     }
+
+    ////////////////////////////////////////////////////////////////
+    ///                  claimInternalWithdrawal
+    ////////////////////////////////////////////////////////////////
 
     function test_claimInternalWithdrawalPartial() external {
         uint256 stEthShares = 0.8 ether;
@@ -1146,6 +1110,141 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
             2,
             "stETH balance in EigenLayer should not change with 2 wei variance"
         );
+    }
+}
+
+contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
+    uint256 public constant stEthWithdrawalAmount = 0.6 ether;
+    uint256 public constant maxPrimeEthAmount = 0.7 ether;
+
+    IDelegationManager.Withdrawal withdrawal;
+
+    function setUp() public override {
+        super.setUp();
+
+        vm.startPrank(manager);
+        nodeDelegator1.maxApproveToEigenStrategyManager(stETHAddress);
+        nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
+        vm.stopPrank();
+
+        vm.recordLogs();
+
+        vm.prank(stWhale);
+        lrtDepositPool.requestWithdrawal(stETHAddress, stEthWithdrawalAmount, maxPrimeEthAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+        console.log("Logs length ", requestLogs.length);
+
+        // decode the withdrawalRoot and withdrawal event data
+        bytes32 withdrawalRoot;
+        (withdrawalRoot, withdrawal) = abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 10 blocks
+        // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
+        vm.roll(block.number + 11);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    ///                     claimWithdrawal
+    ////////////////////////////////////////////////////////////////
+
+    function test_claimWithdrawal() external {
+        uint256 stETHBalanceBefore = IERC20(stETHAddress).balanceOf(address(stWhale));
+        uint256 primeETHBalanceBefore = primeETH.balanceOf(address(stWhale));
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+
+        assertApproxEqAbs(
+            IERC20(stETHAddress).balanceOf(address(stWhale)),
+            stETHBalanceBefore + stEthWithdrawalAmount,
+            3,
+            "Whale's stETH balance should increase with 3 wei tolerance"
+        );
+        // This currently fails as wei is lost on the stETH transfers
+        // assertGe(
+        //     IERC20(stETHAddress).balanceOf(address(stWhale)),
+        //     stETHBalanceBefore + stEthWithdrawalAmount,
+        //     "Whale's stETH balance should increase by at least the requested amount"
+        // );
+        assertEq(
+            primeETH.balanceOf(address(stWhale)),
+            primeETHBalanceBefore,
+            "stETH whale's primeETH balance should not change as it was burnt in requestWithdrawal"
+        );
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+        assertEq(assetsInDepositPoolAfter, assetsInDepositPoolBefore, "stETH balance in deposit pool should not change");
+        assertApproxEqAbs(
+            assetsInNDCsAfter,
+            assetsInNDCsBefore,
+            2,
+            "stETH balance in NodeDelegator should not change with tolerance of 2 wei"
+        );
+        assertEq(assetsInEigenLayerAfter, assetsInEigenLayerBefore, "stETH balance in EigenLayer should not change");
+    }
+
+    // requestWithdrawal when LRTDepositPool paused
+    function test_revertClaimWithdrawalDepositPoolPaused() external {
+        vm.prank(manager);
+        lrtDepositPool.pause();
+
+        vm.expectRevert("Pausable: paused");
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+    }
+
+    // requestWithdrawal when NodeDelegator paused
+    function test_revertClaimWithdrawalNodeDelegatorPaused() external {
+        vm.prank(manager);
+        nodeDelegator1.pause();
+
+        vm.expectRevert("Pausable: paused");
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+    }
+
+    // another user claims the withdrawal
+    function test_revertClaimWithdrawalNotWithdrawer() external {
+        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
+        vm.prank(makeAddr("randomUser"));
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+    }
+
+    // withdrawer tries a second claim
+    function test_revertClaimWithdrawalTwice() external {
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+
+        vm.expectRevert("DelegationManager._completeQueuedWithdrawal: action is not in queue");
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+    }
+
+    // withdrawer adds extra shares to the withdrawal
+    function test_revertClaimWithdrawalChangedShares() external {
+        IDelegationManager.Withdrawal memory changedWithdrawal = withdrawal;
+        // Add 1 wei to the shares
+        changedWithdrawal.shares[0] += 1;
+
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+
+        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(stETHAddress, changedWithdrawal);
+    }
+
+    // another staker calls the NodeDelegator with a staker's withdrawal
+    function test_revertClaimWithdrawalToNodeDelegator() external {
+        address maliciousUser = makeAddr("maliciousUser");
+
+        vm.expectRevert(ILRTConfig.CallerNotLRTDepositPool.selector);
+        vm.prank(maliciousUser);
+        nodeDelegator1.claimWithdrawal(stETHAddress, withdrawal, maliciousUser);
     }
 }
 

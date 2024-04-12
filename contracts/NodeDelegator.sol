@@ -475,9 +475,10 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         returns (uint256 assets)
     {
         // Make sure the staker requested this withdrawal
+        // and the withdrawal was not manipulated
         bytes32 withdrawalRoot = _calculateWithdrawalRoot(withdrawal);
         if (withdrawalRequests[withdrawalRoot] != staker) {
-            revert NotStakersWithdrawal();
+            revert StakersWithdrawalNotFound();
         }
 
         IERC20[] memory tokens = new IERC20[](1);
