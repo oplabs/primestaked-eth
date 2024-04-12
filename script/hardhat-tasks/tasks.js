@@ -1,7 +1,7 @@
 const { subtask, task, types } = require("hardhat/config");
 const { KeyValueStoreClient } = require("defender-kvstore-client");
 
-const { depositPrime, depositAssetEL, depositAllEL, requestWithdrawal, claimWithdrawal } = require("./deposits");
+const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
 const { snapshot } = require("./snapshot");
 const {
@@ -20,6 +20,12 @@ const { depositWETH, withdrawWETH } = require("./weth");
 const { resolveAsset } = require("../utils/assets");
 const { deployNodeDelegator } = require("./deploy");
 const { upgradeProxy } = require("./proxy");
+const {
+  requestWithdrawal,
+  claimWithdrawal,
+  requestInternalWithdrawal,
+  claimInternalWithdrawal,
+} = require("./withdrawals");
 
 const log = require("../utils/logger")("task");
 
@@ -32,9 +38,8 @@ subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
-    const network = await ethers.provider.getNetwork();
 
-    await depositPrime({ ...taskArgs, signer, depositPool, networkId: network.chainId });
+    await depositPrime({ ...taskArgs, signer, depositPool });
   });
 task("depositPrime").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -47,9 +52,8 @@ subtask("requestWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
-    const network = await ethers.provider.getNetwork();
 
-    await requestWithdrawal({ ...taskArgs, signer, depositPool, networkId: network.chainId });
+    await requestWithdrawal({ ...taskArgs, signer, depositPool });
   });
 task("requestWithdrawal").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -64,15 +68,49 @@ subtask("claimWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
     const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
     const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
-    const network = await ethers.provider.getNetwork();
 
-    await claimWithdrawal({ ...taskArgs, signer, depositPool, delegationManager, networkId: network.chainId });
+    await claimWithdrawal({ ...taskArgs, signer, depositPool, delegationManager });
   });
 task("claimWithdrawal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
 // Operator functions
+
+subtask("requestInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
+  .addParam("shares", "Amount of EigenLayer strategy shares", undefined, types.float)
+  .addOptionalParam(
+    "symbol",
+    "Symbol of the strategy's LST token. eg OETH, stETH, mETH... but not WETH",
+    "OETH",
+    types.string,
+  )
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await requestInternalWithdrawal({ ...taskArgs, signer, nodeDelegator });
+  });
+task("requestInternalWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("claimInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
+  .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
+  .addOptionalParam("symbol", "Symbol of the LST. eg OETH, stETH, mETH. Can not be WETH.", "OETH", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
+    const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
+
+    await claimInternalWithdrawal({ ...taskArgs, signer, nodeDelegator, delegationManager });
+  });
+task("claimInternalWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
