@@ -19,6 +19,7 @@ const { parseAddress } = require("../utils/addressParser");
 const { depositWETH, withdrawWETH } = require("./weth");
 const { resolveAsset } = require("../utils/assets");
 const { deployNodeDelegator } = require("./deploy");
+const { upgradeProxy } = require("./proxy");
 
 const log = require("../utils/logger")("task");
 
@@ -459,5 +460,20 @@ subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contr
     await deployNodeDelegator({ ...taskArgs, weth, signer });
   });
 task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("upgradeProxy", "Upgrade a proxy contract to a new implementation")
+  .addParam("proxy", "Address of the proxy contract", undefined, types.string)
+  .addParam("impl", "Address of the implementation contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const proxyAdminAddress = await parseAddress("PROXY_ADMIN");
+    const proxyAdmin = await ethers.getContractAt("ProxyAdmin", proxyAdminAddress);
+
+    await upgradeProxy({ ...taskArgs, proxyAdmin, signer });
+  });
+task("upgradeProxy").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
