@@ -2,32 +2,15 @@
 
 pragma solidity 0.8.21;
 
-import { BaseTest, MockToken } from "./BaseTest.t.sol";
-import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
-import { LRTConstants } from "contracts/utils/LRTConstants.sol";
-import { UtilLib } from "contracts/utils/UtilLib.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
-contract MockStrategy {
-    IERC20 public underlyingToken_;
-    uint256 public mockUserUnderlyingViewBal;
-
-    constructor(address _underlyingToken, uint256 _mockUserUnderlyingViewBal) {
-        underlyingToken_ = IERC20(_underlyingToken);
-
-        mockUserUnderlyingViewBal = _mockUserUnderlyingViewBal;
-    }
-
-    function underlyingToken() external view returns (IERC20) {
-        return underlyingToken_;
-    }
-
-    function userUnderlyingView(address) external view returns (uint256) {
-        return mockUserUnderlyingViewBal;
-    }
-}
+import { BaseTest, MockToken } from "./BaseTest.t.sol";
+import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
+import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
+import { LRTConstants } from "contracts/utils/LRTConstants.sol";
+import { UtilLib } from "contracts/utils/UtilLib.sol";
 
 contract MockLRTDepositPool {
     address public ndc1;
