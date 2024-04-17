@@ -19,6 +19,13 @@ const { parseAddress } = require("../utils/addressParser");
 const { depositWETH, withdrawWETH } = require("./weth");
 const { resolveAsset } = require("../utils/assets");
 const { deployNodeDelegator } = require("./deploy");
+const { upgradeProxy } = require("./proxy");
+const {
+  requestWithdrawal,
+  claimWithdrawal,
+  requestInternalWithdrawal,
+  claimInternalWithdrawal,
+} = require("./withdrawals");
 
 const log = require("../utils/logger")("task");
 
@@ -38,7 +45,72 @@ task("depositPrime").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
+subtask("requestWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
+  .addParam("amount", "Withdraw amount", undefined, types.float)
+  .addOptionalParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or WETH", "OETH", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
+    const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+
+    await requestWithdrawal({ ...taskArgs, signer, depositPool });
+  });
+task("requestWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("claimWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
+  .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
+  .addOptionalParam("symbol", "Symbol of the LST. eg OETH, stETH, mETH. Can not be WETH.", "OETH", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
+    const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
+    const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
+    const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
+
+    await claimWithdrawal({ ...taskArgs, signer, depositPool, delegationManager });
+  });
+task("claimWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
 // Operator functions
+
+subtask("requestInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
+  .addParam("shares", "Amount of EigenLayer strategy shares", undefined, types.float)
+  .addOptionalParam(
+    "symbol",
+    "Symbol of the strategy's LST token. eg OETH, stETH, mETH... but not WETH",
+    "OETH",
+    types.string,
+  )
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await requestInternalWithdrawal({ ...taskArgs, signer, nodeDelegator });
+  });
+task("requestInternalWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("claimInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
+  .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
+  .addOptionalParam("symbol", "Symbol of the LST. eg OETH, stETH, mETH. Can not be WETH.", "OETH", types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
+    const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
+
+    await claimInternalWithdrawal({ ...taskArgs, signer, nodeDelegator, delegationManager });
+  });
+task("claimInternalWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
@@ -426,5 +498,20 @@ subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contr
     await deployNodeDelegator({ ...taskArgs, weth, signer });
   });
 task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("upgradeProxy", "Upgrade a proxy contract to a new implementation")
+  .addParam("proxy", "Address of the proxy contract", undefined, types.string)
+  .addParam("impl", "Address of the implementation contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const proxyAdminAddress = await parseAddress("PROXY_ADMIN");
+    const proxyAdmin = await ethers.getContractAt("ProxyAdmin", proxyAdminAddress);
+
+    await upgradeProxy({ ...taskArgs, proxyAdmin, signer });
+  });
+task("upgradeProxy").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
