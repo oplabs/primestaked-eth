@@ -9,7 +9,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 
 import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, IERC20 } from "./LRTConfigTest.t.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
-import { MockEigenDelayedWithdrawalRouter } from "contracts/eigen/mocks/MockEigenDelayedWithdrawalRouter.sol";
+import { MockDelayedWithdrawalRouter } from "contracts/eigen/mocks/MockDelayedWithdrawalRouter.sol";
 import { MockEigenPodManager, MockEigenPod } from "contracts/eigen/mocks/MockEigenPodManager.sol";
 import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
 import { MockStrategyManager } from "contracts/eigen/mocks/MockStrategyManager.sol";
@@ -58,14 +58,14 @@ contract NodeDelegatorTest is LRTConfigTest {
     NodeDelegator public nodeDel;
     address public operator;
 
-    MockStrategyManager public mockStrategyManager;
+    MockStrategyManager public strategyManager;
 
     MockStrategy public stETHMockStrategy;
     MockStrategy public ethXMockStrategy;
     address public mockLRTDepositPool;
 
-    MockEigenPodManager public mockEigenPodManager;
-    MockEigenDelayedWithdrawalRouter public mockEigenDelayedWithdrawalRouter;
+    MockEigenPodManager public eigenPodManager;
+    MockDelayedWithdrawalRouter public delayedWithdrawalRouter;
 
     event UpdatedLRTConfig(address indexed lrtConfig);
     event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
@@ -82,13 +82,13 @@ contract NodeDelegatorTest is LRTConfigTest {
         lrtConfig.initialize(admin, address(stETH), address(ethX), prethMock);
 
         // add MockStrategyManager to LRTConfig
-        mockStrategyManager = new MockStrategyManager();
+        strategyManager = new MockStrategyManager();
         vm.startPrank(admin);
-        lrtConfig.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, address(mockStrategyManager));
+        lrtConfig.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, address(strategyManager));
 
-        mockEigenPodManager = new MockEigenPodManager();
-        lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, address(mockEigenPodManager));
-        mockEigenDelayedWithdrawalRouter = new MockEigenDelayedWithdrawalRouter();
+        eigenPodManager = new MockEigenPodManager();
+        lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, address(eigenPodManager));
+        delayedWithdrawalRouter = new MockDelayedWithdrawalRouter();
 
         // add WETH token
         lrtConfig.setToken(LRTConstants.WETH_TOKEN, address(weth));
@@ -114,7 +114,7 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         // deploy NodeDelegator
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth), address(mockEigenDelayedWithdrawalRouter));
+        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth), address(delayedWithdrawalRouter));
         TransparentUpgradeableProxy nodeDelProxy =
             new TransparentUpgradeableProxy(address(nodeDelImpl), address(proxyAdmin), "");
 
@@ -204,7 +204,7 @@ contract NodeDelegatorMaxApproveToEigenStrategyManager is NodeDelegatorTest {
         vm.stopPrank();
 
         // check that the nodeDelegator has max approved the eigen strategy manager
-        assertEq(ethX.allowance(address(nodeDel), address(mockStrategyManager)), type(uint256).max);
+        assertEq(ethX.allowance(address(nodeDel), address(strategyManager)), type(uint256).max);
     }
 }
 

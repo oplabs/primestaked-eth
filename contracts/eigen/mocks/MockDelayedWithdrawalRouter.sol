@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.21;
 
-contract MockEigenDelayedWithdrawalRouter {
+contract MockDelayedWithdrawalRouter {
     struct DelayedWithdrawal {
         uint224 amount;
         uint32 blockCreated;
