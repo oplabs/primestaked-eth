@@ -54,9 +54,8 @@ node-fork:; anvil --fork-url ${MAINNET_RPC_URL} --auto-impersonate ${BLOCK_PARAM
 node-test-fork:; anvil --fork-url ${HOLESKY_RPC_URL} --auto-impersonate ${BLOCK_PARAM}
 
 # test commands
-unit-test:; forge test --no-match-contract "(Skip|IntegrationTest|Fork)"
-int-test:; MAINNET_RPC_URL=localhost forge test --match-contract "IntegrationTest" --no-match-contract "Skip"
-fork-test:; IS_FORK=true forge test --match-contract "ForkTest" --no-match-contract "Skip" -vv
+unit-test:; forge test --no-match-contract "(Fork)"
+fork-test:; IS_FORK=true forge test --match-contract "ForkTest" -vv
 fork-test-goerli:; IS_FORK=true forge test --match-contract "ForkGoerliTest" -vvip" -vv
 fork-test-holesky:; IS_FORK=true forge test --match-contract "ForkHoleskyTest" -vv
-fork-test-ci:; IS_FORK=true forge test --match-contract "ForkTest" --no-match-contract "Skip"
+fork-test-ci:; IS_FORK=true forge test --match-contract "ForkTest"

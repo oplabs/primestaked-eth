@@ -992,8 +992,8 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
 
     // requestWithdrawal with not enough LST in EigenLayer
     function test_revertRequestWithdrawalStrategyLiquidity() external {
-        uint256 stEthWithdrawalAmount = 1.5 ether;
-        uint256 maxPrimeEthAmount = 1.6 ether;
+        uint256 stEthWithdrawalAmount = 2 ether;
+        uint256 maxPrimeEthAmount = 2 ether;
 
         // Transfer some rETH to the stETH whale
         vm.prank(rWhale);
