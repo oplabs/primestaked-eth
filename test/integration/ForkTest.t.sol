@@ -141,8 +141,8 @@ contract ForkTestNative is ForkTestBase {
     NodeDelegator public nodeDelegator2;
     PrimeZapper public primeZapper;
 
-    address internal constant wWhale = 0xF04a5cC80B1E94C69B48f5ee68a08CD2F09A7c3E;
-    // WETH whale that is not a contract
+    // WETH whales that are not contracts
+    address internal constant wWhale = 0x57757E3D981446D585Af0D9Ae4d7DF6D64647806;
     address internal constant wWhale2 = 0x8EB8a3b98659Cce290402893d0123abb75E3ab28;
 
     // Get the result.validatorRegistrationTxs[0].data from the P2P Check Status Request
@@ -268,14 +268,18 @@ contract ForkTestNative is ForkTestBase {
             lrtDepositPool.getAssetDistributionData(asset);
 
         // Add ETH to the Node Delegator to simulate ETH rewards
-        vm.deal(Addresses.NODE_DELEGATOR_NATIVE_STAKING, 0.01 ether);
+        uint256 rewards = 0.01 ether;
+        vm.startPrank(wWhale);
+        IWETH(Addresses.WETH_TOKEN).withdraw(rewards);
+        IWETH(Addresses.WETH_TOKEN).transfer(Addresses.NODE_DELEGATOR_NATIVE_STAKING, rewards);
+        vm.stopPrank();
 
         // Get after asset balances
         (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
             lrtDepositPool.getAssetDistributionData(asset);
 
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
-        assertEq(assetsNDCsAfter, assetsNDCsBefore + 0.01 ether, "assets in NDCs");
+        assertEq(assetsNDCsAfter, assetsNDCsBefore + rewards, "assets in NDCs");
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
     }
 
@@ -445,23 +449,23 @@ contract ForkTestNative is ForkTestBase {
     }
 
     function test_revertWhenDepositLST() public {
-        address[] memory assets = new address[](7);
-        assets[0] = Addresses.OETH_TOKEN;
-        assets[1] = Addresses.STETH_TOKEN;
-        assets[2] = Addresses.ETHX_TOKEN;
-        assets[3] = Addresses.METH_TOKEN;
-        assets[4] = Addresses.SFRXETH_TOKEN;
-        assets[5] = Addresses.RETH_TOKEN;
-        assets[6] = Addresses.SWETH_TOKEN;
+        address[] memory assets = new address[](6);
+        assets[0] = Addresses.STETH_TOKEN;
+        assets[1] = Addresses.ETHX_TOKEN;
+        assets[2] = Addresses.METH_TOKEN;
+        assets[3] = Addresses.SFRXETH_TOKEN;
+        assets[4] = Addresses.RETH_TOKEN;
+        assets[5] = Addresses.SWETH_TOKEN;
+        // assets[6] = Addresses.OETH_TOKEN;
 
-        address[] memory whales = new address[](7);
-        whales[0] = oWhale;
-        whales[1] = stWhale;
-        whales[2] = xWhale;
-        whales[3] = mWhale;
-        whales[4] = frxWhale;
-        whales[5] = rWhale;
-        whales[6] = swWhale;
+        address[] memory whales = new address[](6);
+        whales[0] = stWhale;
+        whales[1] = xWhale;
+        whales[2] = mWhale;
+        whales[3] = frxWhale;
+        whales[4] = rWhale;
+        whales[5] = swWhale;
+        // whales[6] = oWhale;
 
         for (uint256 i = 0; i < assets.length; i++) {
             vm.startPrank(whales[i]);
@@ -482,7 +486,7 @@ contract ForkTestLST is ForkTestBase {
         allowLSTDeposits();
 
         // Unpause all EigenLayer deposits
-        unpauseAllStrategies();
+        // unpauseAllStrategies();
     }
 
     function test_deposit_stETH() public {
@@ -734,7 +738,8 @@ contract ForkTestLST is ForkTestBase {
 
     function allowLSTDeposits() internal {
         vm.startPrank(Addresses.MANAGER_ROLE);
-        lrtConfig.updateAssetDepositLimit(Addresses.OETH_TOKEN, 100e21);
+        // OETH has since been enabled
+        // lrtConfig.updateAssetDepositLimit(Addresses.OETH_TOKEN, 100e21);
         lrtConfig.updateAssetDepositLimit(Addresses.STETH_TOKEN, 100e21);
         lrtConfig.updateAssetDepositLimit(Addresses.ETHX_TOKEN, 100e21);
         lrtConfig.updateAssetDepositLimit(Addresses.SWETH_TOKEN, 100e21);
