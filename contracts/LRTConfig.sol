@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
 import { ILRTConfig } from "./interfaces/ILRTConfig.sol";
-import { IStrategy } from "./interfaces/IStrategy.sol";
+import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
 
 import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";

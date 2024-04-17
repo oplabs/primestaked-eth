@@ -10,9 +10,9 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
-import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
-import { IEigenPod } from "contracts/interfaces/IEigenPod.sol";
+import { IEigenPod } from "contracts/eigen/interfaces/IEigenPod.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
@@ -706,8 +706,8 @@ contract ForkTestLST is ForkTestBase {
 
     /// @dev unpause an EigenLayer Strategy is currently paused
     function unpauseStrategy(address strategyAddress) internal {
-        IStrategy eigenStrategy = IStrategy(strategyAddress);
-        IStrategy eigenStrategyManager = IStrategy(Addresses.EIGEN_STRATEGY_MANAGER);
+        IPausable eigenStrategy = IPausable(strategyAddress);
+        IPausable eigenStrategyManager = IPausable(Addresses.EIGEN_STRATEGY_MANAGER);
 
         vm.startPrank(Addresses.EIGEN_UNPAUSER);
 

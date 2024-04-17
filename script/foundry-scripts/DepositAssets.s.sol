@@ -13,7 +13,7 @@ import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
 
-import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract DepositAssets is Script {
@@ -114,12 +114,9 @@ contract DepositAssets is Script {
     function unpauseAllStrategies() private {
         vm.startPrank(Addresses.EIGEN_UNPAUSER);
 
-        // IStrategy eigenStrategy = IStrategy(strategyAddress);
-        IStrategy eigenStrategyManager = IStrategy(Addresses.EIGEN_STRATEGY_MANAGER);
-
         // Unpause deposits and withdrawals
+        IPausable eigenStrategyManager = IPausable(Addresses.EIGEN_STRATEGY_MANAGER);
         eigenStrategyManager.unpause(0);
-        // eigenStrategy.unpause(0);
 
         vm.stopPrank();
     }

@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.21;
 
-import { UtilLib } from "./utils/UtilLib.sol";
-import { LRTConstants } from "./utils/LRTConstants.sol";
-import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
-
-import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
-import { IStrategy } from "./interfaces/IStrategy.sol";
-import { IEigenStrategyManager } from "./interfaces/IEigenStrategyManager.sol";
-import { IOETH } from "./interfaces/IOETH.sol";
-import { IWETH } from "./interfaces/IWETH.sol";
-import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
-
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import { IEigenPodManager } from "./interfaces/IEigenPodManager.sol";
-import { IEigenPod } from "./interfaces/IEigenPod.sol";
+import { UtilLib } from "./utils/UtilLib.sol";
+import { LRTConstants } from "./utils/LRTConstants.sol";
+import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
+
+import { IEigenPodManager } from "./eigen/interfaces/IEigenPodManager.sol";
+import { IEigenPod } from "./eigen/interfaces/IEigenPod.sol";
+import { IStrategy, IStrategyManager } from "./eigen/interfaces/IStrategyManager.sol";
+import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
+import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
+import { IOETH } from "./interfaces/IOETH.sol";
+import { IWETH } from "./interfaces/IWETH.sol";
 
 struct ValidatorStakeData {
     bytes pubkey;
@@ -140,7 +138,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         emit AssetDepositIntoStrategy(asset, strategy, balance);
 
-        IEigenStrategyManager(eigenlayerStrategyManagerAddress).depositIntoStrategy(IStrategy(strategy), token, balance);
+        IStrategyManager(eigenlayerStrategyManagerAddress).depositIntoStrategy(IStrategy(strategy), token, balance);
     }
 
     /// @notice Transfers an asset back to the LRT deposit pool
