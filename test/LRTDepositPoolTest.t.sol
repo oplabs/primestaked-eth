@@ -61,7 +61,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
 
         // deploy LRTDepositPool
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        LRTDepositPool contractImpl = new LRTDepositPool();
+        LRTDepositPool contractImpl = new LRTDepositPool(address(weth));
         TransparentUpgradeableProxy contractProxy =
             new TransparentUpgradeableProxy(address(contractImpl), address(proxyAdmin), "");
 
