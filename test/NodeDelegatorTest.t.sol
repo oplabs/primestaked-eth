@@ -9,6 +9,8 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 
 import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, IERC20 } from "./LRTConfigTest.t.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
+import { MockEigenDelayedWithdrawalRouter } from "contracts/eigen/mocks/MockEigenDelayedWithdrawalRouter.sol";
+import { MockEigenPodManager, MockEigenPod } from "contracts/eigen/mocks/MockEigenPodManager.sol";
 import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
 import { MockStrategyManager } from "contracts/eigen/mocks/MockStrategyManager.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
@@ -50,58 +52,6 @@ contract MockSSVNetwork {
     function exitValidator(bytes memory publicKey, uint64[] memory operatorIds) external { }
 
     function removeValidator(bytes memory publicKey, uint64[] memory operatorIds, Cluster memory cluster) external { }
-}
-
-contract MockEigenPodManager {
-    mapping(address => address) public ownerToPod;
-
-    function createPod() external returns (address pod) {
-        pod = ownerToPod[msg.sender];
-        if (pod != address(0)) {
-            return pod;
-        }
-        pod = address(new MockEigenPod());
-        ownerToPod[msg.sender] = pod;
-    }
-
-    function stake(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot) external payable {
-        // do nothing
-    }
-}
-
-contract MockEigenPod {
-    function verifyWithdrawalCredentials(
-        uint64 oracleTimestamp,
-        BeaconChainProofs.StateRootProof calldata stateRootProof,
-        uint40[] calldata validatorIndices,
-        bytes[] calldata withdrawalCredentialProofs,
-        bytes32[][] calldata validatorFields
-    )
-        external
-    { }
-
-    function verifyBalanceUpdates(
-        uint64 oracleTimestamp,
-        uint40[] calldata validatorIndices,
-        BeaconChainProofs.StateRootProof calldata stateRootProof,
-        bytes[] calldata validatorFieldsProofs,
-        bytes32[][] calldata validatorFields
-    )
-        external
-    { }
-
-    receive() external payable { }
-}
-
-contract MockEigenDelayedWithdrawalRouter {
-    struct DelayedWithdrawal {
-        uint224 amount;
-        uint32 blockCreated;
-    }
-
-    function getUserDelayedWithdrawals(address user) external view returns (DelayedWithdrawal[] memory) { }
-    function createDelayedWithdrawal(address podOwner, address recipient) external payable { }
-    function claimDelayedWithdrawals(address recipient, uint256 maxNumberOfDelayedWithdrawalsToClaim) external { }
 }
 
 contract NodeDelegatorTest is LRTConfigTest {
