@@ -173,7 +173,7 @@ contract ForkTestNative is ForkTestBase {
         vm.startPrank(wWhale);
         IWETH(Addresses.WETH_TOKEN).withdraw(rewards);
         // IWETH(Addresses.WETH_TOKEN).transfer(target, rewards);
-        Addresses.WETH_TOKEN.call{value: rewards}("");
+        Addresses.WETH_TOKEN.call{ value: rewards }("");
         vm.stopPrank();
     }
 
