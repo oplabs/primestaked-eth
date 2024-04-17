@@ -53,7 +53,9 @@ contract UpgradeLSTWithdrawals is BaseMainnetScript {
         vm.startPrank(Addresses.ADMIN_ROLE);
         console.log("Impersonating Admin: %s", Addresses.ADMIN_ROLE);
         // set EIGEN_DELEGATION_MANAGER address in LRTConfig
-        LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.EIGEN_DELEGATION_MANAGER, Addresses.EIGEN_DELEGATION_MANAGER);
+        LRTConfig(Addresses.LRT_CONFIG).setContract(
+            LRTConstants.EIGEN_DELEGATION_MANAGER, Addresses.EIGEN_DELEGATION_MANAGER
+        );
 
         // add burner role to lrtDepositPool so it can burn primeETH
         LRTConfig(Addresses.LRT_CONFIG).grantRole(LRTConstants.BURNER_ROLE, address(Addresses.LRT_DEPOSIT_POOL));
