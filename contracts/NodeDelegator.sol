@@ -30,7 +30,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     address public immutable WETH_TOKEN_ADDRESS;
 
     /// @dev The EigenPod is created and owned by this contract
-    IEigenPod public eigenPod;
+    address public eigenPod;
     /// @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
     uint256 public stakedButNotVerifiedEth;
@@ -58,10 +58,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
     function createEigenPod() external onlyLRTManager {
         IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
-        eigenPodManager.createPod();
-        eigenPod = eigenPodManager.ownerToPod(address(this));
+        eigenPod = eigenPodManager.createPod();
 
-        emit EigenPodCreated(address(eigenPod), address(this));
+        emit EigenPodCreated(eigenPod, address(this));
     }
 
     /// @notice Approves the maximum amount of an asset to the eigen strategy manager
