@@ -3,8 +3,10 @@ pragma solidity 0.8.21;
 
 import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
-
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
+
+import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
+import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
 import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
@@ -18,6 +20,11 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 /// @title LRTDepositPool - Deposit Pool Contract for LSTs
 /// @notice Handles LST asset deposits
 contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
+    // The NodeDelegator index to request LST withdrawals from. eg OETH
+    uint256 public constant LST_NDC_INDEX = 0;
+
+    address public immutable WETH_TOKEN_ADDRESS;
+
     uint256 public maxNodeDelegatorLimit;
     uint256 public minAmountToDeposit;
 
@@ -25,7 +32,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address[] public nodeDelegatorQueue;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
+    constructor(address _wethAddress) {
+        UtilLib.checkNonZeroAddress(_wethAddress);
+        WETH_TOKEN_ADDRESS = _wethAddress;
+
         _disableInitializers();
     }
 
@@ -110,7 +120,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     }
 
     /*//////////////////////////////////////////////////////////////
-                            write functions
+                        Deposit functions
     //////////////////////////////////////////////////////////////*/
 
     /// @notice helps user stake LST to the protocol
@@ -164,12 +174,89 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     }
 
     /// @dev private function to mint primeETH
-    /// @param primeEthAmount Amount of primeETH minted
-    function _mint(uint256 primeEthAmount) private {
+    /// @param amount Amount of primeETH to be minted
+    function _mint(uint256 amount) private {
         address primeETH = lrtConfig.primeETH();
         // mint primeETH for user
-        IPrimeETH(primeETH).mint(msg.sender, primeEthAmount);
+        IPrimeETH(primeETH).mint(msg.sender, amount);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Withdraw functions
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice PrimeETH holder requests to withdraw LST asset
+    /// @param asset LST asset address to stake
+    /// @param assetAmount LST asset amount to stake
+    /// @param maxPrimeETH Maximum amount of primeETH to burn
+    function requestWithdrawal(
+        address asset,
+        uint256 assetAmount,
+        uint256 maxPrimeETH
+    )
+        external
+        whenNotPaused
+        nonReentrant
+        onlySupportedAsset(asset)
+        returns (uint256 primeETHAmount)
+    {
+        if (assetAmount == 0) {
+            revert ZeroAmount();
+        }
+
+        // Only LST withdraws are currently supported
+        if (asset == WETH_TOKEN_ADDRESS) {
+            revert OnlyLSTWithdrawals();
+        }
+
+        // Convert asset amount to primeETH amount
+        // Using mint function here even though it is a withdraw, but it does the same calculation
+        primeETHAmount = getMintAmount(asset, assetAmount);
+
+        if (primeETHAmount > maxPrimeETH) {
+            revert MaxBurnAmount();
+        }
+
+        // burn primeETH from the user
+        address primeETH = lrtConfig.primeETH();
+        IPrimeETH(primeETH).burnFrom(msg.sender, primeETHAmount);
+
+        // Get the NodeDelegator contract to request the withdrawal from
+        address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
+        UtilLib.checkNonZeroAddress(nodeDelegator);
+
+        // Calculate the strategy shares for the requested assets
+        address strategyAddress = lrtConfig.assetStrategy(asset);
+        uint256 strategyShares = IStrategy(strategyAddress).underlyingToShares(assetAmount);
+
+        INodeDelegator(nodeDelegator).requestWithdrawal(strategyAddress, strategyShares, msg.sender);
+
+        emit WithdrawalRequested(msg.sender, asset, strategyAddress, primeETHAmount, assetAmount, strategyShares);
+    }
+
+    function claimWithdrawal(
+        address asset,
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
+        external
+        whenNotPaused
+        nonReentrant
+        onlySupportedAsset(asset)
+        returns (uint256 assets)
+    {
+        // Get the NodeDelegator contract to request the withdrawal from
+        address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
+        UtilLib.checkNonZeroAddress(nodeDelegator);
+
+        // Claim the withdrawal from the NodeDelegator
+        assets = INodeDelegator(nodeDelegator).claimWithdrawal(asset, withdrawal, msg.sender);
+
+        emit WithdrawalClaimed(msg.sender, asset, assets);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        Admin functions
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice add new node delegator contract addresses
     /// @dev only callable by LRT admin
@@ -355,6 +442,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         emit AssetSwapped(fromAsset, toAsset, fromAssetAmount, toAssetAmount);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            view functions
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice get return amount for swapping assets that are accepted by LRTDepositPool
     /// @dev use LRTOracle to get price for fromToken to toToken
     /// @param fromAsset Asset address to swap from
@@ -375,6 +466,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
 
         return lrtOracle.getAssetPrice(fromAsset) * fromAssetAmount / lrtOracle.getAssetPrice(toAsset);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Governance functions
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice update max node delegator count
     /// @dev only callable by LRT admin

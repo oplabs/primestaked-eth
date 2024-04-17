@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.21;
 
+import { IDelegationManager } from "../eigen/interfaces/IDelegationManager.sol";
+
 interface ILRTDepositPool {
     //errors
-    error TokenTransferFailed();
-    error InvalidAmountToDeposit();
-    error NotEnoughAssetToTransfer();
-    error MaximumDepositLimitReached();
-    error MaximumNodeDelegatorLimitReached();
-    error InvalidMaximumNodeDelegatorLimit();
-    error MinimumAmountToReceiveNotMet();
-    error NodeDelegatorNotFound();
-    error NodeDelegatorHasAssetBalance(address assetAddress, uint256 assetBalance);
+    error TokenTransferFailed(); // 0x045c4b02
+    error InvalidAmountToDeposit(); // 0x91c6ba02
+    error NotEnoughAssetToTransfer(); // 0x21d9b3bb
+    error MaximumDepositLimitReached(); // 0x1751ef83
+    error MaximumNodeDelegatorLimitReached(); // 0x9aca5e24
+    error InvalidMaximumNodeDelegatorLimit(); // 0xe1a3dd92
+    error MinimumAmountToReceiveNotMet(); // 0x1ec9a894
+    error NodeDelegatorNotFound(); // 0xa5cddd8f
+    error NodeDelegatorHasAssetBalance(address assetAddress, uint256 assetBalance); // 0xef008f08
+    error ZeroAmount(); // 0x1f2a2005
+    error MaxBurnAmount(); // 0x711d466b
+    error OnlyLSTWithdrawals(); // 0xc6096d4d
 
     //events
     event MaxNodeDelegatorLimitUpdated(uint256 maxNodeDelegatorLimit);
@@ -29,6 +34,15 @@ interface ILRTDepositPool {
     event AssetSwapped(
         address indexed fromAsset, address indexed toAsset, uint256 fromAssetAmount, uint256 toAssetAmount
     );
+    event WithdrawalRequested(
+        address indexed withdrawer,
+        address indexed asset,
+        address indexed strategy,
+        uint256 primeETHAmount,
+        uint256 assetAmount,
+        uint256 sharesAmount
+    );
+    event WithdrawalClaimed(address indexed withdrawer, address indexed asset, uint256 assets);
 
     function depositAsset(
         address asset,
@@ -37,6 +51,21 @@ interface ILRTDepositPool {
         string calldata referralId
     )
         external;
+
+    function requestWithdrawal(
+        address asset,
+        uint256 assetAmount,
+        uint256 maxPrimeETH
+    )
+        external
+        returns (uint256 primeETHAmount);
+
+    function claimWithdrawal(
+        address asset,
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
+        external
+        returns (uint256 assets);
 
     function getTotalAssetDeposits(address asset) external view returns (uint256);
 
