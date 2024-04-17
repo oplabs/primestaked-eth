@@ -12,10 +12,8 @@ import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.s
 
 import { IDelayedWithdrawalRouter } from "./eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
-import { IEigenPod, BeaconChainProofs } from "./eigen/interfaces/IEigenPod.sol";
-import { IEigenPodManager } from "./eigen/interfaces/IEigenPodManager.sol";
-import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
-import { IStrategyManager } from "./eigen/interfaces/IStrategyManager.sol";
+import { IEigenPodManager, IEigenPod, BeaconChainProofs } from "./eigen/interfaces/IEigenPodManager.sol";
+import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
