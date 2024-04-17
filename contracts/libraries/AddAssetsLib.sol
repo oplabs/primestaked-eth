@@ -9,18 +9,18 @@ import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 
 uint256 constant maxDeposits = 100_000 ether;
 
 library AddAssetsLib {
     function getConfig() internal view returns (LRTConfig) {
-        address configAddress = block.chainid == 1 ? Addresses.LRT_CONFIG : AddressesGoerli.LRT_CONFIG;
+        address configAddress = block.chainid == 1 ? Addresses.LRT_CONFIG : AddressesHolesky.LRT_CONFIG;
         return LRTConfig(configAddress);
     }
 
     function getOracle() internal view returns (LRTOracle) {
-        address oracleAddress = block.chainid == 1 ? Addresses.LRT_ORACLE : AddressesGoerli.LRT_ORACLE;
+        address oracleAddress = block.chainid == 1 ? Addresses.LRT_ORACLE : AddressesHolesky.LRT_CONFIG;
         return LRTOracle(oracleAddress);
     }
 

@@ -19,7 +19,7 @@ interface IStaderConfig {
 contract EthXPriceOracle is IPriceFetcher, Initializable {
     address public ethXStakePoolsManagerProxyAddress;
 
-    error InvalidAsset();
+    error InvalidAsset(); // 0xc891add2
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

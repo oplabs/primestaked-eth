@@ -10,7 +10,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 library PrimeStakedETHLib {
@@ -39,8 +39,8 @@ library PrimeStakedETHLib {
     }
 
     function upgrade(address newImpl) internal returns (PrimeStakedETH) {
-        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
-        address proxyAddress = block.chainid == 1 ? Addresses.PRIME_STAKED_ETH : AddressesGoerli.PRIME_STAKED_ETH;
+        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
+        address proxyAddress = block.chainid == 1 ? Addresses.PRIME_STAKED_ETH : AddressesHolesky.PRIME_STAKED_ETH;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
 

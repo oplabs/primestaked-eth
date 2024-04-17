@@ -28,7 +28,7 @@ const parseAddress = async (name) => {
 
   // Find the library in the AST depending on the network chain id
   const network = await ethers.provider.getNetwork();
-  const libraryName = network.chainId === 1 ? "Addresses" : "AddressesGoerli";
+  const libraryName = network.chainId === 1 ? "Addresses" : "AddressesHolesky";
   library = ast.children.find((node) => node.name === libraryName);
 
   if (!library) {

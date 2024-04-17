@@ -47,7 +47,7 @@ contract DeployNativeETH is BaseMainnetScript {
             OraclesLib.deployInitWETHOracle(ProxyAdmin(Addresses.PROXY_ADMIN), ProxyFactory(Addresses.PROXY_FACTORY));
 
         // Deploy new Prime Zapper
-        PrimeZapperLib.deploy();
+        PrimeZapperLib.deploy(Addresses.PRIME_STAKED_ETH, Addresses.LRT_DEPOSIT_POOL);
     }
 
     function _fork() internal override {

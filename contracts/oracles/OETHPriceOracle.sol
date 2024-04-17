@@ -8,7 +8,7 @@ import { OneETHPriceOracle } from "./OneETHPriceOracle.sol";
 contract OETHPriceOracle is OneETHPriceOracle {
     address public immutable oethAddress;
 
-    error InvalidAsset();
+    error InvalidAsset(); // 0xc891add2
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _oethAddress) {
