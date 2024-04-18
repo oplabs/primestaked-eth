@@ -239,7 +239,8 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     }
 
     /// @notice PrimeETH staker claims the withdrawal of their previously requested liquid staking token (LST).
-    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract before claiming the withdrawal.
+    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract
+    /// before claiming the withdrawal.
     /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
     /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
     /// @param asset address of the liquid staking token (LST) being claimed. eg OETH. Can not be WETH.

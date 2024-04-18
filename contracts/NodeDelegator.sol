@@ -382,7 +382,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.
-    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract before claiming the withdrawal.
+    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract
+    /// before claiming the withdrawal.
     /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
     /// Is only callable by accounts with the Operator role.
     /// @param strategyAddress the address of the EigenLayer LST strategy to withdraw from
