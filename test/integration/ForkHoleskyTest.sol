@@ -1393,6 +1393,13 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(makeAddr("invalidAsset"), withdrawal);
     }
+
+    // claimWithdrawal with a different valid asset (rETH instead of stETH)
+    function test_revertClaimWithdrawalWrongAsset() external {
+        vm.expectRevert("StrategyBase.withdraw: Can only withdraw the strategy token");
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(rEthAddress, withdrawal);
+    }
 }
 
 contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
@@ -1497,11 +1504,18 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
     }
 
     // claimWithdrawal with invalid asset
-    function test_revertClaimWithdrawalInvalidAsset() external {
+    function test_revertClaimInternalWithdrawalInvalidAsset() external {
         vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
         nodeDelegator1.claimInternalWithdrawal(makeAddr("invalidAsset"), withdrawal);
+    }
+
+    // claimWithdrawal with a different valid asset (rETH instead of stETH)
+    function test_revertClaimInternalWithdrawalWrongAsset() external {
+        vm.expectRevert("StrategyBase.withdraw: Can only withdraw the strategy token");
+        vm.prank(AddressesHolesky.OPERATOR_ROLE);
+        nodeDelegator1.claimInternalWithdrawal(rEthAddress, withdrawal);
     }
 }
 
