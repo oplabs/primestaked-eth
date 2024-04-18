@@ -34,6 +34,9 @@ module.exports = {
     goerli: {
       url: `${process.env.GOERLI_RPC_URL}`,
     },
+    holesky: {
+      url: `${process.env.HOLESKY_RPC_URL}`,
+    },
     local: {
       url: "http://localhost:8545",
     },
