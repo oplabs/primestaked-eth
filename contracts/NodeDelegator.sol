@@ -341,11 +341,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
 
-    /// @dev Requests a withdrawal of LST assets from EigenLayer
-    /// Is only callable by the Deposit Pool contract.
+    /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.
+    /// Is only callable by the `LRTDepositPool` contract.
     /// @param strategyAddress the address of the EigenLayer LST strategy to withdraw from
     /// @param strategyShares the amount of EigenLayer strategy shares to redeem
-    /// @param staker the address of the staker requesting the withdrawal
+    /// @param staker the address of the staker requesting the withdrawal.
     function requestWithdrawal(
         address strategyAddress,
         uint256 strategyShares,
@@ -362,18 +362,23 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         withdrawalRequests[withdrawalRoot] = staker;
     }
 
-    /// @dev Requests a withdrawal of LST assets from EigenLayer
-    /// Is only callable by account with the Operator role.
+    /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.
+    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract before claiming the withdrawal.
+    /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
+    /// Is only callable by accounts with the Operator role.
     /// @param strategyAddress the address of the EigenLayer LST strategy to withdraw from
     /// @param strategyShares the amount of EigenLayer strategy shares to redeem
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external onlyLRTOperator {
-        // request the withdrawal of the LST assets from EigenLayer
+        // request the withdrawal of the LSTs from EigenLayer's underlying strategy.
         _requestWithdrawal(strategyAddress, strategyShares);
 
         // account for the pending withdrawal as the shares are no longer accounted for in the EigenLayer strategy
         pendingInternalShareWithdrawals[strategyAddress] += strategyShares;
     }
 
+    /// @dev request the withdrawal of the LSTs from EigenLayer's underlying strategy.
+    /// @param strategyAddress the address of the EigenLayer LST strategy to withdraw from
+    /// @param strategyShares the amount of EigenLayer strategy shares to redeem
     function _requestWithdrawal(address strategy, uint256 strategyShares) internal returns (bytes32 withdrawalRoot) {
         IStrategy[] memory strategies = new IStrategy[](1);
         strategies[0] = IStrategy(strategy);
@@ -387,16 +392,17 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         requests[0] = IDelegationManager.QueuedWithdrawalParams(strategies, shares, address(this));
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
 
-        // request the withdrawal from EigenLayer
-        // Will emit the Withdrawal event from EigenLayer's DelegationManager which is needed to for the claimWithdraw
+        // request the withdrawal from EigenLayer.
+        // Will emit the Withdrawal event from EigenLayer's DelegationManager which is needed for the claim.
         withdrawalRoot = IDelegationManager(delegationManagerAddress).queueWithdrawals(requests)[0];
     }
 
-    /// @dev Claims the previously requested withdrawal from EigenLayer.
+    /// @notice Claims the previously requested withdrawal from EigenLayer's underlying strategy.
     /// Transfers the withdrawn assets to the staker that requested the withdrawal.
-    /// Is only callable by the Deposit Pool contract.
-    /// @param asset the asset to claim
-    /// @param withdrawal the Withdrawal struct from EigenLayer's DelegationManager
+    /// Is only callable by the `LRTDepositPool` contract.
+    /// @param asset address of the liquid staking token (LST) being claimed. Can not be WETH.
+    /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event from EigenLayer's
+    /// `DelegationManager` contract when `requestWithdrawal` was called on the `LRTDepositPool` contract by the staker.
     /// @param staker the address of the staker requesting the withdrawal
     function claimWithdrawal(
         address asset,
@@ -434,9 +440,16 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @dev Claims the previously requested internal withdrawal from EigenLayer.
-    /// Transfers the withdrawn assets to the Deposit Pool contract.
-    /// Is only callable by account with the Operator role.
+    /// @notice Claims the previously requested internal withdrawal from the underlying EigenLayer strategy.
+    /// Transfers the withdrawn liquid staking tokens to the `LRTDepositPool` contract.
+    /// Is only callable by accounts with the Operator role.
+    /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
+    /// The asset is validated as a supported asset as the LST's balance is got before
+    /// `completeQueuedWithdrawal` is called on EigenLayer's `DelegationManager` contract.
+    /// @param asset address of the liquid staking token (LST) being claimed.
+    /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event from EigenLayer's
+    /// `DelegationManager` contract when `requestInternalWithdrawal` was called
+    /// on the `NodeDelegator` contract by a Prime Operator.
     function claimInternalWithdrawal(
         address asset,
         IDelegationManager.Withdrawal calldata withdrawal
@@ -480,7 +493,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @notice Returns the keccak256 hash of `withdrawal`.
+    /// @dev Returns the keccak256 hash of `withdrawal`.
+    /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event
+    /// from EigenLayer's `DelegationManager` contract.
     function _calculateWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal)
         internal
         pure

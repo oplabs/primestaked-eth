@@ -185,10 +185,14 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
                         Withdraw functions
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice PrimeETH holder requests to withdraw LST asset
-    /// @param asset LST asset address to stake
-    /// @param assetAmount LST asset amount to stake
-    /// @param maxPrimeETH Maximum amount of primeETH to burn
+    /// @notice PrimeETH staker requests the withdrawal of a liquid staking token (LST) from
+    // its respective underlying EigenLayer strategy.
+    /// @dev Will emit the `Withdrawal` event from EigenLayer's `DelegationManager` contract
+    /// which is needed for the `claimWithdrawal` call.
+    /// @param asset address of the liquid staking token (LST) being requested. eg OETH. Can not be WETH.
+    /// @param assetAmount the amount of LSTs to withdraw.
+    /// @param maxPrimeETH the maximum amount of primeETH tokens that can be burned.
+    /// @return primeETHAmount the amount of primeETH tokens that were burned.
     function requestWithdrawal(
         address asset,
         uint256 assetAmount,
@@ -209,21 +213,21 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
             revert OnlyLSTWithdrawals();
         }
 
-        // Convert asset amount to primeETH amount
-        // Using mint function here even though it is a withdraw, but it does the same calculation
+        // Convert asset amount to primeETH amount.
+        // Using mint function here even though it's a withdrawal as it does the same calculation
         primeETHAmount = getMintAmount(asset, assetAmount);
 
+        // Check the primeETH amount to be burned is within the maximum allowed
         if (primeETHAmount > maxPrimeETH) {
             revert MaxBurnAmount();
         }
 
-        // burn primeETH from the user
+        // burn primeETH from the staker
         address primeETH = lrtConfig.primeETH();
         IPrimeETH(primeETH).burnFrom(msg.sender, primeETHAmount);
 
         // Get the NodeDelegator contract to request the withdrawal from
         address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
-        UtilLib.checkNonZeroAddress(nodeDelegator);
 
         // Calculate the strategy shares for the requested assets
         address strategyAddress = lrtConfig.assetStrategy(asset);
@@ -234,6 +238,11 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         emit WithdrawalRequested(msg.sender, asset, strategyAddress, primeETHAmount, assetAmount, strategyShares);
     }
 
+    /// @notice PrimeETH staker claims the withdrawal of their previously requested liquid staking token (LST).
+    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract before claiming the withdrawal.
+    /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
+    /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
+    /// @param asset address of the liquid staking token (LST) being claimed. eg OETH. Can not be WETH.
     function claimWithdrawal(
         address asset,
         IDelegationManager.Withdrawal calldata withdrawal
@@ -246,7 +255,6 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     {
         // Get the NodeDelegator contract to request the withdrawal from
         address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
-        UtilLib.checkNonZeroAddress(nodeDelegator);
 
         // Claim the withdrawal from the NodeDelegator
         assets = INodeDelegator(nodeDelegator).claimWithdrawal(asset, withdrawal, msg.sender);

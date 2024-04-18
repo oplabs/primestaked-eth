@@ -11,6 +11,8 @@ import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManage
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
+import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
+import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
 import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
 import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
@@ -67,6 +69,12 @@ contract ForkHoleskyTestBase is Test {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
+        vm.startPrank(AddressesHolesky.PROXY_OWNER);
+        // upgrade the LRTDepositPool implementation
+        upgradeDepositPool();
+        upgradeNodeDelegators();
+        vm.stopPrank();
+
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), amountToTransfer);
         lrtDepositPool.depositAsset(stETHAddress, amountToTransfer, minPrimeAmount, referralId);
@@ -82,6 +90,23 @@ contract ForkHoleskyTestBase is Test {
 
         vm.prank(manager);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, stETHAddress, amountToTransfer);
+    }
+
+    function upgradeDepositPool() internal {
+        // Deploy the latest LRTDeposit implementations
+        address depositPoolImpl = DepositPoolLib.deployImpl();
+
+        // Upgrade the proxy contracts
+        DepositPoolLib.upgrade(depositPoolImpl);
+    }
+
+    function upgradeNodeDelegators() internal {
+        // Deploy the latest DelegatorNode implementation
+        address nodeImpl = NodeDelegatorLib.deployImpl();
+
+        // Upgrade the proxy contracts
+        NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR, nodeImpl);
+        NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING, nodeImpl);
     }
 
     function deposit(address asset, address whale, uint256 depositAmount) internal {
@@ -1356,6 +1381,13 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(makeAddr("invalidAsset"), withdrawal);
     }
+
+    // claimWithdrawal with a different valid asset (rETH instead of stETH)
+    function test_revertClaimWithdrawalWrongAsset() external {
+        vm.expectRevert("StrategyBase.withdraw: Can only withdraw the strategy token");
+        vm.prank(stWhale);
+        lrtDepositPool.claimWithdrawal(rEthAddress, withdrawal);
+    }
 }
 
 contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
@@ -1460,11 +1492,18 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
     }
 
     // claimWithdrawal with invalid asset
-    function test_revertClaimWithdrawalInvalidAsset() external {
+    function test_revertClaimInternalWithdrawalInvalidAsset() external {
         vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
         nodeDelegator1.claimInternalWithdrawal(makeAddr("invalidAsset"), withdrawal);
+    }
+
+    // claimWithdrawal with a different valid asset (rETH instead of stETH)
+    function test_revertClaimInternalWithdrawalWrongAsset() external {
+        vm.expectRevert("StrategyBase.withdraw: Can only withdraw the strategy token");
+        vm.prank(AddressesHolesky.OPERATOR_ROLE);
+        nodeDelegator1.claimInternalWithdrawal(rEthAddress, withdrawal);
     }
 }
 
