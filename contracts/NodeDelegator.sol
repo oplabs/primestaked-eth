@@ -421,20 +421,19 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @notice Claims the previously requested withdrawal from EigenLayer's underlying strategy.
     /// Transfers the withdrawn assets to the staker that requested the withdrawal.
     /// Is only callable by the `LRTDepositPool` contract.
-    /// @param asset address of the liquid staking token (LST) being claimed. Can not be WETH.
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event from EigenLayer's
     /// `DelegationManager` contract when `requestWithdrawal` was called on the `LRTDepositPool` contract by the staker.
     /// @param staker the address of the staker requesting the withdrawal
+    /// @return asset address of the liquid staking tokens (LST) that were claimed.
     /// @return assets the amount of LSTs received from the withdrawal
     function claimWithdrawal(
-        address asset,
         IDelegationManager.Withdrawal calldata withdrawal,
         address staker
     )
         external
         onlyDepositPool
         whenNotPaused
-        returns (uint256 assets)
+        returns (address asset, uint256 assets)
     {
         // Make sure the staker requested this withdrawal
         // and the withdrawal was not manipulated
@@ -444,7 +443,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
 
         IERC20[] memory tokens = new IERC20[](1);
-        tokens[0] = IERC20(asset);
+        tokens[0] = IStrategy(withdrawal.strategies[0]).underlyingToken();
+        asset = address(tokens[0]);
 
         // There can be assets sitting in this NodeDelegator contract so we need to account for those.
         uint256 assetsBefore = IERC20(asset).balanceOf(address(this));
@@ -465,22 +465,15 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @notice Claims the previously requested internal withdrawal from the underlying EigenLayer strategy.
     /// Transfers the withdrawn liquid staking tokens to the `LRTDepositPool` contract.
     /// Is only callable by accounts with the Operator role.
-    /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
-    /// The asset is validated as a supported asset as the LST's balance is got before
-    /// `completeQueuedWithdrawal` is called on EigenLayer's `DelegationManager` contract.
-    /// @param asset address of the liquid staking token (LST) being claimed.
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event from EigenLayer's
     /// `DelegationManager` contract when `requestInternalWithdrawal` was called
     /// on the `NodeDelegator` contract by a Prime Operator.
+    /// @return asset address of the liquid staking tokens (LST) that were claimed.
     /// @return assets the amount of LSTs transferred to the `LRTDepositPool` contract.
-    function claimInternalWithdrawal(
-        address asset,
-        IDelegationManager.Withdrawal calldata withdrawal
-    )
+    function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
         external
         onlyLRTOperator
-        onlySupportedAsset(asset)
-        returns (uint256 assets)
+        returns (address asset, uint256 assets)
     {
         // Make sure not withdrawing a staker's requested withdrawal
         bytes32 withdrawalRoot = _calculateWithdrawalRoot(withdrawal);
@@ -493,6 +486,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         if (withdrawal.strategies.length != 1) {
             revert NotSingleStrategyWithdrawal();
         }
+        asset = address(IStrategy(withdrawal.strategies[0]).underlyingToken());
 
         // There can be assets sitting in this NodeDelegator contract so we need to account for those.
         uint256 assetsBefore = IERC20(asset).balanceOf(address(this));

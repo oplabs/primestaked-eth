@@ -243,23 +243,19 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// before claiming the withdrawal.
     /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
     /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
-    /// @param asset address of the liquid staking token (LST) being claimed. eg OETH. Can not be WETH.
+    /// @return asset the address of the LST that was withdrawn
     /// @return assets the amount of LSTs received from the withdrawal
-    function claimWithdrawal(
-        address asset,
-        IDelegationManager.Withdrawal calldata withdrawal
-    )
+    function claimWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
         external
         whenNotPaused
         nonReentrant
-        onlySupportedAsset(asset)
-        returns (uint256 assets)
+        returns (address asset, uint256 assets)
     {
         // Get the NodeDelegator contract to request the withdrawal from
         address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
 
         // Claim the withdrawal from the NodeDelegator
-        assets = INodeDelegator(nodeDelegator).claimWithdrawal(asset, withdrawal, msg.sender);
+        (asset, assets) = INodeDelegator(nodeDelegator).claimWithdrawal(withdrawal, msg.sender);
 
         emit WithdrawalClaimed(msg.sender, asset, assets);
     }

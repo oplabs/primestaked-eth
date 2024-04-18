@@ -740,7 +740,7 @@ contract ForkTestLST is ForkTestBase {
         vm.roll(block.number + 50_400);
 
         // Claim the previously requested withdrawal
-        lrtDepositPool.claimWithdrawal(asset, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
 
         vm.stopPrank();
     }
@@ -773,7 +773,7 @@ contract ForkTestLST is ForkTestBase {
         // Move forward 50,400 blocks (~7 days)
         vm.roll(block.number + 50_400);
 
-        nodeDelegator1.claimInternalWithdrawal(asset, withdrawal);
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
 
         vm.stopPrank();
 

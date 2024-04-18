@@ -1213,7 +1213,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         vm.recordLogs();
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
-        nodeDelegator1.claimInternalWithdrawal(stETHAddress, withdrawal);
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
 
         requestLogs = vm.getRecordedLogs();
         console.log("logs from claimInternalWithdrawal", requestLogs.length);
@@ -1284,7 +1284,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.recordLogs();
 
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
 
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
         console.log("logs from claimWithdrawal", requestLogs.length);
@@ -1334,7 +1334,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         vm.expectRevert("Pausable: paused");
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
     }
 
     // requestWithdrawal when NodeDelegator paused
@@ -1344,24 +1344,24 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         vm.expectRevert("Pausable: paused");
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
     }
 
     // another user claims the withdrawal
     function test_revertClaimWithdrawalNotWithdrawer() external {
         vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
         vm.prank(makeAddr("randomUser"));
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
     }
 
     // withdrawer tries a second claim
     function test_revertClaimWithdrawalTwice() external {
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
 
         vm.expectRevert("DelegationManager._completeQueuedWithdrawal: action is not in queue");
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
     }
 
     // withdrawer adds extra shares to the withdrawal
@@ -1371,11 +1371,11 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         changedWithdrawal.shares[0] += 1;
 
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, withdrawal);
+        lrtDepositPool.claimWithdrawal(withdrawal);
 
         vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
         vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(stETHAddress, changedWithdrawal);
+        lrtDepositPool.claimWithdrawal(changedWithdrawal);
     }
 
     // another staker calls the NodeDelegator with a staker's withdrawal
@@ -1384,21 +1384,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         vm.expectRevert(ILRTConfig.CallerNotLRTDepositPool.selector);
         vm.prank(maliciousUser);
-        nodeDelegator1.claimWithdrawal(stETHAddress, withdrawal, maliciousUser);
-    }
-
-    // claimWithdrawal with invalid asset
-    function test_revertClaimWithdrawalInvalidAsset() external {
-        vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
-        vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(makeAddr("invalidAsset"), withdrawal);
-    }
-
-    // claimWithdrawal with a different valid asset (rETH instead of stETH)
-    function test_revertClaimWithdrawalWrongAsset() external {
-        vm.expectRevert("StrategyBase.withdraw: Can only withdraw the strategy token");
-        vm.prank(stWhale);
-        lrtDepositPool.claimWithdrawal(rEthAddress, withdrawal);
+        nodeDelegator1.claimWithdrawal(withdrawal, maliciousUser);
     }
 }
 
@@ -1442,7 +1428,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.recordLogs();
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
-        nodeDelegator1.claimInternalWithdrawal(stETHAddress, withdrawal);
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
 
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
@@ -1480,7 +1466,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
         nodeDelegator1.pause();
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
-        nodeDelegator1.claimInternalWithdrawal(stETHAddress, withdrawal);
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
     }
 
     // another user claims the internal withdrawal
@@ -1488,7 +1474,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
 
         vm.prank(makeAddr("randomUser"));
-        nodeDelegator1.claimInternalWithdrawal(stETHAddress, withdrawal);
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
     }
 
     // Added an extra strategy element to the claimInternalWithdrawal
@@ -1500,22 +1486,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.expectRevert(INodeDelegator.NotSingleStrategyWithdrawal.selector);
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
-        nodeDelegator1.claimInternalWithdrawal(stETHAddress, changedWithdrawal);
-    }
-
-    // claimWithdrawal with invalid asset
-    function test_revertClaimInternalWithdrawalInvalidAsset() external {
-        vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
-
-        vm.prank(AddressesHolesky.OPERATOR_ROLE);
-        nodeDelegator1.claimInternalWithdrawal(makeAddr("invalidAsset"), withdrawal);
-    }
-
-    // claimWithdrawal with a different valid asset (rETH instead of stETH)
-    function test_revertClaimInternalWithdrawalWrongAsset() external {
-        vm.expectRevert("StrategyBase.withdraw: Can only withdraw the strategy token");
-        vm.prank(AddressesHolesky.OPERATOR_ROLE);
-        nodeDelegator1.claimInternalWithdrawal(rEthAddress, withdrawal);
+        nodeDelegator1.claimInternalWithdrawal(changedWithdrawal);
     }
 }
 
