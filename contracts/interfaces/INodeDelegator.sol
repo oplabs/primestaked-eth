@@ -29,18 +29,14 @@ interface INodeDelegator {
     function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external;
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external;
     function claimWithdrawal(
-        address asset,
         IDelegationManager.Withdrawal calldata withdrawal,
         address staker
     )
         external
-        returns (uint256 assets);
-    function claimInternalWithdrawal(
-        address asset,
-        IDelegationManager.Withdrawal calldata withdrawal
-    )
+        returns (address asset, uint256 assets);
+    function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
         external
-        returns (uint256 assets);
+        returns (address asset, uint256 assets);
 
     function maxApproveToEigenStrategyManager(address asset) external;
 
