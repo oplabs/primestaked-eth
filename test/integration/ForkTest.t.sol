@@ -306,7 +306,7 @@ contract ForkTestNative is ForkTestBase {
             lrtDepositPool.getAssetDistributionData(asset);
 
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
-        assertEq(assetsNDCsAfter, assetsNDCsBefore, "assets in NDCs");
+        assertEq(assetsNDCsAfter, assetsNDCsBefore + rewards, "assets in NDCs");
         assertEq(assetsElAfter, assetsElBefore, "assets in EigenLayer");
     }
 
@@ -383,8 +383,6 @@ contract ForkTestNative is ForkTestBase {
             nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
         assertEq(ndcEthAfterRewards, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after consensus rewards");
         assertEq(eigenEthAfterRewards, eigenEthBefore + 32.1 ether, "WETH/ETH in EigenLayer after consensus rewards");
-
-        vm.startPrank(Addresses.OPERATOR_ROLE);
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
