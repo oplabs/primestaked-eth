@@ -894,6 +894,12 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
             "decoded WithdrawalQueued"
         );
         assertEq(requestLogs[1].topics[0], 0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9);
+        // Decode the withdrawal data
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+        assertEq(withdrawal.staker, address(nodeDelegator1));
+        assertEq(withdrawal.delegatedTo, address(0));
+        assertEq(withdrawal.withdrawer, address(nodeDelegator1));
 
         // WithdrawalRequested event on the LRTDepositPool contract
         assertEq(
@@ -1162,7 +1168,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
 
         // Move forward 10 blocks
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
-        vm.roll(block.number + 11);
+        vm.roll(block.number + 10);
 
         (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
@@ -1225,7 +1231,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         // Move forward 10 blocks
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
-        vm.roll(block.number + 11);
+        vm.roll(block.number + 10);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -1382,7 +1388,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         // Move forward 10 blocks
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
-        vm.roll(block.number + 11);
+        vm.roll(block.number + 10);
     }
 
     function test_claimInternalWithdrawalFull() external {

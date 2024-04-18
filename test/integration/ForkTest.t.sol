@@ -10,7 +10,9 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
+import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
+import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
 import { IEigenPod } from "contracts/eigen/interfaces/IEigenPod.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
@@ -686,6 +688,73 @@ contract ForkTestLST is ForkTestBase {
         deposit(Addresses.SWETH_TOKEN, swWhale, 1 ether);
         transfer_DelegatorNode(Addresses.SWETH_TOKEN, 1 ether);
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
+    }
+
+    // staker withdrawal of LST
+    function test_staker_lst_withdrawal() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 1 ether);
+        transfer_DelegatorNode(asset, 1 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        vm.startPrank(oWhale);
+
+        uint256 assetAmount = 0.9 ether;
+        uint256 primeAmount = assetAmount;
+
+        vm.recordLogs();
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, assetAmount, primeAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Claim the previously requested withdrawal
+        lrtDepositPool.claimWithdrawal(asset, withdrawal);
+
+        vm.stopPrank();
+    }
+
+    // Prime Operator withdraws all non OETH LSTs from Eigen Layer
+    function test_operator_internal_withdrawal() public {
+        withdrawAllFromEigenLayer(Addresses.SFRXETH_TOKEN, Addresses.SFRXETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.STETH_TOKEN, Addresses.STETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.RETH_TOKEN, Addresses.RETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.ETHX_TOKEN, Addresses.ETHX_EIGEN_STRATEGY);
+    }
+
+    function withdrawAllFromEigenLayer(address asset, address strategy) internal {
+        // Withdraw all the NodeDelegator's strategy shares
+        uint256 shares = IStrategy(strategy).shares(address(nodeDelegator1));
+
+        vm.recordLogs();
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+        nodeDelegator1.requestInternalWithdrawal(strategy, shares);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[0].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        nodeDelegator1.claimInternalWithdrawal(asset, withdrawal);
+
+        vm.stopPrank();
+
+        assertEq(IStrategy(strategy).shares(address(nodeDelegator1)), 0, "shares after");
     }
 
     function transfer_Eigen(address asset, address strategy) internal {
