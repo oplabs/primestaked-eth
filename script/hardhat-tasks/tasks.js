@@ -63,7 +63,6 @@ task("requestWithdrawal").setAction(async (_, __, runSuper) => {
 
 subtask("claimWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
   .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
-  .addOptionalParam("symbol", "Symbol of the LST. eg OETH, stETH, mETH. Can not be WETH.", "OETH", types.string)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
@@ -116,7 +115,6 @@ task("requestInternalWithdrawal").setAction(async (_, __, runSuper) => {
 
 subtask("claimInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
   .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
-  .addOptionalParam("symbol", "Symbol of the LST. eg OETH, stETH, mETH. Can not be WETH.", "OETH", types.string)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");

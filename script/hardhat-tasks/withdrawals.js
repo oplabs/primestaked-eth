@@ -19,12 +19,11 @@ const requestWithdrawal = async ({ signer, depositPool, amount, symbol }) => {
   await logTxDetails(tx, "requestWithdrawal");
 };
 
-const claimWithdrawal = async ({ signer, symbol, depositPool, requestTx, delegationManager }) => {
-  const assetAddress = await resolveAddress(symbol);
+const claimWithdrawal = async ({ signer, depositPool, requestTx, delegationManager }) => {
   const withdrawal = await getWithdrawalData(signer, requestTx, delegationManager);
 
   log(`About to claim withdrawal from Prime Staked ETH`);
-  const tx = await depositPool.connect(signer).claimWithdrawal(assetAddress, withdrawal);
+  const tx = await depositPool.connect(signer).claimWithdrawal(withdrawal);
   await logTxDetails(tx, "claimWithdrawal");
 };
 
@@ -37,12 +36,11 @@ const requestInternalWithdrawal = async ({ signer, nodeDelegator, shares, symbol
   await logTxDetails(tx, "requestInternalWithdrawal");
 };
 
-const claimInternalWithdrawal = async ({ signer, symbol, nodeDelegator, requestTx, delegationManager }) => {
-  const assetAddress = await resolveAddress(symbol);
+const claimInternalWithdrawal = async ({ signer, nodeDelegator, requestTx, delegationManager }) => {
   const withdrawal = await getWithdrawalData(signer, requestTx, delegationManager);
 
   log(`About to claim internal withdrawal from EigenLayer strategy`);
-  const tx = await nodeDelegator.connect(signer).claimInternalWithdrawal(assetAddress, withdrawal);
+  const tx = await nodeDelegator.connect(signer).claimInternalWithdrawal(withdrawal);
   await logTxDetails(tx, "claimInternalWithdrawal");
 };
 
