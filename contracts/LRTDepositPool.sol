@@ -244,6 +244,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
     /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
     /// @param asset address of the liquid staking token (LST) being claimed. eg OETH. Can not be WETH.
+    /// @return assets the amount of LSTs received from the withdrawal
     function claimWithdrawal(
         address asset,
         IDelegationManager.Withdrawal calldata withdrawal
