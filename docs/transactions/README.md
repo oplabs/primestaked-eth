@@ -80,39 +80,39 @@ tx
 ## Staker requests withdrawal of stETH
 
 tx
-[0x42cd5a88f0938d2021d00dbdeb6ae5739dd71e228efe560e0f6e5c07b123bfac](https://holesky.etherscan.io/tx/0x42cd5a88f0938d2021d00dbdeb6ae5739dd71e228efe560e0f6e5c07b123bfac)
+[0x515e226d7ecb9f0c6705e297f0a5bf9abc3d71840a344fc2c580fe6407a2e46a](https://holesky.etherscan.io/tx/0x515e226d7ecb9f0c6705e297f0a5bf9abc3d71840a344fc2c580fe6407a2e46a)
 on Holesky.
 
-`tx2uml 0x42cd5a88f0938d2021d00dbdeb6ae5739dd71e228efe560e0f6e5c07b123bfac -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+`tx2uml 0x515e226d7ecb9f0c6705e297f0a5bf9abc3d71840a344fc2c580fe6407a2e46a -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
-![requestWithdrawal](./42cdbfac.svg)
+![requestWithdrawal](./515ee46a.svg)
 
 ## Staker claims withdrawal of stETH
 
 tx
-[0x3c8a51be90f762a520219da47979c39fe598c5a7e258a2c8f402731ba2a95b26](https://holesky.etherscan.io/tx/0x3c8a51be90f762a520219da47979c39fe598c5a7e258a2c8f402731ba2a95b26)
+[0xc6aa0bc886d60b79613885c1f7e26fe5e7833a949d2f9568dbbff2a91c756383](https://holesky.etherscan.io/tx/0xc6aa0bc886d60b79613885c1f7e26fe5e7833a949d2f9568dbbff2a91c756383)
 on Holesky.
 
-`tx2uml 0x3c8a51be90f762a520219da47979c39fe598c5a7e258a2c8f402731ba2a95b26 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+`tx2uml 0xc6aa0bc886d60b79613885c1f7e26fe5e7833a949d2f9568dbbff2a91c756383 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
-![claimWithdrawal](./3c8a5b26.svg)
+![claimWithdrawal](./c6aa6383.svg)
 
 ## Prime Operator requests internal withdrawal of stETH
 
 tx
-[0xe4e876f1b377626923252157000e1e57aa699744b16087aff4aa95f8a49a88f5](https://holesky.etherscan.io/tx/0xe4e876f1b377626923252157000e1e57aa699744b16087aff4aa95f8a49a88f5)
+[0x318133d4bd263a58598bdd6fb9e09ac7e58c263a0bb23d2fedf6a7e17f09d583](https://holesky.etherscan.io/tx/0x318133d4bd263a58598bdd6fb9e09ac7e58c263a0bb23d2fedf6a7e17f09d583)
 on Holesky.
 
-`tx2uml 0xe4e876f1b377626923252157000e1e57aa699744b16087aff4aa95f8a49a88f5 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+`tx2uml 0x318133d4bd263a58598bdd6fb9e09ac7e58c263a0bb23d2fedf6a7e17f09d583 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
-![requestInternalWithdrawal](./e4e888f5.svg)
+![requestInternalWithdrawal](./3181d583.svg)
 
 ## Prime Operator claims internal withdrawal of stETH
 
 tx
-[0xc49e8ca9c043f1ca4457146215691afd5ca647229d8218bb38765aed377d80dd](https://holesky.etherscan.io/tx/0xc49e8ca9c043f1ca4457146215691afd5ca647229d8218bb38765aed377d80dd)
+[0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552](https://holesky.etherscan.io/tx/0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552)
 on Holesky.
 
-`tx2uml 0xc49e8ca9c043f1ca4457146215691afd5ca647229d8218bb38765aed377d80dd -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+`tx2uml 0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
-![claimInternalWithdrawal](./c49e80dd.svg)
+![claimInternalWithdrawal](./67e31552.svg)
