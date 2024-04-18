@@ -8,14 +8,24 @@ const { getBlockNumber } = require("./block");
 
 const log = require("../utils/logger")("task:tokens");
 
-async function tokenBalance({ account, block, symbol }) {
+async function balance({ account, block, symbol }) {
   const signer = await getSigner();
-
-  const asset = await resolveAsset(symbol, signer);
-  const accountAddr = account || (await signer.getAddress());
 
   const blockTag = await getBlockNumber(block);
   log(`block tag: ${blockTag}`);
+
+  const accountAddr = account || (await signer.getAddress());
+
+  // If ETH balance
+  if (symbol === "ETH") {
+    log(`About to get ETH balance of ${accountAddr}`);
+    // send ETH in a transaction
+    const balance = await signer.provider.getBalance(accountAddr, blockTag);
+    console.log(`${accountAddr} has ${formatUnits(balance)} ETH`);
+    return;
+  }
+
+  const asset = await resolveAsset(symbol, signer);
 
   const balance = await asset.connect(signer).balanceOf(accountAddr, { blockTag });
 
@@ -100,7 +110,7 @@ async function tokenTransferFrom({ amount, symbol, from, to }) {
 
 module.exports = {
   tokenAllowance,
-  tokenBalance,
+  balance,
   tokenApprove,
   tokenTransfer,
   tokenTransferFrom,

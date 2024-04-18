@@ -13,7 +13,7 @@ const {
   splitValidatorKey,
 } = require("./ssv");
 const { setActionVars } = require("./defender");
-const { tokenAllowance, tokenBalance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
+const { tokenAllowance, balance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const { parseAddress } = require("../utils/addressParser");
 const { depositWETH, withdrawWETH } = require("./weth");
@@ -23,6 +23,7 @@ const { deployNodeDelegator } = require("./deploy");
 const log = require("../utils/logger")("task");
 
 // Prime Staked
+// Staker functions
 subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or WETH", "OETH", types.string)
   .addParam("amount", "Deposit amount", undefined, types.float)
@@ -30,13 +31,14 @@ subtask("depositPrime", "Deposit an asset to Prime Staked ETH")
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
     const depositPool = await ethers.getContractAt("LRTDepositPool", depositPoolAddress);
-    const network = await ethers.provider.getNetwork();
 
-    await depositPrime({ ...taskArgs, signer, depositPool, networkId: network.chainId });
+    await depositPrime({ ...taskArgs, signer, depositPool });
   });
 task("depositPrime").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
+
+// Operator functions
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
@@ -261,11 +263,11 @@ subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
     const eigenPodAddress = await parseAddress("EIGEN_POD");
 
     const network = await ethers.provider.getNetwork();
-    const p2p_api_key = network.chainId === 1 ? process.env.P2P_MAINNET_API_KEY : process.env.P2P_GOERLI_API_KEY;
+    const p2p_api_key = network.chainId === 1 ? process.env.P2P_MAINNET_API_KEY : process.env.P2P_HOLESKY_API_KEY;
     if (!p2p_api_key) {
-      throw new Error("P2P API key environment variable is not set. P2P_MAINNET_API_KEY or P2P_GOERLI_API_KEY");
+      throw new Error("P2P API key environment variable is not set. P2P_MAINNET_API_KEY or P2P_HOLESKY_API_KEY");
     }
-    const p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test.p2p.org";
+    const p2p_base_url = network.chainId === 1 ? "api.p2p.org" : "api-test-holesky.p2p.org";
 
     const config = {
       eigenPodAddress,
@@ -347,11 +349,11 @@ task("allowance").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("balance", "Get the token balance of an account or contract")
-  .addParam("symbol", "Symbol of the token. eg OETH, WETH, USDT or OGV", undefined, types.string)
+subtask("balance", "Get the token or ETH balance of an account or contract")
+  .addParam("symbol", "Symbol of the token. eg ETH, OETH, WETH, USDT or OGV", undefined, types.string)
   .addOptionalParam("account", "The address of the account or contract. Default to the signer")
   .addOptionalParam("block", "Block number. (default: latest)", undefined, types.int)
-  .setAction(tokenBalance);
+  .setAction(balance);
 task("balance").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
