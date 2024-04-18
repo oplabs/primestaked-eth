@@ -397,8 +397,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @dev request the withdrawal of the LSTs from EigenLayer's underlying strategy.
-    /// @param strategyAddress the address of the EigenLayer LST strategy to withdraw from
+    /// @param strategy the address of the EigenLayer LST strategy to withdraw from
     /// @param strategyShares the amount of EigenLayer strategy shares to redeem
+    /// @return withdrawalRoot the hash of the withdrawal data
     function _requestWithdrawal(address strategy, uint256 strategyShares) internal returns (bytes32 withdrawalRoot) {
         IStrategy[] memory strategies = new IStrategy[](1);
         strategies[0] = IStrategy(strategy);
@@ -424,6 +425,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event from EigenLayer's
     /// `DelegationManager` contract when `requestWithdrawal` was called on the `LRTDepositPool` contract by the staker.
     /// @param staker the address of the staker requesting the withdrawal
+    /// @return assets the amount of LSTs received from the withdrawal
     function claimWithdrawal(
         address asset,
         IDelegationManager.Withdrawal calldata withdrawal,
@@ -470,6 +472,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event from EigenLayer's
     /// `DelegationManager` contract when `requestInternalWithdrawal` was called
     /// on the `NodeDelegator` contract by a Prime Operator.
+    /// @return assets the amount of LSTs transferred to the `LRTDepositPool` contract.
     function claimInternalWithdrawal(
         address asset,
         IDelegationManager.Withdrawal calldata withdrawal
