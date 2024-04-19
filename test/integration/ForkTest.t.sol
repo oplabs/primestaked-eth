@@ -721,7 +721,9 @@ contract ForkTestLST is ForkTestBase {
         // Claim the previously requested withdrawal
         lrtDepositPool.claimWithdrawal(withdrawal);
 
-        assertApproxEqAbs(IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei");
+        assertApproxEqAbs(
+            IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei"
+        );
 
         vm.stopPrank();
     }
