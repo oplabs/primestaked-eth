@@ -1851,6 +1851,59 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
         nodeDelegator1.delegateTo(AddressesHolesky.EIGEN_OPERATOR_P2P);
     }
 
+    // undelegate from the P2P EigenLayer Operator
+    function test_undelegate()
+        public
+        assertAssetsInLayers(stETHAddress, 0, 0, 0)
+        assertAssetsInLayers(rEthAddress, 0, 0, 0)
+    {
+        vm.startPrank(AddressesHolesky.MANAGER_ROLE);
+
+        nodeDelegator1.delegateTo(AddressesHolesky.EIGEN_OPERATOR_P2P);
+        nodeDelegator1.undelegate();
+
+        vm.stopPrank();
+    }
+
+    // undelegate from the P2P EigenLayer Operator and claim the stETH internal withdrawal
+    function test_undelegateClaim() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
+        (uint256 stETHDepositPoolBefore, uint256 stETHInNDCsBefore, uint256 stETHInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        vm.startPrank(AddressesHolesky.MANAGER_ROLE);
+
+        nodeDelegator1.delegateTo(AddressesHolesky.EIGEN_OPERATOR_P2P);
+
+        vm.recordLogs();
+
+        nodeDelegator1.undelegate();
+
+        vm.stopPrank();
+
+        // Move forward 10 blocks
+        vm.roll(block.number + 10);
+
+        // decode the withdrawalRoot and withdrawal event data emitted in the undelegate tx
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Claim the withdrawn stETH
+        vm.prank(AddressesHolesky.OPERATOR_ROLE);
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
+
+        (uint256 stETHDepositPoolAfter, uint256 stETHInNDCsAfter, uint256 stETHInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(stETHAddress);
+
+        assertEq(
+            stETHDepositPoolAfter,
+            stETHDepositPoolBefore + stETHInEigenLayerBefore - 2,
+            "stETH previously in EigenLayer now in DepositPool less 2 wei"
+        );
+        assertEq(stETHInNDCsAfter, stETHInNDCsBefore + 1, "1 wei extra stETH in NodeDelegators after");
+        assertEq(stETHInEigenLayerAfter, 0, "no stETH in EigenLayer after");
+    }
+
     // delegateTo to a zero operator
     function test_revertDelegateToZeroOperator() external {
         vm.expectRevert("DelegationManager._delegate: operator is not registered in EigenLayer");
@@ -1873,5 +1926,13 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
 
         vm.prank(makeAddr("randomUser"));
         nodeDelegator1.delegateTo(AddressesHolesky.EIGEN_OPERATOR_P2P);
+    }
+
+    // undelegate from a non-manager
+    function test_revertUndelegateNotManager() external {
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+
+        vm.prank(makeAddr("randomUser"));
+        nodeDelegator1.undelegate();
     }
 }

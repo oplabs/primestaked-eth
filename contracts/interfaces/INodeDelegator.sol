@@ -45,4 +45,5 @@ interface INodeDelegator {
     function getAssetBalance(address asset) external view returns (uint256 ndcAssets, uint256 eigenAssets);
 
     function delegateTo(address operator) external;
+    function undelegate() external;
 }
