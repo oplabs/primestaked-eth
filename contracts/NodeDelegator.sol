@@ -13,6 +13,7 @@ import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.s
 import { IDelayedWithdrawalRouter } from "./eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
 import { IEigenPodManager, IEigenPod, BeaconChainProofs } from "./eigen/interfaces/IEigenPodManager.sol";
+import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
 import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
@@ -294,6 +295,48 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         stakedButNotVerifiedEth += 32 ether;
 
         emit ETHStaked(pubkey, 32 ether);
+    }
+
+    /// @notice Delegates all staked assets from this NodeDelegator to an EigenLayer Operator.
+    /// This includes both both LSTs and native ETH.
+    /// @param operator the address of the EigenLayer Operator to delegate to.
+    function delegateTo(address operator) public onlyLRTManager {
+        address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
+        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
+
+        delegationManager.delegateTo(
+            operator, ISignatureUtils.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
+        );
+    }
+
+    /// @notice Undelegates all staked assets from this NodeDelegator from the
+    /// previously delegated to EigenLayer Operator.
+    /// This also forces a withdrawal so the assets will need to be claimed.
+    function undelegate() public onlyLRTManager {
+        address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
+        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
+
+        // Get the amount of strategy shares owned by this NodeDelegator contract
+        IStrategyManager strategyManager = IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
+
+        // For each asset
+        address[] memory assets = lrtConfig.getSupportedAssetList();
+        for (uint256 i = 0; i < assets.length;) {
+            // Get the EigenLayer strategy for the asset
+            // The WETH asset will point to the EigenLayer beaconChainETHStrategy
+            // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
+            address strategy = lrtConfig.assetStrategy(assets[i]);
+
+            // account for the strategy shares pending internal withdrawal
+            pendingInternalShareWithdrawals[strategy] +=
+                strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        delegationManager.undelegate(address(this));
     }
 
     /// @dev Triggers stopped state. Contract must not be paused.

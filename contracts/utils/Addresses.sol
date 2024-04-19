@@ -164,6 +164,7 @@ library AddressesHolesky {
     address public constant EIGEN_DELEGATION_MANAGER = 0xA44151489861Fe9e3055d95adC98FbD462B948e7;
     address public constant EIGEN_POD_MANAGER = 0x30770d7E3e71112d7A6b7259542D1f680a70e315;
     address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x642c646053eaf2254f088e9019ACD73d9AE0FA32;
+    address public constant EIGEN_OPERATOR_P2P = 0x37d5077434723d0ec21D894a52567cbE6Fb2C3D8;
 
     // SSV contracts
     address public constant SSV_TOKEN = 0xad45A78180961079BFaeEe349704F411dfF947C6;
