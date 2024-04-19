@@ -229,7 +229,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
                 IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
             uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
 
-            // add any shares pending withdrawal to the strategy share owned by this NodeDelegator
+            // add any shares pending internal withdrawal to the strategy shares owned by this NodeDelegator.
+            // staker withdrawals are not added to pendingInternalShareWithdrawals as the primeETH tokens are burnt on request.
             strategyShares += pendingInternalShareWithdrawals[strategy];
 
             // Convert the strategy shares to LST assets
