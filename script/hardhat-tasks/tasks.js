@@ -13,6 +13,7 @@ const {
   splitValidatorKey,
 } = require("./ssv");
 const { setActionVars } = require("./defender");
+const { delegate, undelegate } = require("./delegation");
 const { tokenAllowance, balance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const { parseAddress } = require("../utils/addressParser");
@@ -107,6 +108,37 @@ subtask("claimInternalWithdrawal", "Prime Operator requests LST withdrawal from 
     await claimInternalWithdrawal({ ...taskArgs, signer, nodeDelegator, delegationManager });
   });
 task("claimInternalWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("delegate", "Prime Manager delegates to an EigenLayer Operator")
+  .addParam("operator", "Address of the EigenLayer Operator", undefined, types.string)
+  .addParam("index", "Index of Node Delegator", undefined, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await delegate({ ...taskArgs, signer, nodeDelegator });
+  });
+task("delegate").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("undelegate", "Prime Manager undelegates from an EigenLayer Operator")
+  .addParam("index", "Index of Node Delegator", undefined, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await undelegate({ ...taskArgs, signer, nodeDelegator });
+  });
+task("undelegate").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

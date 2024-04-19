@@ -65,6 +65,7 @@ library Addresses {
     address public constant EIGEN_DELEGATION_MANAGER = 0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A;
     address public constant EIGEN_POD_MANAGER = 0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338;
     address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x7Fe7E9CC0F274d2435AD5d56D5fa73E47F6A23D8;
+    address public constant EIGEN_OPERATOR_P2P = 0xDbEd88D83176316fc46797B43aDeE927Dc2ff2F5;
 
     // SSV contracts
     address public constant SSV_TOKEN = 0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54;

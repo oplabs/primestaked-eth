@@ -64,6 +64,29 @@ contract ForkTestBase is Test {
         deployer.run();
     }
 
+    modifier assertAssetsInLayers(
+        address asset,
+        int256 depositPoolDiff,
+        int256 nodeDelegatorDiff,
+        int256 eigenLayerDiff
+    ) {
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        _;
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        assertEq(
+            int256(assetsInDepositPoolAfter), int256(assetsInDepositPoolBefore) + depositPoolDiff, "deposit pool assets"
+        );
+        assertEq(int256(assetsInNDCsAfter), int256(assetsInNDCsBefore) + nodeDelegatorDiff, "NodeDelegators assets");
+        assertEq(
+            int256(assetsInEigenLayerAfter), int256(assetsInEigenLayerBefore) + eigenLayerDiff, "EigenLayer assets"
+        );
+    }
+
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         // Get before asset balances
         (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
@@ -486,6 +509,23 @@ contract ForkTestNative is ForkTestBase {
             vm.stopPrank();
         }
     }
+
+    // undelegate from the P2P EigenLayer Operator on Native Node Delegator
+    function test_undelegateFromNativeNodeDelegator()
+        public
+        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
+    {
+        vm.startPrank(Addresses.MANAGER_ROLE);
+
+        nodeDelegator2.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+        nodeDelegator2.undelegate();
+
+        vm.stopPrank();
+    }
+
+    // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
 }
 
 contract ForkTestLST is ForkTestBase {
@@ -805,6 +845,21 @@ contract ForkTestLST is ForkTestBase {
             // Unpause deposits and withdrawals
             eigenStrategyManager.unpause(0);
         }
+
+        vm.stopPrank();
+    }
+
+    // undelegate from the P2P EigenLayer Operator on LST Node Delegator
+    function test_undelegateFromLSTNodeDelegator()
+        public
+        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
+    {
+        vm.startPrank(Addresses.MANAGER_ROLE);
+
+        nodeDelegator1.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+        nodeDelegator1.undelegate();
 
         vm.stopPrank();
     }

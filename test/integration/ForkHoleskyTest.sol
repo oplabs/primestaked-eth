@@ -92,6 +92,29 @@ contract ForkHoleskyTestBase is Test {
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, stETHAddress, amountToTransfer);
     }
 
+    modifier assertAssetsInLayers(
+        address asset,
+        int256 depositPoolDiff,
+        int256 nodeDelegatorDiff,
+        int256 eigenLayerDiff
+    ) {
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        _;
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        assertEq(
+            int256(assetsInDepositPoolAfter), int256(assetsInDepositPoolBefore) + depositPoolDiff, "deposit pool assets"
+        );
+        assertEq(int256(assetsInNDCsAfter), int256(assetsInNDCsBefore) + nodeDelegatorDiff, "NodeDelegators assets");
+        assertEq(
+            int256(assetsInEigenLayerAfter), int256(assetsInEigenLayerBefore) + eigenLayerDiff, "EigenLayer assets"
+        );
+    }
+
     function upgradeDepositPool() internal {
         // Deploy the latest LRTDeposit implementations
         address depositPoolImpl = DepositPoolLib.deployImpl();
@@ -1829,29 +1852,6 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
         vm.stopPrank();
     }
 
-    modifier assertAssetsInLayers(
-        address asset,
-        int256 depositPoolDiff,
-        int256 nodeDelegatorDiff,
-        int256 eigenLayerDiff
-    ) {
-        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
-            lrtDepositPool.getAssetDistributionData(asset);
-
-        _;
-
-        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
-            lrtDepositPool.getAssetDistributionData(asset);
-
-        assertEq(
-            int256(assetsInDepositPoolAfter), int256(assetsInDepositPoolBefore) + depositPoolDiff, "deposit pool assets"
-        );
-        assertEq(int256(assetsInNDCsAfter), int256(assetsInNDCsBefore) + nodeDelegatorDiff, "NodeDelegators assets");
-        assertEq(
-            int256(assetsInEigenLayerAfter), int256(assetsInEigenLayerBefore) + eigenLayerDiff, "EigenLayer assets"
-        );
-    }
-
     // delegate to the P2P EigenLayer Operator
     function test_delegation()
         public
@@ -1877,7 +1877,7 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
     }
 
     // undelegate from the P2P EigenLayer Operator and claim the stETH internal withdrawal
-    function test_undelegateClaim() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
+    function test_undelegateClaimStETH() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
         (uint256 stETHDepositPoolBefore, uint256 stETHInNDCsBefore, uint256 stETHInEigenLayerBefore) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
 
