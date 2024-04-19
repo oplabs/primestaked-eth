@@ -1,8 +1,9 @@
-const { formatUnits, parseEther } = require("ethers").utils;
+const { parseEther } = require("ethers").utils;
 
 const { parseAddress } = require("../utils/addressParser");
 const { resolveAddress } = require("../utils/assets");
 const { logTxDetails } = require("../utils/txLogger");
+const { getWithdrawal } = require("../utils/withdrawalParser");
 
 const log = require("../utils/logger")("task:withdrawals");
 
@@ -20,7 +21,7 @@ const requestWithdrawal = async ({ signer, depositPool, amount, symbol }) => {
 };
 
 const claimWithdrawal = async ({ signer, depositPool, requestTx, delegationManager }) => {
-  const withdrawal = await getWithdrawalData(signer, requestTx, delegationManager);
+  const withdrawal = await getWithdrawal(signer, requestTx, delegationManager);
 
   log(`About to claim withdrawal from Prime Staked ETH`);
   const tx = await depositPool.connect(signer).claimWithdrawal(withdrawal);
@@ -37,30 +38,27 @@ const requestInternalWithdrawal = async ({ signer, nodeDelegator, shares, symbol
 };
 
 const claimInternalWithdrawal = async ({ signer, nodeDelegator, requestTx, delegationManager }) => {
-  const withdrawal = await getWithdrawalData(signer, requestTx, delegationManager);
+  const withdrawal = await getWithdrawal(signer, requestTx, delegationManager);
 
   log(`About to claim internal withdrawal from EigenLayer strategy`);
   const tx = await nodeDelegator.connect(signer).claimInternalWithdrawal(withdrawal);
   await logTxDetails(tx, "claimInternalWithdrawal");
 };
 
-const getWithdrawalData = async (signer, requestTx, delegationManager) => {
-  // Get the tx receipt of the requestWithdrawal tx so we can parse the logs for the Withdrawal struct
-  const receipt = await signer.provider.getTransactionReceipt(requestTx);
-  // find the WithdrawalQueued event from the tx receipt's logs
-  const withdrawalQueuedEvent = receipt?.logs.find(
-    (log) => log.topics[0] === "0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9",
-  );
+const claimInternalWithdrawals = async ({ signer, nodeDelegator, requestTx, delegationManager }) => {
+  const withdrawals = await getWithdrawals(signer, requestTx, delegationManager);
 
-  if (!withdrawalQueuedEvent) {
-    throw new Error(`Could not find a WithdrawalQueued event in tx ${requestTx}`);
+  for (const withdrawal of withdrawals) {
+    log(`About to claim internal withdrawal from EigenLayer strategy ${withdrawal.strategy[0]}`);
+    const tx = await nodeDelegator.connect(signer).claimInternalWithdrawal(withdrawal);
+    await logTxDetails(tx, "claimInternalWithdrawal");
   }
-
-  // Parse the Withdrawal struct from the event
-  const { withdrawal } = delegationManager.interface.parseLog(withdrawalQueuedEvent).args;
-  log(`Parsed withdrawal: ${JSON.stringify(withdrawal)}`);
-
-  return withdrawal;
 };
 
-module.exports = { requestWithdrawal, claimWithdrawal, requestInternalWithdrawal, claimInternalWithdrawal };
+module.exports = {
+  requestWithdrawal,
+  claimWithdrawal,
+  requestInternalWithdrawal,
+  claimInternalWithdrawal,
+  claimInternalWithdrawals,
+};

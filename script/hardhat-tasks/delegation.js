@@ -13,4 +13,10 @@ const delegate = async ({ signer, nodeDelegator, operator }) => {
   await logTxDetails(tx, "delegateTo");
 };
 
+const undelegate = async ({ signer, nodeDelegator }) => {
+  log(`About to undelegate from EigenLayer Operator`);
+  const tx = await nodeDelegator.connect(signer).undelegate();
+  await logTxDetails(tx, "undelegate");
+};
+
 module.exports = { delegate, undelegate };

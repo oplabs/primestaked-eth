@@ -116,3 +116,25 @@ on Holesky.
 `tx2uml 0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
 ![claimInternalWithdrawal](./67e31552.svg)
+
+
+## Prime Manager delegates to P2P EigenLayer Operator
+
+tx
+[0x20ec32b903a8cc73327e677fa4915074555e4eb1181dd10451349552a3737e57](https://holesky.etherscan.io/tx/0x20ec32b903a8cc73327e677fa4915074555e4eb1181dd10451349552a3737e57)
+on Holesky.
+
+`tx2uml 0x20ec32b903a8cc73327e677fa4915074555e4eb1181dd10451349552a3737e57 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![delegateTo](./20ec7e57.svg)
+
+## Prime Manager undelegates from P2P EigenLayer Operator
+
+tx
+[0x7b71e3e7868d36af184b38fd7f6f7db351f402f0024118eb2ce2732bcdd46d11](https://holesky.etherscan.io/tx/0x7b71e3e7868d36af184b38fd7f6f7db351f402f0024118eb2ce2732bcdd46d11)
+on Holesky.
+
+`tx2uml 0x7b71e3e7868d36af184b38fd7f6f7db351f402f0024118eb2ce2732bcdd46d11 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![delegateTo](./20ec7e57.svg)
+

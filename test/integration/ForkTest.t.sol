@@ -509,6 +509,23 @@ contract ForkTestNative is ForkTestBase {
             vm.stopPrank();
         }
     }
+
+    // undelegate from the P2P EigenLayer Operator on Native Node Delegator
+    function test_undelegateFromNativeNodeDelegator()
+        public
+        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
+    {
+        vm.startPrank(Addresses.MANAGER_ROLE);
+
+        nodeDelegator2.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+        nodeDelegator2.undelegate();
+
+        vm.stopPrank();
+    }
+
+    // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
 }
 
 contract ForkTestLST is ForkTestBase {
@@ -832,15 +849,19 @@ contract ForkTestLST is ForkTestBase {
         vm.stopPrank();
     }
 
-    // delegate to the P2P EigenLayer Operator on LST Node Delegator
-    function test_delegateFromLSTNodeDelegator()
+    // undelegate from the P2P EigenLayer Operator on LST Node Delegator
+    function test_undelegateFromLSTNodeDelegator()
         public
         assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
         assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
         assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
     {
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.startPrank(Addresses.MANAGER_ROLE);
+
         nodeDelegator1.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+        nodeDelegator1.undelegate();
+
+        vm.stopPrank();
     }
 
     function unpauseAllStrategies() internal {

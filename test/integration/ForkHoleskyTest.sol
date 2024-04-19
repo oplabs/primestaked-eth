@@ -1866,7 +1866,7 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
     }
 
     // undelegate from the P2P EigenLayer Operator and claim the stETH internal withdrawal
-    function test_undelegateClaim() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
+    function test_undelegateClaimStETH() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
         (uint256 stETHDepositPoolBefore, uint256 stETHInNDCsBefore, uint256 stETHInEigenLayerBefore) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
 
