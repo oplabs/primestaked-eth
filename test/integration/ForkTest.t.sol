@@ -697,15 +697,17 @@ contract ForkTestLST is ForkTestBase {
         transfer_DelegatorNode(asset, 1 ether);
         transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
 
-        vm.startPrank(oWhale);
+        uint256 whaleAssetsBefore = IERC20(asset).balanceOf(oWhale);
 
-        uint256 assetAmount = 0.9 ether;
-        uint256 primeAmount = assetAmount;
+        uint256 withdrawAssetAmount = 0.9 ether;
+        uint256 primeAmount = withdrawAssetAmount;
 
         vm.recordLogs();
 
+        vm.startPrank(oWhale);
+
         // Staker requests an OETH withdrawal
-        lrtDepositPool.requestWithdrawal(asset, assetAmount, primeAmount);
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
 
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
@@ -718,6 +720,8 @@ contract ForkTestLST is ForkTestBase {
 
         // Claim the previously requested withdrawal
         lrtDepositPool.claimWithdrawal(withdrawal);
+
+        assertApproxEqAbs(IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei");
 
         vm.stopPrank();
     }
