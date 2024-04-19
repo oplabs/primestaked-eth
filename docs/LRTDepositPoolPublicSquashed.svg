@@ -28,7 +28,7 @@
 <text text-anchor="start" x="8" y="-428.7" font-family="Times,serif" font-size="14.00">External:</text>
 <text text-anchor="start" x="8" y="-411.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;depositAsset(asset: address, depositAmount: uint256, minPrimeETH: uint256, referralId: string) &lt;&lt;LRTDepositPool&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-395.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;requestWithdrawal(asset: address, assetAmount: uint256, maxPrimeETH: uint256): (primeETHAmount: uint256) &lt;&lt;LRTDepositPool&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-378.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimWithdrawal(asset: address, withdrawal: IDelegationManager.Withdrawal): (assets: uint256) &lt;&lt;LRTDepositPool&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-378.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimWithdrawal(withdrawal: IDelegationManager.Withdrawal): (asset: address, assets: uint256) &lt;&lt;LRTDepositPool&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-361.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;addNodeDelegatorContractToQueue(nodeDelegatorContracts: address[]) &lt;&lt;LRTDepositPool&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-344.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;transferAssetToNodeDelegator(ndcIndex: uint256, asset: address, amount: uint256) &lt;&lt;LRTDepositPool&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-327.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;transferAssetsToNodeDelegator(ndcIndex: uint256, assets: address[]) &lt;&lt;LRTDepositPool&gt;&gt;</text>
