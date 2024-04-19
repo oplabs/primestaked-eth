@@ -117,7 +117,6 @@ on Holesky.
 
 ![claimInternalWithdrawal](./67e31552.svg)
 
-
 ## Prime Manager delegates to P2P EigenLayer Operator
 
 tx
@@ -137,4 +136,3 @@ on Holesky.
 `tx2uml 0x7b71e3e7868d36af184b38fd7f6f7db351f402f0024118eb2ce2732bcdd46d11 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
 ![delegateTo](./20ec7e57.svg)
-
