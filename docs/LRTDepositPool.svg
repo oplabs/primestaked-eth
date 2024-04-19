@@ -32,7 +32,7 @@
 <text text-anchor="start" x="6725.89" y="-361.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;getNodeDelegatorQueue(): address[]</text>
 <text text-anchor="start" x="6725.89" y="-344.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;depositAsset(asset: address, depositAmount: uint256, minPrimeETH: uint256, referralId: string) &lt;&lt;whenNotPaused, nonReentrant, onlySupportedAsset&gt;&gt;</text>
 <text text-anchor="start" x="6725.89" y="-327.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;requestWithdrawal(asset: address, assetAmount: uint256, maxPrimeETH: uint256): (primeETHAmount: uint256) &lt;&lt;whenNotPaused, nonReentrant, onlySupportedAsset&gt;&gt;</text>
-<text text-anchor="start" x="6725.89" y="-311.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimWithdrawal(asset: address, withdrawal: IDelegationManager.Withdrawal): (assets: uint256) &lt;&lt;whenNotPaused, nonReentrant, onlySupportedAsset&gt;&gt;</text>
+<text text-anchor="start" x="6725.89" y="-311.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimWithdrawal(withdrawal: IDelegationManager.Withdrawal): (asset: address, assets: uint256) &lt;&lt;whenNotPaused, nonReentrant&gt;&gt;</text>
 <text text-anchor="start" x="6725.89" y="-294.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;addNodeDelegatorContractToQueue(nodeDelegatorContracts: address[]) &lt;&lt;onlyLRTAdmin&gt;&gt;</text>
 <text text-anchor="start" x="6725.89" y="-277.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;removeManyNodeDelegatorContractsFromQueue(nodeDelegatorContracts: address[]) &lt;&lt;onlyLRTAdmin&gt;&gt;</text>
 <text text-anchor="start" x="6725.89" y="-260.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;transferAssetToNodeDelegator(ndcIndex: uint256, asset: address, amount: uint256) &lt;&lt;nonReentrant, onlyLRTOperator, onlySupportedAsset&gt;&gt;</text>
@@ -209,7 +209,7 @@
 <text text-anchor="start" x="5367.77" y="-1044.1" font-family="Times,serif" font-size="14.00">External:</text>
 <text text-anchor="start" x="5367.77" y="-1027.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;depositAsset(asset: address, depositAmount: uint256, minPrimeETHAmount: uint256, referralId: string)</text>
 <text text-anchor="start" x="5367.77" y="-1010.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;requestWithdrawal(asset: address, assetAmount: uint256, maxPrimeETH: uint256): (primeETHAmount: uint256)</text>
-<text text-anchor="start" x="5367.77" y="-993.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;claimWithdrawal(asset: address, withdrawal: IDelegationManager.Withdrawal): (assets: uint256)</text>
+<text text-anchor="start" x="5367.77" y="-993.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;claimWithdrawal(withdrawal: IDelegationManager.Withdrawal): (asset: address, assets: uint256)</text>
 <text text-anchor="start" x="5367.77" y="-976.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;getTotalAssetDeposits(asset: address): uint256</text>
 <text text-anchor="start" x="5367.77" y="-960.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;getAssetCurrentLimit(asset: address): uint256</text>
 <text text-anchor="start" x="5367.77" y="-943.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;getMintAmount(asset: address, depositAmount: uint256): uint256</text>
@@ -270,8 +270,8 @@
 <text text-anchor="start" x="4681.29" y="-960.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;depositAssetsIntoStrategy(assets: address[])</text>
 <text text-anchor="start" x="4681.29" y="-943.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;requestWithdrawal(strategyAddress: address, strategyShares: uint256, staker: address)</text>
 <text text-anchor="start" x="4681.29" y="-926.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;requestInternalWithdrawal(strategyAddress: address, strategyShares: uint256)</text>
-<text text-anchor="start" x="4681.29" y="-909.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;claimWithdrawal(asset: address, withdrawal: IDelegationManager.Withdrawal, staker: address): (assets: uint256)</text>
-<text text-anchor="start" x="4681.29" y="-892.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;claimInternalWithdrawal(asset: address, withdrawal: IDelegationManager.Withdrawal): (assets: uint256)</text>
+<text text-anchor="start" x="4681.29" y="-909.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;claimWithdrawal(withdrawal: IDelegationManager.Withdrawal, staker: address): (asset: address, assets: uint256)</text>
+<text text-anchor="start" x="4681.29" y="-892.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;claimInternalWithdrawal(withdrawal: IDelegationManager.Withdrawal): (asset: address, assets: uint256)</text>
 <text text-anchor="start" x="4681.29" y="-876.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;maxApproveToEigenStrategyManager(asset: address)</text>
 <text text-anchor="start" x="4681.29" y="-859.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;getAssetBalances(): (address[], uint256[])</text>
 <text text-anchor="start" x="4681.29" y="-842.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&#160;getAssetBalance(asset: address): (ndcAssets: uint256, eigenAssets: uint256)</text>
