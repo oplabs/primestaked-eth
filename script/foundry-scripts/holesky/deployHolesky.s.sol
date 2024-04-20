@@ -46,12 +46,14 @@ contract DeployHolesky is Script {
 
     MockPriceAggregator stETHPriceFeed;
     MockPriceAggregator rETHPriceFeed;
+    MockPriceAggregator mETHPriceFeed;
 
     uint256 public minAmountToDeposit;
 
     function maxApproveToEigenStrategyManager(address nodeDel) internal {
         NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.STETH_TOKEN);
         NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.RETH_TOKEN);
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.METH_TOKEN);
     }
 
     function setUpByAdmin() internal {
@@ -70,6 +72,7 @@ contract DeployHolesky is Script {
         // call updateAssetStrategy for each asset in LRTConfig
         lrtConfig.updateAssetStrategy(AddressesHolesky.STETH_TOKEN, AddressesHolesky.STETH_EIGEN_STRATEGY);
         lrtConfig.updateAssetStrategy(AddressesHolesky.RETH_TOKEN, AddressesHolesky.RETH_EIGEN_STRATEGY);
+        lrtConfig.updateAssetStrategy(AddressesHolesky.METH_TOKEN, AddressesHolesky.METH_EIGEN_STRATEGY);
 
         // Set SSV contract addresses in LRTConfig
         lrtConfig.setContract(LRTConstants.SSV_TOKEN, AddressesHolesky.SSV_TOKEN);
@@ -104,10 +107,14 @@ contract DeployHolesky is Script {
         ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
             AddressesHolesky.RETH_TOKEN, address(rETHPriceFeed)
         );
+        ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
+            AddressesHolesky.METH_TOKEN, address(mETHPriceFeed)
+        );
 
         // call updatePriceOracleFor for each asset in LRTOracle
         lrtOracle.updatePriceOracleFor(AddressesHolesky.STETH_TOKEN, chainlinkPriceOracleAddress);
         lrtOracle.updatePriceOracleFor(AddressesHolesky.RETH_TOKEN, chainlinkPriceOracleAddress);
+        lrtOracle.updatePriceOracleFor(AddressesHolesky.METH_TOKEN, chainlinkPriceOracleAddress);
 
         // maxApproveToEigenStrategyManager in each NodeDelegator to transfer to strategy
         maxApproveToEigenStrategyManager(address(node1));
@@ -188,8 +195,11 @@ contract DeployHolesky is Script {
         stETHPriceFeed.setPrice(0.9985 ether);
         console.log("Mock stETH Oracle: %s", address(stETHPriceFeed));
         rETHPriceFeed = new MockPriceAggregator();
-        stETHPriceFeed.setPrice(0.996 ether);
+        rETHPriceFeed.setPrice(0.996 ether);
         console.log("Mock rETH Oracle: %s", address(rETHPriceFeed));
+        mETHPriceFeed = new MockPriceAggregator();
+        mETHPriceFeed.setPrice(0.999 ether);
+        console.log("Mock mETH Oracle: %s", address(mETHPriceFeed));
 
         // Deploy new Prime Zapper
         PrimeZapperLib.deploy(address(primeETH), address(depositPool));

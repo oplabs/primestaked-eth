@@ -157,6 +157,11 @@ library AddressesHolesky {
     address public constant RETH_EIGEN_STRATEGY = 0x3A8fBdf9e77DFc25d09741f51d3E181b25d0c4E0;
     address public constant RETH_ORACLE = 0xCd82E296CC03DcFeBa0DDa9A5899478eD292e0c5;
 
+    address public constant METH_TOKEN = 0xe3C063B1BEe9de02eb28352b55D49D85514C67FF;
+    address public constant METH_WHALE = 0xd79226d276F7327C1Ad30Ec2c20dd8e0d641407F;
+    address public constant METH_EIGEN_STRATEGY = 0xaccc5A86732BE85b5012e8614AF237801636F8e5;
+    address public constant METH_ORACLE = 0xe823768Eaf10E5E16A50Be3Ad1d7b1b58768c2Ef;
+
     address public constant WETH_TOKEN = 0x94373a4919B3240D86eA41593D5eBa789FEF3848;
     address public constant WETH_ORACLE_PROXY = 0xF68D8c8c50637241174f6A10DF4A1f999d80A28d;
 
