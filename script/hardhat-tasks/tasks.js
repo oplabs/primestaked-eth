@@ -21,6 +21,7 @@ const { depositWETH, withdrawWETH } = require("./weth");
 const { resolveAsset } = require("../utils/assets");
 const { deployNodeDelegator } = require("./deploy");
 const { upgradeProxy } = require("./proxy");
+const { grantRole, revokeRole } = require("./roles");
 const {
   requestWithdrawal,
   claimWithdrawal,
@@ -543,5 +544,37 @@ subtask("upgradeProxy", "Upgrade a proxy contract to a new implementation")
     await upgradeProxy({ ...taskArgs, proxyAdmin, signer });
   });
 task("upgradeProxy").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// Access control
+
+subtask("grantRole", "Grant an account or contract a role")
+  .addParam("role", "Name of the role. eg default, MANAGER or OPERATOR_ROLE", undefined, types.string)
+  .addParam("account", "Address of the account or contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const configAddress = await parseAddress("LRT_CONFIG");
+    const config = await ethers.getContractAt("LRTConfig", configAddress);
+
+    await grantRole({ ...taskArgs, config, signer });
+  });
+task("grantRole").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("revokeRole", "Revoke an account or contract a role")
+  .addParam("role", "Name of the role. eg default, MANAGER or OPERATOR_ROLE", undefined, types.string)
+  .addParam("account", "Address of the account or contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const configAddress = await parseAddress("LRT_CONFIG");
+    const config = await ethers.getContractAt("LRTConfig", configAddress);
+
+    await revokeRole({ ...taskArgs, config, signer });
+  });
+task("revokeRole").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
