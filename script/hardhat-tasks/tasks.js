@@ -27,6 +27,7 @@ const {
   claimWithdrawal,
   requestInternalWithdrawal,
   claimInternalWithdrawal,
+  claimInternalWithdrawals,
 } = require("./withdrawals");
 
 const log = require("../utils/logger")("task");
@@ -97,7 +98,7 @@ task("requestInternalWithdrawal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("claimInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
+subtask("claimInternalWithdrawal", "Prime Operator claims LST withdrawal from the EigenLayer strategy")
   .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
@@ -109,6 +110,21 @@ subtask("claimInternalWithdrawal", "Prime Operator requests LST withdrawal from 
     await claimInternalWithdrawal({ ...taskArgs, signer, nodeDelegator, delegationManager });
   });
 task("claimInternalWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("claimInternalWithdrawals", "Prime Operator claims multiple LST withdrawals from the EigenLayer strategy")
+  .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
+    const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
+
+    await claimInternalWithdrawals({ ...taskArgs, signer, nodeDelegator, delegationManager });
+  });
+task("claimInternalWithdrawals").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
