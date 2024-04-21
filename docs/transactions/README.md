@@ -125,7 +125,7 @@ on Holesky.
 
 `tx2uml 0x29b4158349ae1315fb9c0d57f688d3b094b989c35d89b10f0f915e008c62a007 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
-![delegateTo](./29b4a007.svg)
+![LST delegateTo](./29b4a007.svg)
 
 ## Prime Manager undelegates from P2P EigenLayer Operator for LST Node Delegator
 
@@ -135,4 +135,16 @@ on Holesky.
 
 `tx2uml 0x2d45c7bf6e4a73803b77146007aee777d1e667dac8bd933d3920a51bdc3e0329 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
 
-![delegateTo](./2d450329.svg)
+![LST undelegate](./2d450329.svg)
+
+## Prime Manager undelegates from P2P EigenLayer Operator for Native ETH Node Delegator
+
+Native ETH has been staked but not restaked into EigenLayer so there are no shares in the EigenLayer for native ETH.
+
+tx
+[0x63486f6520742ebac0aa3994409937804fa077f5926f9538a584239d5ac83b4b](https://holesky.etherscan.io/tx/0x63486f6520742ebac0aa3994409937804fa077f5926f9538a584239d5ac83b4b)
+on Holesky.
+
+`tx2uml 0x63486f6520742ebac0aa3994409937804fa077f5926f9538a584239d5ac83b4b -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![ETH undelegate](./63483b4b.svg)
