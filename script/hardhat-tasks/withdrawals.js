@@ -3,7 +3,7 @@ const { parseEther } = require("ethers").utils;
 const { parseAddress } = require("../utils/addressParser");
 const { resolveAddress } = require("../utils/assets");
 const { logTxDetails } = require("../utils/txLogger");
-const { getWithdrawal } = require("../utils/withdrawalParser");
+const { getWithdrawal, getWithdrawals } = require("../utils/withdrawalParser");
 
 const log = require("../utils/logger")("task:withdrawals");
 
@@ -49,7 +49,7 @@ const claimInternalWithdrawals = async ({ signer, nodeDelegator, requestTx, dele
   const withdrawals = await getWithdrawals(signer, requestTx, delegationManager);
 
   for (const withdrawal of withdrawals) {
-    log(`About to claim internal withdrawal from EigenLayer strategy ${withdrawal.strategy[0]}`);
+    log(`About to claim internal withdrawal from EigenLayer strategy ${withdrawal.strategies[0]}`);
     const tx = await nodeDelegator.connect(signer).claimInternalWithdrawal(withdrawal);
     await logTxDetails(tx, "claimInternalWithdrawal");
   }
