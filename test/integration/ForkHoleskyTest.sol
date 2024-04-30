@@ -33,7 +33,6 @@ contract ForkHoleskyTestBase is Test {
 
     address public constant admin = AddressesHolesky.ADMIN_ROLE;
     address public constant manager = AddressesHolesky.MANAGER_ROLE;
-    address public constant deployer = AddressesHolesky.DEPLOYER;
 
     address public constant stETHAddress = AddressesHolesky.STETH_TOKEN;
     address public constant rEthAddress = AddressesHolesky.RETH_TOKEN;
@@ -54,7 +53,6 @@ contract ForkHoleskyTestBase is Test {
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
-    event ETHRewardsWithdrawInitiated(uint256 amount);
     event WithdrawalRequested(
         address indexed withdrawer,
         address indexed asset,
@@ -832,7 +830,7 @@ contract ForkHoleskyTestLST is ForkHoleskyTestBase {
     }
 
     function test_RevertWhenCallingDepositAssetIntoStrategyAndCallerIsNotOperator() external {
-        vm.prank(deployer);
+        vm.prank(makeAddr("randomUser"));
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
     }
@@ -1148,7 +1146,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
 
     // requestInternalWithdrawal when NodeDelegator paused
     function test_requestInternalWithdrawalWhenPaused() external {
-        uint256 shares = 1 ether;
+        uint256 shares = 0.9 ether;
 
         vm.prank(manager);
         nodeDelegator1.pause();
