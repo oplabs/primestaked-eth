@@ -44,7 +44,7 @@ const handler = async (event) => {
     nodeDelegator,
     assets,
     index: 0,
-    minDeposit: 0.001,
+    minDeposit: 0.1,
   });
 };
 

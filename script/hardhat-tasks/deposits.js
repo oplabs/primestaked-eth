@@ -46,7 +46,7 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, assets, minDep
     const balance = await asset.balanceOf(depositPool.address);
     if (balance.gte(minDepositBN)) {
       log(`Will deposit ${formatUnits(balance)} ${symbol}`);
-      depositAssets.push(assetAddress);
+      depositAssets.push(asset.address);
       symbols.push(symbol);
     } else {
       log(`Skipping deposit of ${formatUnits(balance)} ${symbol}`);
