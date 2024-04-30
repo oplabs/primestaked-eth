@@ -14,7 +14,7 @@
 <title>1</title>
 <polygon fill="#f2f2f2" stroke="black" points="0,-0.5 0,-440.5 1868.69,-440.5 1868.69,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="934.34" y="-423.9" font-family="Courier New" font-size="14.00">NodeDelegator &lt;&lt;Contract&gt;&gt;</text>
-<text text-anchor="middle" x="934.34" y="-407.1" font-family="Courier New" font-size="14.00">0x564834EfFd880A28f76A5a68a0Edcef5AaEDC957</text>
+<text text-anchor="middle" x="934.34" y="-407.1" font-family="Courier New" font-size="14.00">0xaBe7742535f46884009a5477BE0F723612784690</text>
 <polyline fill="none" stroke="black" points="0,-398.9 1868.69,-398.9 "/>
 <text text-anchor="middle" x="41.61" y="-382.3" font-family="Courier New" font-size="14.00">slot</text>
 <text text-anchor="middle" x="41.61" y="-365.5" font-family="Courier New" font-size="14.00"> &#160;</text>
@@ -112,11 +112,11 @@
 <text text-anchor="middle" x="1261.13" y="-99.9" font-family="Courier New" font-size="14.00">uint256: stakedButNotVerifiedEth (32)</text>
 <text text-anchor="middle" x="1261.13" y="-83.1" font-family="Courier New" font-size="14.00"> 0 </text>
 <polyline fill="none" stroke="black" points="653.7,-74.9 1868.69,-74.9 "/>
-<text text-anchor="middle" x="1260.74" y="-58.3" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;address): withdrawalRequests (32)</text>
+<text text-anchor="middle" x="1260.73" y="-58.3" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;bool): validatorsStaked (32)</text>
 <polyline fill="none" stroke="black" points="653.7,-50.1 1868.69,-50.1 "/>
-<text text-anchor="middle" x="1260.84" y="-33.5" font-family="Courier New" font-size="14.00">mapping(address=&gt;uint256): pendingInternalShareWithdrawals (32)</text>
+<text text-anchor="middle" x="1260.74" y="-33.5" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;address): withdrawalRequests (32)</text>
 <polyline fill="none" stroke="black" points="653.7,-25.3 1868.69,-25.3 "/>
-<text text-anchor="middle" x="1260.73" y="-8.7" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;bool): validatorsStaked (32)</text>
+<text text-anchor="middle" x="1260.84" y="-8.7" font-family="Courier New" font-size="14.00">mapping(address=&gt;uint256): pendingInternalShareWithdrawals (32)</text>
 </g>
 </g>
 </svg>

@@ -21,9 +21,9 @@
 <text text-anchor="start" x="8" y="-554.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;WETH_TOKEN_ADDRESS: address &lt;&lt;NodeDelegator&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-537.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;eigenPod: address &lt;&lt;NodeDelegator&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-520.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;stakedButNotVerifiedEth: uint256 &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-503.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;withdrawalRequests: mapping(bytes32=&gt;address) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-487.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;pendingInternalShareWithdrawals: mapping(address=&gt;uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-470.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;validatorsStaked: mapping(bytes32=&gt;bool) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-503.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;validatorsStaked: mapping(bytes32=&gt;bool) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-487.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;withdrawalRequests: mapping(bytes32=&gt;address) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-470.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;pendingInternalShareWithdrawals: mapping(address=&gt;uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
 <polyline fill="none" stroke="black" points="0,-462.1 790.18,-462.1 "/>
 <text text-anchor="start" x="8" y="-445.5" font-family="Times,serif" font-size="14.00">External:</text>
 <text text-anchor="start" x="8" y="-428.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&lt;&lt;payable&gt;&gt; null() &lt;&lt;NodeDelegator&gt;&gt;</text>
@@ -35,23 +35,23 @@
 <text text-anchor="start" x="8" y="-327.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimInternalWithdrawal(withdrawal: IDelegationManager.Withdrawal): (asset: address, assets: uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-311.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;maxApproveToEigenStrategyManager(asset: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-294.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;getAssetBalances(): (assets: address[], assetBalances: uint256[]) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-277.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updateLRTConfig(lrtConfigAddr: address) &lt;&lt;LRTConfigRoleChecker&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-260.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;initialize(lrtConfigAddr: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-243.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;createEigenPod() &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-227.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;transferBackToLRTDepositPool(asset: address, amount: uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-210.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;stakeEth(validators: ValidatorStakeData[]) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-193.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;pause() &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-176.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;unpause() &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-159.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;optIn(asset: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-143.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;approveSSV() &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-126.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;depositSSV(operatorIds: uint64[], amount: uint256, cluster: Cluster) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-109.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;registerSsvValidator(publicKey: bytes, operatorIds: uint64[], sharesData: bytes, amount: uint256, cluster: Cluster) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-92.7" font-family="Times,serif" font-size="14.00">Public:</text>
-<text text-anchor="start" x="8" y="-75.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;getAssetBalance(asset: address): (ndcAssets: uint256, eigenAssets: uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-59.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;paused(): bool &lt;&lt;PausableUpgradeable&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-42.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;constructor(_wethAddress: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-25.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;delegateTo(operator: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-8.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;undelegate() &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-277.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;delegateTo(operator: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-260.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;undelegate() &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-243.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updateLRTConfig(lrtConfigAddr: address) &lt;&lt;LRTConfigRoleChecker&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-227.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;initialize(lrtConfigAddr: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-210.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;createEigenPod() &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-193.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;transferBackToLRTDepositPool(asset: address, amount: uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-176.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;stakeEth(validators: ValidatorStakeData[]) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-159.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;pause() &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-143.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;unpause() &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-126.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;optIn(asset: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-109.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;approveSSV() &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-92.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;depositSSV(operatorIds: uint64[], amount: uint256, cluster: Cluster) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-75.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;registerSsvValidator(publicKey: bytes, operatorIds: uint64[], sharesData: bytes, amount: uint256, cluster: Cluster) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-59.1" font-family="Times,serif" font-size="14.00">Public:</text>
+<text text-anchor="start" x="8" y="-42.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;getAssetBalance(asset: address): (ndcAssets: uint256, eigenAssets: uint256) &lt;&lt;NodeDelegator&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-25.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;paused(): bool &lt;&lt;PausableUpgradeable&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-8.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;constructor(_wethAddress: address) &lt;&lt;NodeDelegator&gt;&gt;</text>
 </g>
 </g>
 </svg>
