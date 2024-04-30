@@ -79,22 +79,6 @@ task("claimWithdrawal").setAction(async (_, __, runSuper) => {
 
 // Operator functions
 
-subtask("delegate", "Prime Manager delegates to an EigenLayer Operator")
-  .addParam("operator", "Address of the EigenLayer Operator", undefined, types.string)
-  .addParam("index", "Index of Node Delegator", undefined, types.int)
-  .setAction(async (taskArgs) => {
-    const signer = await getSigner();
-
-    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
-    const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
-
-    await delegate({ ...taskArgs, signer, nodeDelegator });
-  });
-task("delegate").setAction(async (_, __, runSuper) => {
-  return runSuper();
-});
-
 subtask("requestInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
   .addParam("shares", "Amount of EigenLayer strategy shares", undefined, types.float)
   .addOptionalParam(
