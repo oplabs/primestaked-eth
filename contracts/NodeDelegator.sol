@@ -342,6 +342,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
 
-    /// @dev allow NodeDelegator to receive ETH rewards
+    /// @dev allow NodeDelegator to receive execution rewards from MEV and
+    /// ETH from WETH withdrawals.
+    /// Is not required to receive consensus rewards from the BeaconChain.
     receive() external payable { }
 }
