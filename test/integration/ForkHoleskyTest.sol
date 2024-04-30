@@ -53,6 +53,15 @@ contract ForkHoleskyTestBase is Test {
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
+    event WithdrawalRequested(
+        address indexed withdrawer,
+        address indexed asset,
+        address indexed strategy,
+        uint256 primeETHAmount,
+        uint256 assetAmount,
+        uint256 sharesAmount
+    );
+    event WithdrawalClaimed(address indexed withdrawer, address indexed asset, uint256 assets);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
