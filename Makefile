@@ -56,6 +56,5 @@ node-test-fork:; anvil --fork-url ${HOLESKY_RPC_URL} --auto-impersonate ${BLOCK_
 # test commands
 unit-test:; forge test --no-match-contract "(Fork)"
 fork-test:; IS_FORK=true forge test --match-contract "ForkTest" -vv
-fork-test-goerli:; IS_FORK=true forge test --match-contract "ForkGoerliTest" -vvip" -vv
 fork-test-holesky:; IS_FORK=true forge test --match-contract "ForkHoleskyTest" -vv
 fork-test-ci:; IS_FORK=true forge test --match-contract "ForkTest"
