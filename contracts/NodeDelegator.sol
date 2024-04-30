@@ -300,7 +300,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @notice Delegates all staked assets from this NodeDelegator to an EigenLayer Operator.
     /// This includes both both LSTs and native ETH.
     /// @param operator the address of the EigenLayer Operator to delegate to.
-    function delegateTo(address operator) public onlyLRTManager {
+    function delegateTo(address operator) external onlyLRTManager {
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
         IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
 
@@ -312,7 +312,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @notice Undelegates all staked assets from this NodeDelegator from the
     /// previously delegated to EigenLayer Operator.
     /// This also forces a withdrawal so the assets will need to be claimed.
-    function undelegate() public onlyLRTManager {
+    function undelegate() external onlyLRTManager {
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
         IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
 
