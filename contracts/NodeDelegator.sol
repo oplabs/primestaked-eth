@@ -38,6 +38,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
     uint256 public stakedButNotVerifiedEth;
 
+    uint256 internal constant DUST_AMOUNT = 10;
+    mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
+
     /// @dev Maps the withdrawalRoots from the EigenLayer DelegationManager to the staker requesting the withdrawal.
     /// Is not populated for internal withdrawals
     mapping(bytes32 => address) public withdrawalRequests;
@@ -45,9 +48,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// This does not include pending external withdrawals from Stakers as the PrimeETH total supply
     // is reduced on external withdrawal request.
     mapping(address => uint256) public pendingInternalShareWithdrawals;
-
-    uint256 internal constant DUST_AMOUNT = 10;
-    mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _wethAddress) {
