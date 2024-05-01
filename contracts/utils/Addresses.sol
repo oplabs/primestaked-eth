@@ -62,7 +62,9 @@ library Addresses {
 
     address public constant EIGEN_UNPAUSER = 0x369e6F597e22EaB55fFb173C6d9cD234BD699111;
     address public constant EIGEN_STRATEGY_MANAGER = 0x858646372CC42E1A627fcE94aa7A7033e7CF075A;
+    address public constant EIGEN_DELEGATION_MANAGER = 0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A;
     address public constant EIGEN_POD_MANAGER = 0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338;
+    address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x7Fe7E9CC0F274d2435AD5d56D5fa73E47F6A23D8;
 
     // SSV contracts
     address public constant SSV_TOKEN = 0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54;
@@ -111,8 +113,59 @@ library AddressesGoerli {
     address public constant EIGEN_UNPAUSER = 0x3d9C2c2B40d890ad53E27947402e977155CD2808;
     address public constant EIGEN_STRATEGY_MANAGER = 0x779d1b5315df083e3F9E94cB495983500bA8E907;
     address public constant EIGEN_POD_MANAGER = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
+    address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x89581561f1F98584F88b0d57c2180fb89225388f;
 
     // SSV contracts
     address public constant SSV_TOKEN = 0x3a9f01091C446bdE031E39ea8354647AFef091E7;
     address public constant SSV_NETWORK = 0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D;
+}
+
+library AddressesHolesky {
+    // address public constant ADMIN_MULTISIG = ;
+    address public constant DEPLOYER = 0xd79226d276F7327C1Ad30Ec2c20dd8e0d641407F;
+    address public constant RELAYER = 0x3C6B0c7835a2E2E0A45889F64DcE4ee14c1D5CB4;
+
+    address public constant ADMIN_ROLE = RELAYER;
+    address public constant MANAGER_ROLE = RELAYER;
+    address public constant OPERATOR_ROLE = RELAYER;
+
+    address public constant PROXY_OWNER = RELAYER;
+    address public constant PROXY_FACTORY = 0x4deEfb03b91A95af4513c1b6108BC6AA55caD4f8;
+    address public constant PROXY_ADMIN = 0x7920617D9e72e9f0dFbEad1d61c953202fA90764;
+
+    address public constant PRIME_STAKED_ETH = 0x32f189fD8d33603055D58CF7B342bF44cc91C46B;
+
+    address public constant LRT_CONFIG = 0xC1b4F3B373c7a766C5f8587940180396593Acfe7;
+    address public constant LRT_ORACLE = 0x60d01fb0a13a5dECf42dEFADB48E2288A9c0acd1;
+    address public constant LRT_DEPOSIT_POOL = 0x7C0c0Df65778709524d7b048D184c45E90DE041d;
+    address public constant NODE_DELEGATOR = 0x326EdC668E286cc71272154977DB2bCf780d42B4;
+    address public constant NODE_DELEGATOR_NATIVE_STAKING = 0x94B5ac4A1Ae76F150A25537Ec1684B94fe8025CD;
+    address public constant EIGEN_POD = 0x64ca544f57533AA7A80BB71BCf3d35f5CB6C20cc;
+    address public constant PRIME_ZAPPER = 0x090cEeF3E7A9733F47988984F182F2680bFfdDac;
+
+    address public constant CHAINLINK_ORACLE_PROXY = 0x91C470C02b407dEB2d21108fF82f069A3F537904;
+
+    address public constant STETH_TOKEN = 0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034;
+    address public constant STETH_WHALE = 0x66b25CFe6B9F0e61Bd80c4847225Baf4EE6Ba0A2;
+    address public constant STETH_EIGEN_STRATEGY = 0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3;
+    address public constant STETH_ORACLE = 0x5D98164736039C4Aea3B4FdCCE1E66259c88a42A;
+
+    // rETH is used instead of ETHx when deploying on Holesky
+    address public constant RETH_TOKEN = 0x7322c24752f79c05FFD1E2a6FCB97020C1C264F1;
+    address public constant RETH_WHALE = 0x570EDBd50826eb9e048aA758D4d78BAFa75F14AD;
+    address public constant RETH_EIGEN_STRATEGY = 0x3A8fBdf9e77DFc25d09741f51d3E181b25d0c4E0;
+    address public constant RETH_ORACLE = 0xCd82E296CC03DcFeBa0DDa9A5899478eD292e0c5;
+
+    address public constant WETH_TOKEN = 0x94373a4919B3240D86eA41593D5eBa789FEF3848;
+    address public constant WETH_ORACLE_PROXY = 0xF68D8c8c50637241174f6A10DF4A1f999d80A28d;
+
+    address public constant EIGEN_UNPAUSER = 0x28Ade60640fdBDb2609D8d8734D1b5cBeFc0C348;
+    address public constant EIGEN_STRATEGY_MANAGER = 0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6;
+    address public constant EIGEN_DELEGATION_MANAGER = 0xA44151489861Fe9e3055d95adC98FbD462B948e7;
+    address public constant EIGEN_POD_MANAGER = 0x30770d7E3e71112d7A6b7259542D1f680a70e315;
+    address public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = 0x642c646053eaf2254f088e9019ACD73d9AE0FA32;
+
+    // SSV contracts
+    address public constant SSV_TOKEN = 0xad45A78180961079BFaeEe349704F411dfF947C6;
+    address public constant SSV_NETWORK = 0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA;
 }

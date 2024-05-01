@@ -10,7 +10,7 @@ const depositPrime = async ({ signer, depositPool, amount, symbol }) => {
 
   const assetUnits = parseEther(amount.toString());
 
-  log(`About to deposit ${symbol} to Prime Staked ETH`);
+  log(`About to deposit ${amount} ${symbol} to Prime Staked ETH`);
   const tx = await depositPool.connect(signer).depositAsset(assetAddress, assetUnits, 0, "");
   await logTxDetails(tx, "deposit");
 };

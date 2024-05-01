@@ -12,20 +12,20 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
-import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { NodeDelegator } from "contracts/NodeDelegator.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ConfigLib } from "contracts/libraries/ConfigLib.sol";
 import { PrimeStakedETHLib } from "contracts/libraries/PrimeStakedETHLib.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
 import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
+import { ProxyLib } from "contracts/libraries/ProxyLib.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { MockPriceAggregator } from "script/foundry-scripts/utils/MockPriceAggregator.sol";
 
-contract DeployGoerli is Script {
+contract DeployHolesky is Script {
     uint256 internal constant MAX_DEPOSITS = 1000 ether;
 
     bool isForked;
@@ -40,19 +40,18 @@ contract DeployGoerli is Script {
     LRTDepositPool public depositPool;
     LRTOracle public lrtOracle;
     address public chainlinkPriceOracleAddress;
-    address public ethXPriceOracleAddress;
     NodeDelegator public node1;
     NodeDelegator public node2;
     address[] public nodeDelegatorContracts;
 
-    address stETHPriceFeed;
-    address ethxPriceFeed;
+    MockPriceAggregator stETHPriceFeed;
+    MockPriceAggregator rETHPriceFeed;
 
     uint256 public minAmountToDeposit;
 
     function maxApproveToEigenStrategyManager(address nodeDel) internal {
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesGoerli.STETH_TOKEN);
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesGoerli.ETHX_TOKEN);
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.STETH_TOKEN);
+        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.RETH_TOKEN);
     }
 
     function setUpByAdmin() internal {
@@ -64,27 +63,26 @@ contract DeployGoerli is Script {
 
         // add contracts to LRT config
         lrtConfig.setContract(LRTConstants.LRT_DEPOSIT_POOL, address(depositPool));
-        lrtConfig.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, AddressesGoerli.EIGEN_STRATEGY_MANAGER);
-        lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, AddressesGoerli.EIGEN_POD_MANAGER);
+        lrtConfig.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, AddressesHolesky.EIGEN_STRATEGY_MANAGER);
+        lrtConfig.setContract(LRTConstants.EIGEN_DELEGATION_MANAGER, AddressesHolesky.EIGEN_DELEGATION_MANAGER);
+        lrtConfig.setContract(LRTConstants.EIGEN_POD_MANAGER, AddressesHolesky.EIGEN_POD_MANAGER);
 
         // call updateAssetStrategy for each asset in LRTConfig
-        lrtConfig.updateAssetStrategy(AddressesGoerli.STETH_TOKEN, AddressesGoerli.STETH_EIGEN_STRATEGY);
-        lrtConfig.updateAssetStrategy(AddressesGoerli.ETHX_TOKEN, AddressesGoerli.ETHX_EIGEN_STRATEGY);
+        lrtConfig.updateAssetStrategy(AddressesHolesky.STETH_TOKEN, AddressesHolesky.STETH_EIGEN_STRATEGY);
+        lrtConfig.updateAssetStrategy(AddressesHolesky.RETH_TOKEN, AddressesHolesky.RETH_EIGEN_STRATEGY);
 
         // Set SSV contract addresses in LRTConfig
-        lrtConfig.setContract(LRTConstants.SSV_TOKEN, AddressesGoerli.SSV_TOKEN);
-        lrtConfig.setContract(LRTConstants.SSV_NETWORK, AddressesGoerli.SSV_NETWORK);
+        lrtConfig.setContract(LRTConstants.SSV_TOKEN, AddressesHolesky.SSV_TOKEN);
+        lrtConfig.setContract(LRTConstants.SSV_NETWORK, AddressesHolesky.SSV_NETWORK);
 
-        // grant MANAGER_ROLE to deployer and Goerli Defender Relayer
+        // grant roles to the deployer
         lrtConfig.grantRole(LRTConstants.MANAGER, deployerAddress);
-        lrtConfig.grantRole(LRTConstants.MANAGER, AddressesGoerli.RELAYER);
         lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, deployerAddress);
-        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesGoerli.RELAYER);
         lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, deployerAddress);
-        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, AddressesGoerli.RELAYER);
 
-        // add minter role to lrtDepositPool so it mints primeETH
+        // add minter and burner roles to lrtDepositPool so it can mint/burn primeETH
         lrtConfig.grantRole(LRTConstants.MINTER_ROLE, address(depositPool));
+        lrtConfig.grantRole(LRTConstants.BURNER_ROLE, address(depositPool));
 
         // add nodeDelegators to LRTDepositPool queue
         nodeDelegatorContracts.push(address(node1));
@@ -101,12 +99,15 @@ contract DeployGoerli is Script {
     function setUpByManager() internal {
         // Add chainlink oracles for supported assets in ChainlinkPriceOracle
         ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
-            AddressesGoerli.STETH_TOKEN, stETHPriceFeed
+            AddressesHolesky.STETH_TOKEN, address(stETHPriceFeed)
+        );
+        ChainlinkPriceOracle(chainlinkPriceOracleAddress).updatePriceFeedFor(
+            AddressesHolesky.RETH_TOKEN, address(rETHPriceFeed)
         );
 
         // call updatePriceOracleFor for each asset in LRTOracle
-        lrtOracle.updatePriceOracleFor(AddressesGoerli.STETH_TOKEN, chainlinkPriceOracleAddress);
-        lrtOracle.updatePriceOracleFor(AddressesGoerli.ETHX_TOKEN, ethXPriceOracleAddress);
+        lrtOracle.updatePriceOracleFor(AddressesHolesky.STETH_TOKEN, chainlinkPriceOracleAddress);
+        lrtOracle.updatePriceOracleFor(AddressesHolesky.RETH_TOKEN, chainlinkPriceOracleAddress);
 
         // maxApproveToEigenStrategyManager in each NodeDelegator to transfer to strategy
         maxApproveToEigenStrategyManager(address(node1));
@@ -117,31 +118,27 @@ contract DeployGoerli is Script {
     }
 
     function run() external {
-        if (block.chainid != 5) {
-            revert("Not Goerli");
+        if (block.chainid != 17_000) {
+            revert("Not Holesky");
         }
 
         isForked = vm.envOr("IS_FORK", false);
         if (isForked) {
-            address mainnetProxyOwner = AddressesGoerli.PROXY_OWNER;
-            console.log("Running script on Goerli fork impersonating: %s", mainnetProxyOwner);
+            address mainnetProxyOwner = AddressesHolesky.PROXY_OWNER;
+            console.log("Running script on Holesky fork impersonating: %s", mainnetProxyOwner);
             vm.startPrank(mainnetProxyOwner);
         } else {
-            uint256 deployerPrivateKey = vm.envUint("GOERLI_DEPLOYER_PRIVATE_KEY");
+            uint256 deployerPrivateKey = vm.envUint("HOLESKY_DEPLOYER_PRIVATE_KEY");
             address deployer = vm.rememberKey(deployerPrivateKey);
             vm.startBroadcast(deployer);
-            console.log("Deploying on Goerli with deployer: %s", deployer);
+            console.log("Deploying on Holesky with deployer: %s", deployer);
         }
 
-        proxyFactory = new ProxyFactory();
-        proxyAdmin = new ProxyAdmin(); // msg.sender becomes the owner of ProxyAdmin
+        proxyFactory = ProxyLib.getProxyFactory();
+        proxyAdmin = ProxyLib.getProxyAdmin();
 
         deployerAddress = proxyAdmin.owner();
         minAmountToDeposit = 0.0001 ether;
-
-        console.log("ProxyAdmin deployed at: ", address(proxyAdmin));
-        console.log("Proxy factory deployed at: ", address(proxyFactory));
-        console.log("Tentative owner of ProxyAdmin: ", deployerAddress);
 
         // LRTConfig
         address lrtConfigImplementation = ConfigLib.deployImpl();
@@ -172,7 +169,6 @@ contract DeployGoerli is Script {
 
         // ChainlinkPriceOracle
         chainlinkPriceOracleAddress = OraclesLib.deployInitChainlinkOracle(proxyAdmin, proxyFactory, lrtConfig);
-        ethXPriceOracleAddress = OraclesLib.deployInitEthXPriceOracle(proxyAdmin, proxyFactory);
         address wethOracleProxy = OraclesLib.deployInitWETHOracle(proxyAdmin, proxyFactory);
 
         // DelegatorNode
@@ -185,10 +181,15 @@ contract DeployGoerli is Script {
 
         // Transfer SSV tokens to the native staking NodeDelegator
         // SSV Faucet https://faucet.ssv.network/
-        IERC20(AddressesGoerli.SSV_TOKEN).transfer(address(node2), 30 ether);
+        IERC20(AddressesHolesky.SSV_TOKEN).transfer(address(node2), 30 ether);
 
         // Mock aggregators
-        stETHPriceFeed = address(new MockPriceAggregator());
+        stETHPriceFeed = new MockPriceAggregator();
+        stETHPriceFeed.setPrice(0.9985 ether);
+        console.log("Mock stETH Oracle: %s", address(stETHPriceFeed));
+        rETHPriceFeed = new MockPriceAggregator();
+        stETHPriceFeed.setPrice(0.996 ether);
+        console.log("Mock rETH Oracle: %s", address(rETHPriceFeed));
 
         // Deploy new Prime Zapper
         PrimeZapperLib.deploy(address(primeETH), address(depositPool));
@@ -198,18 +199,24 @@ contract DeployGoerli is Script {
         setUpByManager();
 
         // WETH asset setup
-        lrtConfig.addNewSupportedAsset(AddressesGoerli.WETH_TOKEN, MAX_DEPOSITS);
-        lrtConfig.setToken(LRTConstants.WETH_TOKEN, AddressesGoerli.WETH_TOKEN);
-        lrtOracle.updatePriceOracleFor(AddressesGoerli.WETH_TOKEN, wethOracleProxy);
+        lrtConfig.addNewSupportedAsset(AddressesHolesky.WETH_TOKEN, MAX_DEPOSITS);
+        lrtConfig.setToken(LRTConstants.WETH_TOKEN, AddressesHolesky.WETH_TOKEN);
+        lrtOracle.updatePriceOracleFor(AddressesHolesky.WETH_TOKEN, wethOracleProxy);
 
         // update prETHPrice
         lrtOracle.updatePrimeETHPrice();
 
-        proxyAdmin.transferOwnership(AddressesGoerli.PROXY_OWNER);
-        console.log("ProxyAdmin ownership transferred to: ", AddressesGoerli.PROXY_OWNER);
+        // transfer ownership from the deployer to the ProxyAdmin
+        proxyAdmin.transferOwnership(AddressesHolesky.PROXY_OWNER);
+        console.log("ProxyAdmin ownership transferred to: ", AddressesHolesky.PROXY_OWNER);
 
-        // Approve deposit of WETH into the DepositPool
-        IERC20(AddressesGoerli.WETH_TOKEN).approve(address(depositPool), MAX_DEPOSITS);
+        // transfer roles from the deployer to Relayer
+        lrtConfig.revokeRole(LRTConstants.MANAGER, deployerAddress);
+        lrtConfig.grantRole(LRTConstants.MANAGER, AddressesHolesky.RELAYER);
+        lrtConfig.grantRole(LRTConstants.OPERATOR_ROLE, AddressesHolesky.RELAYER);
+        lrtConfig.revokeRole(LRTConstants.OPERATOR_ROLE, deployerAddress);
+        lrtConfig.grantRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.RELAYER);
+        lrtConfig.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, deployerAddress);
 
         if (isForked) {
             vm.stopPrank();

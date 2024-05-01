@@ -15,7 +15,7 @@ import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { MEthPriceOracle } from "contracts/oracles/MEthPriceOracle.sol";
 import { SfrxETHPriceOracle } from "contracts/oracles/SfrxETHPriceOracle.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesGoerli, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
@@ -86,7 +86,7 @@ library OraclesLib {
     }
 
     function deployInitOETHOracle(ProxyAdmin proxyAdmin, ProxyFactory proxyFactory) internal returns (address proxy) {
-        require(block.chainid == 1, "OETH does is only on mainnet");
+        require(block.chainid == 1, "OETH is only on mainnet");
 
         // Deploy OETHPriceOracle
         address implContract = address(new OETHPriceOracle(Addresses.OETH_TOKEN));
@@ -105,6 +105,8 @@ library OraclesLib {
         internal
         returns (address proxy)
     {
+        require(block.chainid == 1 || block.chainid == 5, "METH is only on Mainnet and Goerli");
+
         // Deploy EthXPriceOracle
         address implContract = address(new EthXPriceOracle());
         console.log("EthXPriceOracle deployed at: %s", implContract);
@@ -122,6 +124,8 @@ library OraclesLib {
     }
 
     function deployInitMEthPriceOracle() internal returns (address proxy) {
+        require(block.chainid == 1, "METH is only on mainnet");
+
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -135,6 +139,8 @@ library OraclesLib {
     }
 
     function deployInitSfrxEthPriceOracle() internal returns (address proxy) {
+        require(block.chainid == 1, "sfrxETH is only on mainnet");
+
         ProxyFactory proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         address proxyAdmin = Addresses.PROXY_ADMIN;
 
@@ -148,7 +154,7 @@ library OraclesLib {
     }
 
     function deployInitWETHOracle(ProxyAdmin proxyAdmin, ProxyFactory proxyFactory) internal returns (address proxy) {
-        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesGoerli.WETH_TOKEN;
+        address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
 
         // Deploy WETHPriceOracle
         address implContract = address(new WETHPriceOracle(wethAddress));

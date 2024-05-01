@@ -9,7 +9,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
@@ -39,8 +39,8 @@ library DepositPoolLib {
     }
 
     function upgrade(address newImpl) internal returns (LRTDepositPool) {
-        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesGoerli.PROXY_ADMIN;
-        address proxyAddress = block.chainid == 1 ? Addresses.LRT_DEPOSIT_POOL : AddressesGoerli.LRT_DEPOSIT_POOL;
+        address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
+        address proxyAddress = block.chainid == 1 ? Addresses.LRT_DEPOSIT_POOL : AddressesHolesky.LRT_DEPOSIT_POOL;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
         console.log("Proxy admin owner %s", proxyAdmin.owner());
@@ -52,7 +52,7 @@ library DepositPoolLib {
     }
 
     function addNodeDelegator(address nodeDelegatorProxy) internal {
-        address depositPoolAddress = block.chainid == 1 ? Addresses.LRT_DEPOSIT_POOL : AddressesGoerli.LRT_DEPOSIT_POOL;
+        address depositPoolAddress = block.chainid == 1 ? Addresses.LRT_DEPOSIT_POOL : AddressesHolesky.LRT_DEPOSIT_POOL;
         LRTDepositPool depositPool = LRTDepositPool(depositPoolAddress);
 
         address[] memory nodeDelegatorContracts = new address[](1);

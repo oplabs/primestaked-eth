@@ -22,7 +22,7 @@ async function getSigner(address = undefined) {
     }
     return await hre.ethers.provider.getSigner(address);
   }
-  const pk = process.env.DEPLOYER_PK;
+  const pk = process.env.DEPLOYER_PRIVATE_KEY || process.env.HOLESKY_DEPLOYER_PRIVATE_KEY;
   if (pk) {
     if (!pk.match(privateKey)) {
       throw Error(`Invalid format of private key`);
