@@ -7,43 +7,17 @@ import "forge-std/console.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, MockStrategy, IERC20 } from "./LRTConfigTest.t.sol";
-import { IStrategy } from "contracts/interfaces/IStrategy.sol";
+import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, IERC20 } from "./LRTConfigTest.t.sol";
+import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
+import { MockDelayedWithdrawalRouter } from "contracts/eigen/mocks/MockDelayedWithdrawalRouter.sol";
+import { MockEigenPodManager, MockEigenPod } from "contracts/eigen/mocks/MockEigenPodManager.sol";
+import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
+import { MockStrategyManager } from "contracts/eigen/mocks/MockStrategyManager.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
 
-import { BeaconChainProofs } from "contracts/interfaces/IEigenPod.sol";
-
-contract MockEigenStrategyManager {
-    mapping(address depositor => mapping(address strategy => uint256 shares)) public depositorStrategyShareBalances;
-
-    address[] public strategies;
-
-    function depositIntoStrategy(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares) {
-        token.transferFrom(msg.sender, address(strategy), amount);
-
-        shares = amount;
-
-        depositorStrategyShareBalances[msg.sender][address(strategy)] += shares;
-
-        strategies.push(address(strategy));
-
-        return shares;
-    }
-
-    function getDeposits(address depositor) external view returns (IStrategy[] memory, uint256[] memory) {
-        uint256[] memory shares = new uint256[](strategies.length);
-        IStrategy[] memory strategies_ = new IStrategy[](strategies.length);
-
-        for (uint256 i = 0; i < strategies.length; i++) {
-            strategies_[i] = IStrategy(strategies[i]);
-            shares[i] = depositorStrategyShareBalances[depositor][strategies[i]];
-        }
-
-        return (strategies_, shares);
-    }
-}
+import { BeaconChainProofs } from "contracts/eigen/interfaces/IEigenPod.sol";
 
 contract MockSSVNetwork {
     address public ssvToken;
@@ -76,43 +50,11 @@ contract MockSSVNetwork {
     }
 }
 
-contract MockEigenPodManager {
-    mapping(address => address) public ownerToPod;
-
-    function createPod() external {
-        if (ownerToPod[msg.sender] != address(0)) {
-            return;
-        }
-        ownerToPod[msg.sender] = address(new MockEigenPod());
-    }
-
-    function stake(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot) external payable {
-        // do nothing
-    }
-}
-
-contract MockEigenPod {
-    function verifyWithdrawalCredentialsAndBalance(
-        uint64 oracleBlockNumber,
-        uint40 validatorIndex,
-        BeaconChainProofs.ValidatorFieldsAndBalanceProofs memory proofs,
-        bytes32[] calldata validatorFields
-    )
-        external
-        view
-        returns (uint256)
-    {
-        return 32 gwei;
-    }
-
-    receive() external payable { }
-}
-
 contract NodeDelegatorTest is LRTConfigTest {
     NodeDelegator public nodeDel;
     address public operator;
 
-    MockEigenStrategyManager public mockEigenStrategyManager;
+    MockStrategyManager public mockEigenStrategyManager;
 
     MockStrategy public stETHMockStrategy;
     MockStrategy public ethXMockStrategy;
@@ -135,7 +77,7 @@ contract NodeDelegatorTest is LRTConfigTest {
         lrtConfig.initialize(admin, address(stETH), address(ethX), prethMock);
 
         // add mockEigenStrategyManager to LRTConfig
-        mockEigenStrategyManager = new MockEigenStrategyManager();
+        mockEigenStrategyManager = new MockStrategyManager();
         vm.startPrank(admin);
         lrtConfig.setContract(LRTConstants.EIGEN_STRATEGY_MANAGER, address(mockEigenStrategyManager));
 
