@@ -218,13 +218,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // The WETH asset will point to the EigenLayer beaconChainETHStrategy
             // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
 
-            // Add any consensus rewards that have been sent to the EigenPod.
-            // In the future this can include full validator withdrawals that have been swept
-            // to the EigenPod but native ETH restaking and withdrawals is not currently supported
-            // by the NodeDelegator.
-            if (eigenPod != address(0)) {
-                eigenAssets += eigenPod.balance;
-            }
+            // Not adding any consensus rewards that have been sent to the EigenPod.
+            // This can include forced validator withdrawals so that needs to be accounted for
+            // in a future implementation.
         } else {
             // If an LST asset
             address strategy = lrtConfig.assetStrategy(asset);
