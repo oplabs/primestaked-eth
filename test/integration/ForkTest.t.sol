@@ -62,6 +62,29 @@ contract ForkTestBase is Test {
         deployer.run();
     }
 
+    modifier assertAssetsInLayers(
+        address asset,
+        int256 depositPoolDiff,
+        int256 nodeDelegatorDiff,
+        int256 eigenLayerDiff
+    ) {
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        _;
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        assertEq(
+            int256(assetsInDepositPoolAfter), int256(assetsInDepositPoolBefore) + depositPoolDiff, "deposit pool assets"
+        );
+        assertEq(int256(assetsInNDCsAfter), int256(assetsInNDCsBefore) + nodeDelegatorDiff, "NodeDelegators assets");
+        assertEq(
+            int256(assetsInEigenLayerAfter), int256(assetsInEigenLayerBefore) + eigenLayerDiff, "EigenLayer assets"
+        );
+    }
+
     function deposit(address asset, address whale, uint256 amountToTransfer) internal {
         // Get before asset balances
         (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
@@ -167,6 +190,13 @@ contract ForkTestNative is ForkTestBase {
                 depositDataRoot: 0xbff953046f19698fc3ae1ca8b50e1a03c2af2f899057a47fd5a655a9a6501e42
             })
         );
+    }
+
+    function addEther(address target, uint256 rewards) internal {
+        vm.startPrank(wWhale);
+        IWETH(Addresses.WETH_TOKEN).withdraw(rewards);
+        target.call{ value: rewards }("");
+        vm.stopPrank();
     }
 
     function test_approveSSV() public {
@@ -347,13 +377,17 @@ contract ForkTestNative is ForkTestBase {
         assertEq(ndcEthAfter, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after");
         assertEq(eigenEthAfter, eigenEthBefore + 32 ether, "WETH/ETH in EigenLayer after");
 
+        vm.stopPrank();
+
         // Deposit some ETH in the EigenPod
-        vm.deal(Addresses.EIGEN_POD, 0.1 ether);
+        addEther(Addresses.EIGEN_POD, 0.1 ether);
 
         (uint256 ndcEthAfterRewards, uint256 eigenEthAfterRewards) =
             nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
         assertEq(ndcEthAfterRewards, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after consensus rewards");
         assertEq(eigenEthAfterRewards, eigenEthBefore + 32 ether, "WETH/ETH in EigenLayer after consensus rewards");
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
 
         // Should fail to register a second time
         vm.expectRevert(
@@ -724,6 +758,17 @@ contract ForkTestLST is ForkTestBase {
         }
 
         vm.stopPrank();
+    }
+
+    // delegate to the P2P EigenLayer Operator on LST Node Delegator
+    function test_delegateFromLSTNodeDelegator()
+        public
+        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
+    {
+        vm.prank(Addresses.MANAGER_ROLE);
+        nodeDelegator1.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
     }
 
     function unpauseAllStrategies() internal {

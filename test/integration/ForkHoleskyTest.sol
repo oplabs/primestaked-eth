@@ -11,6 +11,8 @@ import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManage
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
+import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
+import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
 import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
 import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
@@ -31,7 +33,6 @@ contract ForkHoleskyTestBase is Test {
 
     address public constant admin = AddressesHolesky.ADMIN_ROLE;
     address public constant manager = AddressesHolesky.MANAGER_ROLE;
-    address public constant deployer = AddressesHolesky.DEPLOYER;
 
     address public constant stETHAddress = AddressesHolesky.STETH_TOKEN;
     address public constant rEthAddress = AddressesHolesky.RETH_TOKEN;
@@ -52,20 +53,16 @@ contract ForkHoleskyTestBase is Test {
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
-    event ETHRewardsWithdrawInitiated(uint256 amount);
-    event WithdrawalRequested(
-        address indexed withdrawer,
-        address indexed asset,
-        address indexed strategy,
-        uint256 primeETHAmount,
-        uint256 assetAmount,
-        uint256 sharesAmount
-    );
-    event WithdrawalClaimed(address indexed withdrawer, address indexed asset, uint256 assets);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
+
+        // upgrade the LRTDepositPool and NodeDelegator implementations
+        vm.startPrank(AddressesHolesky.PROXY_OWNER);
+        upgradeDepositPool();
+        upgradeNodeDelegators();
+        vm.stopPrank();
 
         vm.startPrank(stWhale);
         ERC20(stETHAddress).approve(address(lrtDepositPool), amountToTransfer);
@@ -82,6 +79,46 @@ contract ForkHoleskyTestBase is Test {
 
         vm.prank(manager);
         lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, stETHAddress, amountToTransfer);
+    }
+
+    modifier assertAssetsInLayers(
+        address asset,
+        int256 depositPoolDiff,
+        int256 nodeDelegatorDiff,
+        int256 eigenLayerDiff
+    ) {
+        (uint256 assetsInDepositPoolBefore, uint256 assetsInNDCsBefore, uint256 assetsInEigenLayerBefore) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        _;
+
+        (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
+            lrtDepositPool.getAssetDistributionData(asset);
+
+        assertEq(
+            int256(assetsInDepositPoolAfter), int256(assetsInDepositPoolBefore) + depositPoolDiff, "deposit pool assets"
+        );
+        assertEq(int256(assetsInNDCsAfter), int256(assetsInNDCsBefore) + nodeDelegatorDiff, "NodeDelegators assets");
+        assertEq(
+            int256(assetsInEigenLayerAfter), int256(assetsInEigenLayerBefore) + eigenLayerDiff, "EigenLayer assets"
+        );
+    }
+
+    function upgradeDepositPool() internal {
+        // Deploy the latest LRTDeposit implementations
+        address depositPoolImpl = DepositPoolLib.deployImpl();
+
+        // Upgrade the proxy contracts
+        DepositPoolLib.upgrade(depositPoolImpl);
+    }
+
+    function upgradeNodeDelegators() internal {
+        // Deploy the latest DelegatorNode implementation
+        address nodeImpl = NodeDelegatorLib.deployImpl();
+
+        // Upgrade the proxy contracts
+        NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR, nodeImpl);
+        NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING, nodeImpl);
     }
 
     function deposit(address asset, address whale, uint256 depositAmount) internal {
@@ -784,7 +821,7 @@ contract ForkHoleskyTestLST is ForkHoleskyTestBase {
     }
 
     function test_RevertWhenCallingDepositAssetIntoStrategyAndCallerIsNotOperator() external {
-        vm.prank(deployer);
+        vm.prank(makeAddr("randomUser"));
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
         nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
     }
@@ -1045,7 +1082,7 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
         (uint256 ndcEthAfterRewards, uint256 eigenEthAfterRewards) =
             nodeDelegator2.getAssetBalance(AddressesHolesky.WETH_TOKEN);
         assertEq(ndcEthAfterRewards, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after consensus rewards");
-        assertEq(eigenEthAfterRewards, eigenEthBefore + 32.1 ether, "WETH/ETH in EigenLayer after consensus rewards");
+        assertEq(eigenEthAfterRewards, eigenEthBefore + 32 ether, "WETH/ETH in EigenLayer after consensus rewards");
 
         // Should fail to register a second time
         vm.expectRevert(
@@ -1162,5 +1199,66 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
 
             vm.stopPrank();
         }
+    }
+}
+
+contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
+    uint256 public constant rEthDepositAmount = 10 ether;
+
+    function setUp() public virtual override {
+        super.setUp();
+
+        // Deposit some rETH
+        vm.startPrank(rWhale);
+        ERC20(rEthAddress).approve(address(lrtDepositPool), rEthDepositAmount);
+        lrtDepositPool.depositAsset(rEthAddress, rEthDepositAmount, minPrimeAmount, referralId);
+        vm.stopPrank();
+
+        // transfer rETH to the NodeDelegator
+        vm.prank(manager);
+        lrtDepositPool.transferAssetToNodeDelegator(indexOfNodeDelegator, rEthAddress, rEthDepositAmount);
+
+        // Deposit some stETH and rETH into EigenLayer strategies
+        vm.startPrank(manager);
+        nodeDelegator1.maxApproveToEigenStrategyManager(stETHAddress);
+        nodeDelegator1.depositAssetIntoStrategy(stETHAddress);
+
+        nodeDelegator1.maxApproveToEigenStrategyManager(rEthAddress);
+        nodeDelegator1.depositAssetIntoStrategy(rEthAddress);
+        vm.stopPrank();
+    }
+
+    // delegate to the P2P EigenLayer Operator
+    function test_delegation()
+        public
+        assertAssetsInLayers(stETHAddress, 0, 0, 0)
+        assertAssetsInLayers(rEthAddress, 0, 0, 0)
+    {
+        vm.prank(AddressesHolesky.MANAGER_ROLE);
+        nodeDelegator1.delegateTo(AddressesHolesky.EIGEN_OPERATOR_P2P);
+    }
+
+    // delegateTo to a zero operator
+    function test_revertDelegateToZeroOperator() external {
+        vm.expectRevert("DelegationManager._delegate: operator is not registered in EigenLayer");
+
+        vm.prank(AddressesHolesky.MANAGER_ROLE);
+        nodeDelegator1.delegateTo(address(0));
+    }
+
+    // delegateTo to a a random address
+    function test_revertDelegateToRandomOperator() external {
+        vm.expectRevert("DelegationManager._delegate: operator is not registered in EigenLayer");
+
+        vm.prank(AddressesHolesky.MANAGER_ROLE);
+        nodeDelegator1.delegateTo(makeAddr("randomOperator"));
+    }
+
+    // delegateTo from a non-manager
+    function test_revertDelegateToNotManager() external {
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
+
+        vm.prank(makeAddr("randomUser"));
+        nodeDelegator1.delegateTo(AddressesHolesky.EIGEN_OPERATOR_P2P);
     }
 }

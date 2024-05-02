@@ -13,12 +13,15 @@ const {
   splitValidatorKey,
 } = require("./ssv");
 const { setActionVars } = require("./defender");
+const { delegate } = require("./delegation");
 const { tokenAllowance, balance, tokenApprove, tokenTransfer, tokenTransferFrom } = require("./tokens");
 const { getSigner } = require("../utils/signers");
 const { parseAddress } = require("../utils/addressParser");
 const { depositWETH, withdrawWETH } = require("./weth");
 const { resolveAsset } = require("../utils/assets");
 const { deployNodeDelegator } = require("./deploy");
+const { upgradeProxy } = require("./proxy");
+const { grantRole, revokeRole } = require("./roles");
 
 const log = require("../utils/logger")("task");
 
@@ -39,6 +42,22 @@ task("depositPrime").setAction(async (_, __, runSuper) => {
 });
 
 // Operator functions
+
+subtask("delegate", "Prime Manager delegates to an EigenLayer Operator")
+  .addParam("operator", "Address of the EigenLayer Operator", undefined, types.string)
+  .addParam("index", "Index of Node Delegator", undefined, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+
+    await delegate({ ...taskArgs, signer, nodeDelegator });
+  });
+task("delegate").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
 
 subtask("depositEL", "Deposit an asset to EigenLayer")
   .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
@@ -426,5 +445,52 @@ subtask("deployNodeDelegator", "Deploy and initialize a new Node Delegator contr
     await deployNodeDelegator({ ...taskArgs, weth, signer });
   });
 task("deployNodeDelegator").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("upgradeProxy", "Upgrade a proxy contract to a new implementation")
+  .addParam("proxy", "Address of the proxy contract", undefined, types.string)
+  .addParam("impl", "Address of the implementation contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const proxyAdminAddress = await parseAddress("PROXY_ADMIN");
+    const proxyAdmin = await ethers.getContractAt("ProxyAdmin", proxyAdminAddress);
+
+    await upgradeProxy({ ...taskArgs, proxyAdmin, signer });
+  });
+task("upgradeProxy").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+// Access control
+
+subtask("grantRole", "Grant an account or contract a role")
+  .addParam("role", "Name of the role. eg default, MANAGER or OPERATOR_ROLE", undefined, types.string)
+  .addParam("account", "Address of the account or contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const configAddress = await parseAddress("LRT_CONFIG");
+    const config = await ethers.getContractAt("LRTConfig", configAddress);
+
+    await grantRole({ ...taskArgs, config, signer });
+  });
+task("grantRole").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("revokeRole", "Revoke an account or contract a role")
+  .addParam("role", "Name of the role. eg default, MANAGER or OPERATOR_ROLE", undefined, types.string)
+  .addParam("account", "Address of the account or contract", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const configAddress = await parseAddress("LRT_CONFIG");
+    const config = await ethers.getContractAt("LRTConfig", configAddress);
+
+    await revokeRole({ ...taskArgs, config, signer });
+  });
+task("revokeRole").setAction(async (_, __, runSuper) => {
   return runSuper();
 });

@@ -9,9 +9,10 @@ import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
 
-import { IEigenPodManager } from "./eigen/interfaces/IEigenPodManager.sol";
-import { IEigenPod } from "./eigen/interfaces/IEigenPod.sol";
-import { IStrategy, IStrategyManager } from "./eigen/interfaces/IStrategyManager.sol";
+import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
+import { IEigenPodManager, IEigenPod } from "./eigen/interfaces/IEigenPodManager.sol";
+import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
+import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
@@ -207,11 +208,21 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ndcAssets += IERC20(asset).balanceOf(address(this));
 
         if (asset == WETH_TOKEN_ADDRESS) {
-            // Add any ETH in the NDC that was earned from EigenLayer
+            // Add any ETH in the NDC that was earned from execution rewards
             ndcAssets += address(this).balance;
 
             eigenAssets = stakedButNotVerifiedEth;
+
+            // Not getting ETH restaked into EigenLayer as that is not yet supported
+            // by the NodeDelegator.
+            // The WETH asset will point to the EigenLayer beaconChainETHStrategy
+            // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
+
+            // Not adding any consensus rewards that have been sent to the EigenPod.
+            // This can include forced validator withdrawals so that needs to be accounted for
+            // in a future implementation.
         } else {
+            // If an LST asset
             address strategy = lrtConfig.assetStrategy(asset);
             if (strategy != address(0)) {
                 eigenAssets = IStrategy(strategy).userUnderlyingView(address(this));
@@ -268,6 +279,18 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit ETHStaked(pubkey, 32 ether);
     }
 
+    /// @notice Delegates all staked assets from this NodeDelegator to an EigenLayer Operator.
+    /// This includes both both LSTs and native ETH.
+    /// @param operator the address of the EigenLayer Operator to delegate to.
+    function delegateTo(address operator) external onlyLRTManager {
+        address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
+        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
+
+        delegationManager.delegateTo(
+            operator, ISignatureUtils.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
+        );
+    }
+
     /// @dev Triggers stopped state. Contract must not be paused.
     function pause() external onlyLRTManager {
         _pause();
@@ -298,6 +321,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
 
+    /// @dev Registers a new validator in the SSV Cluster
     function registerSsvValidator(
         bytes calldata publicKey,
         uint64[] calldata operatorIds,
@@ -314,6 +338,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
 
-    /// @dev allow NodeDelegator to receive ETH rewards
+    /// @dev allow NodeDelegator to receive execution rewards from MEV and
+    /// ETH from WETH withdrawals.
+    /// Is not required to receive consensus rewards from the BeaconChain.
     receive() external payable { }
 }
