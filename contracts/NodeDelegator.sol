@@ -220,7 +220,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // The WETH asset will point to the EigenLayer beaconChainETHStrategy 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
         address strategy = lrtConfig.assetStrategy(asset);
-        if (strategy != address(0)) {
+        if (strategy != address(0) && asset != WETH_TOKEN_ADDRESS) {
             // Get the amount of strategy shares owned by this NodeDelegator contract.
             // Currently this only include LST assets as EigenLayer restaking is
             // not yet supported by this NodeDelegator contract. The WETH asset will
