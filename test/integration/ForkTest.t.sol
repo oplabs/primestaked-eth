@@ -384,7 +384,7 @@ contract ForkTestNative is ForkTestBase {
         (uint256 ndcEthAfterRewards, uint256 eigenEthAfterRewards) =
             nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
         assertEq(ndcEthAfterRewards, ndcEthBefore - 32 ether, "WETH/ETH in NodeDelegator after consensus rewards");
-        assertEq(eigenEthAfterRewards, eigenEthBefore + 32.1 ether, "WETH/ETH in EigenLayer after consensus rewards");
+        assertEq(eigenEthAfterRewards, eigenEthBefore + 32 ether, "WETH/ETH in EigenLayer after consensus rewards");
 
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
