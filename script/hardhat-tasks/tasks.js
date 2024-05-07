@@ -294,7 +294,7 @@ task("getClusterInfo").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeDelegator")
+subtask("depositSSV", "Deposit SSV tokens from the NodeDelegator into an SSV Cluster")
   .addParam("amount", "Amount of SSV tokens to deposit", undefined, types.float)
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
   .addParam(
@@ -310,8 +310,9 @@ subtask("depositSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
     const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const ssvNetwork = await parseAddress("SSV_NETWORK");
 
-    await depositSSV({ ...taskArgs, signer, nodeDelegator, chainId: network.chainId });
+    await depositSSV({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
   });
 task("depositSSV").setAction(async (_, __, runSuper) => {
   return runSuper();
