@@ -218,9 +218,27 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
         ndcAssets += IERC20(asset).balanceOf(address(this));
 
-        // The WETH asset will point to the EigenLayer beaconChainETHStrategy 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
-        address strategy = lrtConfig.assetStrategy(asset);
-        if (strategy != address(0) && asset != WETH_TOKEN_ADDRESS) {
+        if (asset == WETH_TOKEN_ADDRESS) {
+            // Add any ETH in the NDC that was earned from execution rewards
+            ndcAssets += address(this).balance;
+
+            eigenAssets += stakedButNotVerifiedEth;
+
+            // Not getting ETH restaked into EigenLayer as that is not yet supported
+            // by the NodeDelegator.
+            // The WETH asset will point to the EigenLayer beaconChainETHStrategy
+            // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
+
+            // Not adding any consensus rewards that have been sent to the EigenPod.
+            // This can include forced validator withdrawals so that needs to be accounted for
+            // in a future implementation.
+        } else {
+            // If an LST asset
+            address strategy = lrtConfig.assetStrategy(asset);
+            if (strategy == address(0)) {
+                return (ndcAssets, eigenAssets);
+            }
+
             // Get the amount of strategy shares owned by this NodeDelegator contract.
             // Currently this only include LST assets as EigenLayer restaking is
             // not yet supported by this NodeDelegator contract. The WETH asset will
@@ -236,17 +254,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
             // Convert the strategy shares to LST assets
             eigenAssets = IStrategy(strategy).sharesToUnderlyingView(strategyShares);
-        }
-
-        if (asset == WETH_TOKEN_ADDRESS) {
-            // Add any ETH in the NDC that was earned from execution rewards
-            ndcAssets += address(this).balance;
-
-            eigenAssets += stakedButNotVerifiedEth;
-
-            // Not adding any consensus rewards that have been sent to the EigenPod.
-            // This can include forced validator withdrawals so that needs to be accounted for
-            // in a future implementation.
         }
     }
 
