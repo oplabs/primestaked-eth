@@ -25,10 +25,11 @@ contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = 19_379_670;
+        deployBlockNum = 19_797_845;
     }
 
     function _execute() internal override {
+        console.log("Running deploy script UpgradeNodeDelegatorDelegateTo");
         // Deploy a new implementation of NodeDelegator
         newNodeDelegatorImpl = NodeDelegatorLib.deployImpl();
     }

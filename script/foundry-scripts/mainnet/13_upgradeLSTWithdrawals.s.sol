@@ -30,6 +30,7 @@ contract UpgradeLSTWithdrawals is BaseMainnetScript {
     }
 
     function _execute() internal override {
+        console.log("Running deploy script UpgradeLSTWithdrawals");
         // Deploy new LTRDepositPool implementation
         newDepositPoolImpl = DepositPoolLib.deployImpl();
 
