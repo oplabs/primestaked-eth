@@ -189,6 +189,7 @@ contract ForkTestNative is ForkTestBase {
         validatorStakeData.push(
             ValidatorStakeData({
                 pubkey: hex"89535bb35adad8f1fc023d03dc724923a4e765f531b58428c348175cff56a23cf3f482c2d0c9caef90f0591a6425f024",
+                // solhint-disable-next-line max-line-length
                 signature: hex"b4ca3495c75c52e13a2c4e6544a7bede58b0decc904376d76311a8577db0cc3beab7444ef9a11517bb0f3758a0a289c305ad3813393b93e5792611da8f35229fba0e25d5156702bdb851d42a26f7e4638d87f7a1ffc339c9613c88f9cff7493f",
                 depositDataRoot: 0x4741601b5977fa2afefe3d28e6614a107758d5c4e5a5eaa187d3e7216b9407b0
             })
