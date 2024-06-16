@@ -109,7 +109,7 @@ contract ForkTestBase is Test {
         });
         emit Transfer(address(0), whale, amountToTransfer);
 
-        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
+        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 97 / 100, referralId);
         vm.stopPrank();
 
         // Get after asset balances
@@ -471,7 +471,7 @@ contract ForkTestNative is ForkTestBase {
         if (sendEthWithACall) {
             address(primeZapper).call{ value: amountToTransfer }("");
         } else {
-            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 99 / 100, referralId);
+            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 97 / 100, referralId);
         }
 
         vm.stopPrank();
