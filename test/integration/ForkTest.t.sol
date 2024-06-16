@@ -226,7 +226,7 @@ contract ForkTestNative is ForkTestBase {
             networkFeeIndex: 60_025_270_074,
             index: 291_898_093_718,
             active: true,
-            balance: 4_747_140_052_000_000_000
+            balance: 6_747_140_052_000_000_000
         });
 
         // These are the operatorIds for the first SSV Cluster. These will not be used going forward
