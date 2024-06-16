@@ -23,7 +23,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     // The NodeDelegator index to request LST withdrawals from. eg OETH
     uint256 public constant LST_NDC_INDEX = 0;
 
-    address public immutable WETH_TOKEN_ADDRESS;
+    address public immutable WETH;
 
     uint256 public maxNodeDelegatorLimit;
     uint256 public minAmountToDeposit;
@@ -32,9 +32,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address[] public nodeDelegatorQueue;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _wethAddress) {
-        UtilLib.checkNonZeroAddress(_wethAddress);
-        WETH_TOKEN_ADDRESS = _wethAddress;
+    constructor(address _weth) {
+        UtilLib.checkNonZeroAddress(_weth);
+        WETH = _weth;
 
         _disableInitializers();
     }
@@ -209,7 +209,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         }
 
         // Only LST withdraws are currently supported
-        if (asset == WETH_TOKEN_ADDRESS) {
+        if (asset == WETH) {
             revert OnlyLSTWithdrawals();
         }
 

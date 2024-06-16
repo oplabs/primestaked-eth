@@ -29,7 +29,7 @@ struct ValidatorStakeData {
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
-    address public immutable WETH_TOKEN_ADDRESS;
+    address public immutable WETH;
 
     /// @dev The EigenPod is created and owned by this contract
     address public eigenPod;
@@ -49,9 +49,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     mapping(address => uint256) public pendingInternalShareWithdrawals;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _wethAddress) {
-        UtilLib.checkNonZeroAddress(_wethAddress);
-        WETH_TOKEN_ADDRESS = _wethAddress;
+    constructor(address _weth) {
+        UtilLib.checkNonZeroAddress(_weth);
+        WETH = _weth;
 
         _disableInitializers();
     }
@@ -168,11 +168,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         address lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
 
         // Convert any ETH to WETH before transferring
-        if (asset == WETH_TOKEN_ADDRESS) {
+        if (asset == WETH) {
             uint256 ethBalance = address(this).balance;
             if (ethBalance > 0) {
                 // Convert any ETH into WETH
-                IWETH(WETH_TOKEN_ADDRESS).deposit{ value: ethBalance }();
+                IWETH(WETH).deposit{ value: ethBalance }();
             }
         }
 
@@ -218,7 +218,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
         ndcAssets += IERC20(asset).balanceOf(address(this));
 
-        if (asset == WETH_TOKEN_ADDRESS) {
+        if (asset == WETH) {
             // Add any ETH in the NDC that was earned from execution rewards
             ndcAssets += address(this).balance;
 
@@ -267,12 +267,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         uint256 requiredETH = validators.length * 32 ether;
         if (ethBalance < requiredETH) {
             // If not enough native ETH, convert WETH to native ETH
-            uint256 wethBalance = IWETH(WETH_TOKEN_ADDRESS).balanceOf(address(this));
+            uint256 wethBalance = IWETH(WETH).balanceOf(address(this));
             if (wethBalance + ethBalance < requiredETH) {
                 revert InsufficientWETH(wethBalance + ethBalance);
             }
             // Convert WETH asset to native ETH
-            IWETH(WETH_TOKEN_ADDRESS).withdraw(requiredETH - ethBalance);
+            IWETH(WETH).withdraw(requiredETH - ethBalance);
         }
 
         // For each validator
