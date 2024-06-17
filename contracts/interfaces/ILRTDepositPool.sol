@@ -16,7 +16,7 @@ interface ILRTDepositPool {
     error NodeDelegatorHasAssetBalance(address assetAddress, uint256 assetBalance); // 0xef008f08
     error ZeroAmount(); // 0x1f2a2005
     error MaxBurnAmount(); // 0x711d466b
-    error OnlyLSTWithdrawals(); // 0xc6096d4d
+    error NotWithdrawAsset(); // 0xfaf6a48f
 
     //events
     event MaxNodeDelegatorLimitUpdated(uint256 maxNodeDelegatorLimit);

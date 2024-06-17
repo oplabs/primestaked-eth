@@ -1027,7 +1027,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         uint256 stEthWithdrawalAmount = 0.6 ether;
         uint256 maxPrimeEthAmount = 0.7 ether;
 
-        vm.expectRevert(ILRTDepositPool.OnlyLSTWithdrawals.selector);
+        vm.expectRevert(ILRTDepositPool.NotWithdrawAsset.selector);
         vm.prank(stWhale);
         lrtDepositPool.requestWithdrawal(AddressesHolesky.WETH_TOKEN, stEthWithdrawalAmount, maxPrimeEthAmount);
     }
@@ -1037,7 +1037,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         uint256 stEthWithdrawalAmount = 0.6 ether;
         uint256 maxPrimeEthAmount = 0.7 ether;
 
-        vm.expectRevert(ILRTConfig.AssetNotSupported.selector);
+        vm.expectRevert(ILRTDepositPool.NotWithdrawAsset.selector);
         vm.prank(stWhale);
         lrtDepositPool.requestWithdrawal(makeAddr("randomAsset"), stEthWithdrawalAmount, maxPrimeEthAmount);
     }

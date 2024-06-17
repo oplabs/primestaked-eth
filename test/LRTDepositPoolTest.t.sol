@@ -6,17 +6,27 @@ import { BaseTest } from "./BaseTest.t.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeStakedETHTest, ILRTConfig, UtilLib, LRTConstants } from "./PrimeStakedETHTest.t.sol";
 import { ILRTDepositPool } from "contracts/interfaces/ILRTDepositPool.sol";
+import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
+import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
 
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 contract LRTOracleMock {
-    function getAssetPrice(address) external pure returns (uint256) {
-        return 1e18;
+    mapping(address => uint256) public assetPrice;
+
+    function getAssetPrice(address asset) external view returns (uint256) {
+        return assetPrice[asset];
     }
 
     function primeETHPrice() external pure returns (uint256) {
-        return 1e18;
+        // primeETH has grown 1% in value
+        return 1.01e18;
+    }
+
+    function setAssetPrice(address asset, uint256 price) external {
+        assetPrice[asset] = price;
     }
 }
 
@@ -46,10 +56,14 @@ contract MockNodeDelegator {
         assetBalances[0] = 0;
         assetBalances[1] = 0;
     }
+
+    function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external { }
+    function claimWithdrawal(IDelegationManager.Withdrawal calldata withdrawal, address staker) external { }
 }
 
 contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     LRTDepositPool public lrtDepositPool;
+    LRTOracleMock public lrtOracle;
 
     uint256 public minimunAmountOfPRETHToReceive;
     string public referralId;
@@ -61,7 +75,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
 
         // deploy LRTDepositPool
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        LRTDepositPool contractImpl = new LRTDepositPool(address(weth));
+        LRTDepositPool contractImpl = new LRTDepositPool(address(weth), address(ethX));
         TransparentUpgradeableProxy contractProxy =
             new TransparentUpgradeableProxy(address(contractImpl), address(proxyAdmin), "");
 
@@ -73,7 +87,11 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
         // add prETH to LRT config
         lrtConfig.setPrimeETH(address(preth));
         // add oracle to LRT config
-        lrtConfig.setContract(LRTConstants.LRT_ORACLE, address(new LRTOracleMock()));
+        lrtOracle = new LRTOracleMock();
+        lrtOracle.setAssetPrice(address(weth), 1e18);
+        lrtOracle.setAssetPrice(address(stETH), 0.9997e18);
+        lrtOracle.setAssetPrice(address(ethX), 1.0324e18);
+        lrtConfig.setContract(LRTConstants.LRT_ORACLE, address(lrtOracle));
 
         // add minter role for preth to lrtDepositPool
         lrtConfig.grantRole(LRTConstants.MINTER_ROLE, address(lrtDepositPool));
@@ -185,7 +203,8 @@ contract LRTDepositPoolDepositAsset is LRTDepositPoolTest {
 
     function test_FuzzDepositAsset(uint256 amountDeposited) external {
         uint256 stETHDepositLimit = lrtConfig.depositLimitByAsset(address(stETH));
-        vm.assume(amountDeposited > 0 && amountDeposited <= stETHDepositLimit);
+        // The asset price is < 1 so amountDeposited = 1 will mint zero primeETH
+        vm.assume(amountDeposited > 1 && amountDeposited <= stETHDepositLimit);
 
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
@@ -205,6 +224,7 @@ contract LRTDepositPoolDepositAsset is LRTDepositPoolTest {
 
 contract LRTDepositPoolGetRsETHAmountToMint is LRTDepositPoolTest {
     address public ethXAddress;
+    uint256 public primeEthPrice = 1.01e18;
 
     function setUp() public override {
         super.setUp();
@@ -221,16 +241,24 @@ contract LRTDepositPoolGetRsETHAmountToMint is LRTDepositPoolTest {
         lrtConfig.updateAssetDepositLimit(ethXAddress, amountToDeposit);
         vm.stopPrank();
 
+        uint256 assetPrice = lrtOracle.getAssetPrice(ethXAddress);
+
         assertEq(
-            lrtDepositPool.getMintAmount(ethXAddress, amountToDeposit), 1 ether, "RsETH amount to mint is incorrect"
+            lrtDepositPool.getMintAmount(ethXAddress, amountToDeposit),
+            amountToDeposit * assetPrice / primeEthPrice,
+            "RsETH amount to mint is incorrect"
         );
     }
 
     function test_GetRsETHAmountToMintWhenAssetisNativeETH() external {
         uint256 amountToDeposit = 1 ether;
 
+        uint256 assetPrice = 1e18;
+
         assertEq(
-            lrtDepositPool.getMintAmount(address(0), amountToDeposit), 1 ether, "RsETH amount to mint is incorrect"
+            lrtDepositPool.getMintAmount(address(weth), amountToDeposit),
+            amountToDeposit * assetPrice / primeEthPrice,
+            "RsETH amount to mint is incorrect"
         );
     }
 }
@@ -999,11 +1027,30 @@ contract LRTDepositPoolPause is LRTDepositPoolTest {
     }
 
     function test_Pause() external {
-        vm.startPrank(manager);
+        vm.prank(manager);
         lrtDepositPool.pause();
-        vm.stopPrank();
 
         assertTrue(lrtDepositPool.paused(), "LRTDepositPool is not paused");
+    }
+
+    function test_DepositWhenPaused() external {
+        vm.prank(manager);
+        lrtDepositPool.pause();
+
+        vm.expectRevert("Pausable: paused");
+
+        vm.prank(alice);
+        lrtDepositPool.depositAsset(address(ethX), 1 ether, 0, referralId);
+    }
+
+    function test_WithdrawWhenPaused() external {
+        vm.prank(manager);
+        lrtDepositPool.pause();
+
+        vm.expectRevert("Pausable: paused");
+
+        vm.prank(alice);
+        lrtDepositPool.requestWithdrawal(address(ethX), 1 ether, 1.1 ether);
     }
 }
 
@@ -1033,3 +1080,94 @@ contract LRTDepositPoolUnpause is LRTDepositPoolTest {
         assertFalse(lrtDepositPool.paused(), "LRTDepositPool is not unpaused");
     }
 }
+
+contract LRTDepositPoolWithdrawAsset is LRTDepositPoolTest {
+    address public ethXAddress;
+
+    function setUp() public override {
+        super.setUp();
+
+        // initialize LRTDepositPool
+        lrtDepositPool.initialize(address(lrtConfig));
+
+        ethXAddress = address(ethX);
+
+        address[] memory assets = new address[](2);
+        assets[0] = address(stETH);
+        assets[1] = address(ethX);
+
+        uint256[] memory assetBalances = new uint256[](2);
+        assetBalances[0] = 1 ether;
+        assetBalances[1] = 1 ether;
+
+        address nodeDelegatorContractOne = address(new MockNodeDelegator(assets, assetBalances));
+        address nodeDelegatorContractTwo = address(new MockNodeDelegator(assets, assetBalances));
+        address nodeDelegatorContractThree = address(new MockNodeDelegator(assets, assetBalances));
+
+        address[] memory nodeDelegatorQueue = new address[](3);
+        nodeDelegatorQueue[0] = nodeDelegatorContractOne;
+        nodeDelegatorQueue[1] = nodeDelegatorContractTwo;
+        nodeDelegatorQueue[2] = nodeDelegatorContractThree;
+
+        vm.startPrank(admin);
+        lrtDepositPool.addNodeDelegatorContractToQueue(nodeDelegatorQueue);
+
+        // add mockStrategy to LRTConfig
+        uint256 mockUserUnderlyingViewBalance = 10 ether;
+        MockStrategy ethXMockStrategy = new MockStrategy(address(ethX), mockUserUnderlyingViewBalance, 1.02e18);
+        MockStrategy stETHMockStrategy = new MockStrategy(address(stETH), mockUserUnderlyingViewBalance, 1.005e18);
+
+        lrtConfig.updateAssetStrategy(address(ethX), address(ethXMockStrategy));
+        lrtConfig.updateAssetStrategy(address(stETH), address(stETHMockStrategy));
+
+        // add burner role to lrtDepositPool so it can burn primeETH
+        lrtConfig.grantRole(LRTConstants.BURNER_ROLE, address(lrtDepositPool));
+
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        ethX.approve(address(lrtDepositPool), 2 ether);
+        lrtDepositPool.depositAsset(ethXAddress, 2 ether, 0, referralId);
+        vm.stopPrank();
+    }
+
+    function test_RevertWhenWithdrawAmountIsZero() external {
+        vm.expectRevert(ILRTDepositPool.ZeroAmount.selector);
+        lrtDepositPool.requestWithdrawal(ethXAddress, 0, 0);
+    }
+
+    function test_RevertWhenAssetIsNotSupported() external {
+        address randomAsset = makeAddr("randomAsset");
+
+        vm.expectRevert(ILRTDepositPool.NotWithdrawAsset.selector);
+        lrtDepositPool.requestWithdrawal(randomAsset, 1 ether, 1 ether);
+    }
+
+    function test_WithdrawAsset() external {
+        // alice balance of prETH before deposit
+        uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
+
+        uint256 withdrawAmount = 1 ether;
+        uint256 maxPrimeETHToBurn = lrtDepositPool.getMintAmount(ethXAddress, withdrawAmount);
+
+        vm.prank(alice);
+        lrtDepositPool.requestWithdrawal(ethXAddress, withdrawAmount, maxPrimeETHToBurn);
+
+        // alice balance of prETH after deposit
+        uint256 aliceBalanceAfter = preth.balanceOf(address(alice));
+
+        assertLt(aliceBalanceAfter, aliceBalanceBefore, "Alice balance is not set");
+    }
+
+    function test_FuzzWithdrawAsset(uint256 withdrawAmount) external {
+        // uint256 stETHDepositLimit = lrtConfig.depositLimitByAsset(address(stETH));
+        vm.assume(withdrawAmount > 0 && withdrawAmount <= 2 ether);
+
+        uint256 maxPrimeETHToBurn = lrtDepositPool.getMintAmount(ethXAddress, withdrawAmount);
+
+        vm.prank(alice);
+        lrtDepositPool.requestWithdrawal(ethXAddress, withdrawAmount, maxPrimeETHToBurn);
+    }
+}
+
+// TODO add requestWithdrawal and claimWithdrawal unit tests

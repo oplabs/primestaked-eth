@@ -95,8 +95,8 @@ contract NodeDelegatorTest is LRTConfigTest {
 
         // add mockStrategy to LRTConfig
         mockUserUnderlyingViewBalance = 10 ether;
-        ethXMockStrategy = new MockStrategy(address(ethX), mockUserUnderlyingViewBalance);
-        stETHMockStrategy = new MockStrategy(address(stETH), mockUserUnderlyingViewBalance);
+        ethXMockStrategy = new MockStrategy(address(ethX), mockUserUnderlyingViewBalance, 1.01e18);
+        stETHMockStrategy = new MockStrategy(address(stETH), mockUserUnderlyingViewBalance, 1.02e18);
 
         lrtConfig.updateAssetStrategy(address(ethX), address(ethXMockStrategy));
         lrtConfig.updateAssetStrategy(address(stETH), address(stETHMockStrategy));
@@ -349,8 +349,8 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
 
         // sends token to nodeDelegator so it can deposit it into the strategy
         vm.startPrank(bob);
-        ethX.transfer(address(nodeDel), 10 ether);
         stETH.transfer(address(nodeDel), 5 ether);
+        ethX.transfer(address(nodeDel), 10 ether);
         weth.transfer(address(nodeDel), 2 ether);
         vm.stopPrank();
 
@@ -376,8 +376,8 @@ contract NodeDelegatorGetAssetBalances is NodeDelegatorTest {
         assertEq(assets[1], address(ethX), "ethX not asset 1");
         assertEq(assets[2], address(weth), "WETH not asset 2");
         assertEq(assetBalances.length, 3, "Incorrect number of asset balances");
-        assertEq(assetBalances[0], mockUserUnderlyingViewBalance, "Incorrect asset balance for stETH");
-        assertEq(assetBalances[1], mockUserUnderlyingViewBalance, "Incorrect asset balance for ethX");
+        assertEq(assetBalances[0], 5 ether - 1, "Incorrect asset balance for stETH");
+        assertEq(assetBalances[1], 10 ether - 1, "Incorrect asset balance for ethX");
         assertEq(assetBalances[2], 2e18, "Incorrect asset balance for WETH");
     }
 }
@@ -406,7 +406,7 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
         (uint256 ethXInNDC, uint256 ethXInEigenLayer) = nodeDel.getAssetBalance(address(ethX));
 
         assertEq(ethXInNDC, 0, "ETHx in NodeDelegator");
-        assertEq(ethXInEigenLayer, mockUserUnderlyingViewBalance, "ETHx in EigenLayer");
+        assertEq(ethXInEigenLayer, 6 ether - 1, "ETHx in EigenLayer");
     }
 }
 

@@ -24,6 +24,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     uint256 public constant LST_NDC_INDEX = 0;
 
     address public immutable WETH;
+    address public immutable WITHDRAW_ASSET;
 
     uint256 public maxNodeDelegatorLimit;
     uint256 public minAmountToDeposit;
@@ -32,9 +33,11 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address[] public nodeDelegatorQueue;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _weth) {
+    constructor(address _weth, address _withdrawAsset) {
         UtilLib.checkNonZeroAddress(_weth);
+        UtilLib.checkNonZeroAddress(_withdrawAsset);
         WETH = _weth;
+        WITHDRAW_ASSET = _withdrawAsset;
 
         _disableInitializers();
     }
@@ -201,16 +204,15 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         external
         whenNotPaused
         nonReentrant
-        onlySupportedAsset(asset)
         returns (uint256 primeETHAmount)
     {
         if (assetAmount == 0) {
             revert ZeroAmount();
         }
 
-        // Only LST withdraws are currently supported
-        if (asset == WETH) {
-            revert OnlyLSTWithdrawals();
+        // Can only withdraw the supported asset
+        if (asset != WITHDRAW_ASSET) {
+            revert NotWithdrawAsset();
         }
 
         // Convert asset amount to primeETH amount.
