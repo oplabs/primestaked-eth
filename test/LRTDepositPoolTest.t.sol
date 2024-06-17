@@ -58,7 +58,13 @@ contract MockNodeDelegator {
     }
 
     function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external { }
-    function claimWithdrawal(IDelegationManager.Withdrawal calldata withdrawal, address staker) external { }
+    function claimWithdrawal(
+        IDelegationManager.Withdrawal calldata withdrawal,
+        address staker
+    )
+        external
+        returns (address asset, uint256 assets)
+    { }
 }
 
 contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
@@ -1052,6 +1058,19 @@ contract LRTDepositPoolPause is LRTDepositPoolTest {
         vm.prank(alice);
         lrtDepositPool.requestWithdrawal(address(ethX), 1 ether, 1.1 ether);
     }
+
+    function test_ClaimWithdrawWhenPaused() external {
+        vm.prank(manager);
+        lrtDepositPool.pause();
+
+        // Assign an empty withdrawal for unit testing
+        IDelegationManager.Withdrawal memory withdrawal;
+
+        vm.expectRevert("Pausable: paused");
+
+        vm.prank(alice);
+        lrtDepositPool.claimWithdrawal(withdrawal);
+    }
 }
 
 contract LRTDepositPoolUnpause is LRTDepositPoolTest {
@@ -1168,6 +1187,12 @@ contract LRTDepositPoolWithdrawAsset is LRTDepositPoolTest {
         vm.prank(alice);
         lrtDepositPool.requestWithdrawal(ethXAddress, withdrawAmount, maxPrimeETHToBurn);
     }
-}
 
-// TODO add requestWithdrawal and claimWithdrawal unit tests
+    function test_ClaimWithdrawAsset() external {
+        // Assign an empty withdrawal for unit testing
+        IDelegationManager.Withdrawal memory withdrawal;
+
+        vm.prank(alice);
+        lrtDepositPool.claimWithdrawal(withdrawal);
+    }
+}
