@@ -103,7 +103,7 @@ jobs:
 
       - name: "Show the Foundry config"
         run: "forge config"
-      
+
       - name: "Run holesky fork tests"
         run: |
           export FORK_RPC_URL=${{ secrets.HOLESKY_RPC_URL }}
