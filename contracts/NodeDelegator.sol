@@ -447,10 +447,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         IDelegationManager.QueuedWithdrawalParams[] memory requests = new IDelegationManager.QueuedWithdrawalParams[](1);
         requests[0] = IDelegationManager.QueuedWithdrawalParams(strategies, shares, address(this));
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
+        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
 
         // request the withdrawal from EigenLayer.
         // Will emit the Withdrawal event from EigenLayer's DelegationManager which is needed for the claim.
-        withdrawalRoot = IDelegationManager(delegationManagerAddress).queueWithdrawals(requests)[0];
+        withdrawalRoot = delegationManager.queueWithdrawals(requests)[0];
     }
 
     /// @notice Claims the previously requested withdrawal from EigenLayer's underlying strategy.
