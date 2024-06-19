@@ -11,6 +11,7 @@ import { LRTConstants } from "./utils/LRTConstants.sol";
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
 
 import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
+import { IDelayedWithdrawalRouter } from "./eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IEigenPodManager, IEigenPod } from "./eigen/interfaces/IEigenPodManager.sol";
 import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
 import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
@@ -38,6 +39,9 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     uint256 public stakedButNotVerifiedEth;
 
     uint256 internal constant DUST_AMOUNT = 10;
+    uint256 public constant FULL_STAKE = 32 ether;
+    uint256 public constant MIN_SLASHED_AMOUNT = 26 ether;
+
     mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
 
     /// @dev Maps the withdrawalRoots from the EigenLayer DelegationManager to the staker requesting the withdrawal.
@@ -393,6 +397,93 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
         ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
+    }
+
+    /// @dev Initiates an exit from a validator in the SSV Cluster
+    /// The staked ETH will eventually swept to the EigenPod.
+    /// Only the Operator can call this function.
+    /// @param publicKey The public key of the validator
+    /// @param operatorIds The operator IDs of the SSV Cluster
+    function exitSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds
+    )
+        external
+        onlyLRTOperator
+        whenNotPaused
+    {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).exitValidator(publicKey, operatorIds);
+    }
+
+    /// @dev Remove a validator from the SSV Cluster.
+    /// Make sure `exitSsvValidator` is called before and the validate has exited the Beacon chain.
+    /// If removed before the validator has exited the beacon chain will result in the validator being slashed.
+    /// Only the Operator can call this function.
+    /// @param publicKey The public key of the validator
+    /// @param operatorIds The operator IDs of the SSV Cluster
+    /// @param cluster The SSV cluster details including the validator count and SSV balance
+    function removeSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds,
+        Cluster calldata cluster
+    )
+        external
+        onlyLRTOperator
+        whenNotPaused
+    {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).removeValidator(publicKey, operatorIds, cluster);
+    }
+
+    /// @dev Withdraw all ether in the EigenPod which can be from beacon consensus rewards or validator exits.
+    /// The ether will be sent to the EigenLayer's DelayedWithdrawalRouter contract where it can be claimed after seven
+    /// days.
+    function requestEthWithdrawal() external onlyLRTOperator {
+        if (eigenPod == address(0)) {
+            revert NoEigenPod();
+        }
+        IEigenPod(eigenPod).withdrawBeforeRestaking();
+    }
+
+    /// @dev Claim previously requested ether withdrawals from EigenLayer's DelayedWithdrawalRouter contract.
+    /// Need to account if the ether is from validator exits or beacon chain consensus rewards.
+    function claimEthWithdrawal() external onlyLRTOperator {
+        uint256 ethBefore = address(this).balance;
+
+        address delayerWithdrawalRouter = lrtConfig.getContract(LRTConstants.EIGEN_DELAYED_WITHDRAWAL_ROUTER);
+        // Only claim one withdrawal request at a time to make the accounting easier
+        IDelayedWithdrawalRouter(delayerWithdrawalRouter).claimDelayedWithdrawals(1);
+
+        uint256 ethClaimed = address(this).balance - ethBefore;
+
+        uint256 fullyWithdrawnValidators;
+        // Account for the claimed ether
+        if (ethClaimed >= FULL_STAKE) {
+            // explicitly cast to uint256 as we want to round to a whole number of validators
+            fullyWithdrawnValidators = uint256(ethClaimed / FULL_STAKE);
+            stakedButNotVerifiedEth -= fullyWithdrawnValidators * FULL_STAKE;
+
+            emit WithdrawnValidators(fullyWithdrawnValidators, stakedButNotVerifiedEth);
+        }
+
+        uint256 ethRemaining = ethClaimed - fullyWithdrawnValidators * FULL_STAKE;
+        // should be less than a whole validator stake
+        require(ethRemaining < FULL_STAKE, "Unexpected accounting");
+
+        // If no Beacon chain consensus rewards swept
+        if (ethRemaining == 0) {
+            // do nothing
+        } else if (ethRemaining < MIN_SLASHED_AMOUNT) {
+            // Beacon chain consensus rewards swept (partial validator withdrawals)
+            emit ConsensusRewards(ethRemaining);
+        } else {
+            // Beacon chain consensus rewards swept but also a slashed validator fully exited
+            stakedButNotVerifiedEth -= FULL_STAKE;
+            emit SlashedValidator(ethRemaining, stakedButNotVerifiedEth);
+        }
     }
 
     /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.

@@ -11,6 +11,9 @@ interface INodeDelegator {
     event ETHStaked(bytes valPubKey, uint256 amount);
     event ETHRewardsWithdrawInitiated(uint256 amount);
     event ETHRewardsClaimed(uint256 amount);
+    event ConsensusRewards(uint256 amount);
+    event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
+    event SlashedValidator(uint256 slashedAmount, uint256 stakedButNotVerifiedEth);
 
     // errors
     error TokenTransferFailed(); // 0x045c4b02
@@ -21,6 +24,7 @@ interface INodeDelegator {
     error StakersWithdrawalNotFound(); // 0x0110c83d
     error NotInternalWithdrawal(); // 0xb1345ad5
     error NotSingleStrategyWithdrawal(); // 0xc18ea890
+    error NoEigenPod(); // 5dd90f17
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
@@ -37,6 +41,9 @@ interface INodeDelegator {
     function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
         external
         returns (address asset, uint256 assets);
+
+    function requestEthWithdrawal() external;
+    function claimEthWithdrawal() external;
 
     function maxApproveToEigenStrategyManager(address asset) external;
 

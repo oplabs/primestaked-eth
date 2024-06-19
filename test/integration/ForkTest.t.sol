@@ -11,6 +11,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
+import { IDelayedWithdrawalRouter } from "contracts/eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
@@ -535,9 +536,42 @@ contract ForkTestNative is ForkTestBase {
     }
 
     // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
+
+    function test_requestEthWithdrawal() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
+        uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
+        assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
+
+        nodeDelegator2.requestEthWithdrawal();
+
+        vm.roll(block.number + 50_400);
+
+        // Check the last withdrawal request can be claimed
+        uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
+            .userWithdrawalsLength(address(nodeDelegator2));
+        assertTrue(
+            IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
+                address(nodeDelegator2), withdrawalRequests - 1
+            ),
+            "can claim withdrawal"
+        );
+
+        nodeDelegator2.claimEthWithdrawal();
+
+        assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
+        assertEq(
+            address(nodeDelegator2).balance,
+            nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
+            "NodeDelegator balance after"
+        );
+
+        vm.stopPrank();
+    }
 }
 
-contract ForkTestLST is ForkTestBase {
+contract c is ForkTestBase {
     function setUp() public override {
         super.setUp();
 
