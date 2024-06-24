@@ -318,7 +318,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         );
     }
 
-    /// @notice Undelegates all staked assets from this NodeDelegator from the
+    /// @notice Undelegates all staked LST assets from this NodeDelegator from the
     /// previously delegated to EigenLayer Operator.
     /// This also forces a withdrawal so the assets will need to be claimed.
     function undelegate() external onlyLRTManager {
@@ -331,9 +331,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // For each asset
         address[] memory assets = lrtConfig.getSupportedAssetList();
         for (uint256 i = 0; i < assets.length; ++i) {
-            // Get the EigenLayer strategy for the asset
-            // The WETH asset will point to the EigenLayer beaconChainETHStrategy
-            // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
+            // Skip WETH as ETH restaked into EigenLayer is not yet supported by the NodeDelegator.
+            if (assets[i] == WETH) {
+                continue;
+            }
+
+            // Get the EigenLayer strategy for the LST asset
             address strategy = lrtConfig.assetStrategy(assets[i]);
 
             // account for the strategy shares pending internal withdrawal
