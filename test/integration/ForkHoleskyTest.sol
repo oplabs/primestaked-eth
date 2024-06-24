@@ -924,7 +924,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         assertEq(requestLogs[0].topics[1], bytes32(uint256(uint160(stWhale))));
         assertEq(requestLogs[0].topics[2], bytes32(0)); // zero address
         console.log("primeETH burnt ", abi.decode(requestLogs[0].data, (uint256)));
-        uint256 expectPrimeEthBurnt = 0.5976 ether;
+        uint256 expectPrimeEthBurnt = 0.5976 ether + 1;
         assertEq(requestLogs[0].data, abi.encode(expectPrimeEthBurnt));
 
         assertEq(

@@ -216,8 +216,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         }
 
         // Convert asset amount to primeETH amount.
-        // Using mint function here even though it's a withdrawal as it does the same calculation
-        primeETHAmount = getMintAmount(asset, assetAmount);
+        // Using mint function here even though it's a withdrawal as it does the same calculation.
+        // We round up the primeETH amount for withdrawals as the the divide by the primeETH exchange rate will truncate
+        // down.
+        primeETHAmount = getMintAmount(asset, assetAmount) + 1;
 
         // Check the primeETH amount to be burned is within the maximum allowed
         if (primeETHAmount > maxPrimeETH) {
