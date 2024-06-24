@@ -330,7 +330,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
 
         // For each asset
         address[] memory assets = lrtConfig.getSupportedAssetList();
-        for (uint256 i = 0; i < assets.length;) {
+        for (uint256 i = 0; i < assets.length; ++i) {
             // Get the EigenLayer strategy for the asset
             // The WETH asset will point to the EigenLayer beaconChainETHStrategy
             // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
@@ -339,10 +339,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // account for the strategy shares pending internal withdrawal
             pendingInternalShareWithdrawals[strategy] +=
                 strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
-
-            unchecked {
-                ++i;
-            }
         }
 
         delegationManager.undelegate(address(this));
