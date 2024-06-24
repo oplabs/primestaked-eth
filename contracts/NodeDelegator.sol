@@ -413,6 +413,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         bytes32 withdrawalRoot = _requestWithdrawal(strategyAddress, strategyShares);
 
         // store a mapping of the returned withdrawalRoot to the staker withdrawing
+        require(withdrawalRequests[withdrawalRoot] == address(0), "Withdrawal already requested");
         withdrawalRequests[withdrawalRoot] = staker;
     }
 
