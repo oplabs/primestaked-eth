@@ -221,7 +221,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // Add any ETH in the NDC that was earned from execution rewards
             ndcAssets += address(this).balance;
 
-            eigenAssets += stakedButNotVerifiedEth;
+            eigenAssets = stakedButNotVerifiedEth;
 
             // Not getting ETH restaked into EigenLayer as that is not yet supported
             // by the NodeDelegator.
