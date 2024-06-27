@@ -315,6 +315,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         delegationManager.delegateTo(
             operator, ISignatureUtils.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
         );
+
+        emit Delegate(operator);
     }
 
     /// @notice Undelegates all staked LST assets from this NodeDelegator from the
@@ -338,9 +340,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // Get the EigenLayer strategy for the LST asset
             address strategy = lrtConfig.assetStrategy(assets[i]);
 
+            uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
             // account for the strategy shares pending internal withdrawal
-            pendingInternalShareWithdrawals[strategy] +=
-                strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
+            pendingInternalShareWithdrawals[strategy] += strategyShares;
+
+            emit Undelegate(strategy, strategyShares);
         }
 
         delegationManager.undelegate(address(this));
@@ -413,6 +417,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         // store a mapping of the returned withdrawalRoot to the staker withdrawing
         require(withdrawalRequests[withdrawalRoot] == address(0), "Withdrawal already requested");
         withdrawalRequests[withdrawalRoot] = staker;
+
+        emit RequestWithdrawal(strategyAddress, withdrawalRoot, staker, strategyShares);
     }
 
     /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.
@@ -424,10 +430,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param strategyShares the amount of EigenLayer strategy shares to redeem
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external onlyLRTOperator {
         // request the withdrawal of the LSTs from EigenLayer's underlying strategy.
-        _requestWithdrawal(strategyAddress, strategyShares);
+        bytes32 withdrawalRoot = _requestWithdrawal(strategyAddress, strategyShares);
 
         // account for the pending withdrawal as the shares are no longer accounted for in the EigenLayer strategy
         pendingInternalShareWithdrawals[strategyAddress] += strategyShares;
+
+        emit RequestWithdrawal(strategyAddress, withdrawalRoot, address(0), strategyShares);
     }
 
     /// @dev request the withdrawal of the LSTs from EigenLayer's underlying strategy.
@@ -495,6 +503,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // transfer withdrawn assets to the staker
             IERC20(asset).transfer(staker, assets);
         }
+
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, assets);
     }
 
     /// @notice Claims the previously requested internal withdrawal from the underlying EigenLayer strategy.
@@ -543,6 +553,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // transfer withdrawn assets to the Deposit Pool
             IERC20(asset).transfer(lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL), assets);
         }
+
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, address(0), assets);
     }
 
     /// @dev Returns the keccak256 hash of `withdrawal`.

@@ -11,6 +11,14 @@ interface INodeDelegator {
     event ETHStaked(bytes valPubKey, uint256 amount);
     event ETHRewardsWithdrawInitiated(uint256 amount);
     event ETHRewardsClaimed(uint256 amount);
+    event RequestWithdrawal(
+        address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 strategyShares
+    );
+    event ClaimWithdrawal(
+        address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 assets
+    );
+    event Delegate(address indexed operator);
+    event Undelegate(address indexed strategy, uint256 strategyShares);
 
     // errors
     error TokenTransferFailed(); // 0x045c4b02
