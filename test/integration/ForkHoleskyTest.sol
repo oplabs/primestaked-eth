@@ -949,9 +949,9 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
 
         // WithdrawalRequested event on the LRTDepositPool contract
         assertEq(
-            requestLogs[2].topics[0], keccak256("WithdrawalRequested(address,address,address,uint256,uint256,uint256)")
+            requestLogs[3].topics[0], keccak256("WithdrawalRequested(address,address,address,uint256,uint256,uint256)")
         );
-        assertEq(requestLogs[2].topics[0], 0x92072c627ec1da81f8268b3cfb3c02bbbeedc12c21134faf4457469147619947);
+        assertEq(requestLogs[3].topics[0], 0x92072c627ec1da81f8268b3cfb3c02bbbeedc12c21134faf4457469147619947);
 
         (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
@@ -1368,7 +1368,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
 
-        vm.expectRevert("DelegationManager._completeQueuedWithdrawal: action is not in queue");
+        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
     }
@@ -1895,7 +1895,7 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
         // decode the withdrawalRoot and withdrawal event data emitted in the undelegate tx
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
         (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+            abi.decode(requestLogs[5].data, (bytes32, IDelegationManager.Withdrawal));
 
         // Claim the withdrawn stETH
         vm.prank(AddressesHolesky.OPERATOR_ROLE);

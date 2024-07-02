@@ -27,6 +27,7 @@ struct ValidatorStakeData {
 /// @title NodeDelegator Contract
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
+    address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH;
 
@@ -484,6 +485,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         if (withdrawalRequests[withdrawalRoot] != staker) {
             revert StakersWithdrawalNotFound();
         }
+        withdrawalRequests[withdrawalRoot] = DEAD_ADDRESS;
 
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = IStrategy(withdrawal.strategies[0]).underlyingToken();
