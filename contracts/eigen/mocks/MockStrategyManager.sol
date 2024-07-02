@@ -15,7 +15,7 @@ contract MockStrategyManager {
     function depositIntoStrategy(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares) {
         token.transferFrom(msg.sender, address(strategy), amount);
 
-        shares = amount;
+        shares = strategy.underlyingToShares(amount);
 
         depositorStrategyShareBalances[msg.sender][address(strategy)] += shares;
 

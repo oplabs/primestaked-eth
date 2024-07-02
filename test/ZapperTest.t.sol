@@ -29,14 +29,15 @@ contract ZapperTest is BaseTest, LRTDepositPoolTest {
         // alice balance of prETH before deposit
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
-        primeZapper.deposit{ value: 2 ether }((2 ether * 99 / 100), referralId);
+        primeZapper.deposit{ value: 2 ether }((2 ether * 98 / 100), referralId);
 
         // Alice's balance of prETH after deposit
         uint256 aliceBalanceAfter = preth.balanceOf(address(alice));
         vm.stopPrank();
 
         assertEq(lrtDepositPool.getTotalAssetDeposits(wethAddress), 2 ether, "Total asset deposits is not set");
-        assertGe(aliceBalanceAfter - aliceBalanceBefore, 2 ether, "Alice balance too low");
+        uint256 primeEthPrice = lrtOracle.primeETHPrice();
+        assertGe(aliceBalanceAfter - aliceBalanceBefore, 2 ether * 1e18 / primeEthPrice, "Alice balance too low");
     }
 
     function test_sendETH() external {
@@ -53,6 +54,7 @@ contract ZapperTest is BaseTest, LRTDepositPoolTest {
         vm.stopPrank();
 
         assertEq(lrtDepositPool.getTotalAssetDeposits(wethAddress), 2 ether, "Total asset deposits is not set");
-        assertGe(aliceBalanceAfter - aliceBalanceBefore, 2 ether, "Alice balance too low");
+        uint256 primeEthPrice = lrtOracle.primeETHPrice();
+        assertGe(aliceBalanceAfter - aliceBalanceBefore, 2 ether * 1e18 / primeEthPrice, "Alice balance too low");
     }
 }

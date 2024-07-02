@@ -34,6 +34,12 @@ contract BaseTest is Test {
         rETH = new MockToken("Rocket Pool ETH", "rETH");
         cbETH = new MockToken("Coinbase ETH", "cbETH");
 
+        vm.label(address(stETH), "stETH");
+        vm.label(address(ethX), "ethX");
+        vm.label(address(weth), "weth");
+        vm.label(address(rETH), "rETH");
+        vm.label(address(cbETH), "cbETH");
+
         // mint LST tokens to alice, bob and carol
         mintLSTTokensForUsers(stETH);
         mintLSTTokensForUsers(ethX);

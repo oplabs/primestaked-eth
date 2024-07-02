@@ -131,6 +131,15 @@ interface ISSVNetwork {
     )
         external;
 
+    function bulkRegisterValidator(
+        bytes[] calldata publicKeys,
+        uint64[] memory operatorIds,
+        bytes[] calldata sharesData,
+        uint256 amount,
+        Cluster memory cluster
+    )
+        external;
+
     function removeOperator(uint64 operatorId) external;
 
     function removeValidator(bytes memory publicKey, uint64[] memory operatorIds, Cluster memory cluster) external;

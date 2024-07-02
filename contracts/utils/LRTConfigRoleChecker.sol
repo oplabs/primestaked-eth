@@ -46,6 +46,14 @@ abstract contract LRTConfigRoleChecker {
         _;
     }
 
+    /// @dev Check the caller is the LRTDepositPool contract
+    modifier onlyDepositPool() {
+        if (lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL) != msg.sender) {
+            revert ILRTConfig.CallerNotLRTDepositPool();
+        }
+        _;
+    }
+
     modifier onlySupportedAsset(address asset) {
         if (!lrtConfig.isSupportedAsset(asset)) {
             revert ILRTConfig.AssetNotSupported();
