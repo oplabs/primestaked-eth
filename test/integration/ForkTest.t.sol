@@ -740,7 +740,7 @@ contract ForkTestLST is ForkTestBase {
     }
 
     // staker withdrawal of LST
-    function test_staker_lst_withdrawal() public {
+    function test_staker_lst_withdrawal_partial() public {
         address asset = Addresses.OETH_TOKEN;
         deposit(asset, oWhale, 1 ether);
         transfer_DelegatorNode(asset, 1 ether);
@@ -750,6 +750,45 @@ contract ForkTestLST is ForkTestBase {
 
         uint256 withdrawAssetAmount = 0.9 ether;
         uint256 primeAmount = withdrawAssetAmount;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Claim the previously requested withdrawal
+        lrtDepositPool.claimWithdrawal(withdrawal);
+
+        assertApproxEqAbs(
+            IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei"
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_staker_lst_withdrawal_full() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 1 ether);
+        transfer_DelegatorNode(asset, 1 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleAssetsBefore = IERC20(asset).balanceOf(oWhale);
+
+        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(oWhale);
+
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
 
         vm.recordLogs();
 
