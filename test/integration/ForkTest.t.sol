@@ -742,21 +742,22 @@ contract ForkTestLST is ForkTestBase {
     // staker withdrawal of LST
     function test_staker_lst_withdrawal_partial() public {
         address asset = Addresses.OETH_TOKEN;
-        deposit(asset, oWhale, 1 ether);
-        transfer_DelegatorNode(asset, 1 ether);
+        deposit(asset, oWhale, 6 ether);
+        transfer_DelegatorNode(asset, 6 ether);
         transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
 
         uint256 whaleAssetsBefore = IERC20(asset).balanceOf(oWhale);
 
-        uint256 withdrawAssetAmount = 0.9 ether;
-        uint256 primeAmount = withdrawAssetAmount;
+        uint256 primeAmount = 5 ether;
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
 
         vm.recordLogs();
 
         vm.startPrank(oWhale);
 
         // Staker requests an OETH withdrawal
-        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount + 1);
 
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
