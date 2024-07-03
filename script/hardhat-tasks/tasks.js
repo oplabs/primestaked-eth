@@ -80,7 +80,7 @@ task("claimWithdrawal").setAction(async (_, __, runSuper) => {
 // Operator functions
 
 subtask("requestInternalWithdrawal", "Prime Operator requests LST withdrawal from the EigenLayer strategy")
-  .addParam("shares", "Amount of EigenLayer strategy shares", undefined, types.float)
+  .addOptionalParam("shares", "Amount of EigenLayer strategy shares. Default to all shares", undefined, types.float)
   .addOptionalParam(
     "symbol",
     "Symbol of the strategy's LST token. eg OETH, stETH, mETH... but not WETH",
