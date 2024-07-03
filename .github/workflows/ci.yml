@@ -75,7 +75,7 @@ jobs:
         run: "forge config"
 
       - name: "Generate a fuzz seed that changes weekly to avoid burning through RPC allowance"
-        run: >
+        run: |
           echo "FOUNDRY_FUZZ_SEED=$(
             echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
           )" >> $GITHUB_ENV
