@@ -79,6 +79,7 @@ jobs:
           echo "FOUNDRY_FUZZ_SEED=$(
             echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
           )" >> $GITHUB_ENV
+          echo $GITHUB_ENV
 
       - name: "Run unit tests"
         run: |
