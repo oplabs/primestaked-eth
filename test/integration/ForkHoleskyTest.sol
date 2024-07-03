@@ -1312,10 +1312,10 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
             3,
             "Whale's stETH balance should increase with 3 wei tolerance"
         );
-        // 2 wei is lost on the stETH transfer to the whale
+        // Up to 3 wei is lost on the stETH transfers and truncation
         assertGe(
             IERC20(stETHAddress).balanceOf(address(stWhale)),
-            stETHBalanceBefore + stEthWithdrawalAmount - 2,
+            stETHBalanceBefore + stEthWithdrawalAmount - 3,
             "Whale's stETH balance should increase by at least the requested amount"
         );
         assertEq(
