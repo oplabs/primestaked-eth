@@ -1299,11 +1299,11 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         console.log("logs from claimWithdrawal", requestLogs.length);
 
         // WithdrawalClaimed event from LRTDepositPool
-        assertEq(requestLogs[5].topics[0], keccak256("WithdrawalClaimed(address,address,uint256)"));
+        assertEq(requestLogs[6].topics[0], keccak256("WithdrawalClaimed(address,address,uint256)"));
         // assertEq(requestLogs[0].topics[0], 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef);
-        assertEq(requestLogs[5].topics[1], bytes32(uint256(uint160(stWhale))));
-        assertEq(requestLogs[5].topics[2], bytes32(uint256(uint160(stETHAddress))));
-        uint256 actualAssets = abi.decode(requestLogs[5].data, (uint256));
+        assertEq(requestLogs[6].topics[1], bytes32(uint256(uint160(stWhale))));
+        assertEq(requestLogs[6].topics[2], bytes32(uint256(uint160(stETHAddress))));
+        uint256 actualAssets = abi.decode(requestLogs[6].data, (uint256));
         assertApproxEqAbs(actualAssets, stEthWithdrawalAmount, 2, "WithdrawalClaimed.assets with 2 wei tolerance");
 
         assertApproxEqAbs(
@@ -1312,12 +1312,12 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
             3,
             "Whale's stETH balance should increase with 3 wei tolerance"
         );
-        // This currently fails as wei is lost on the stETH transfers
-        // assertGe(
-        //     IERC20(stETHAddress).balanceOf(address(stWhale)),
-        //     stETHBalanceBefore + stEthWithdrawalAmount,
-        //     "Whale's stETH balance should increase by at least the requested amount"
-        // );
+        // 2 wei is lost on the stETH transfer to the whale
+        assertGe(
+            IERC20(stETHAddress).balanceOf(address(stWhale)),
+            stETHBalanceBefore + stEthWithdrawalAmount - 2,
+            "Whale's stETH balance should increase by at least the requested amount"
+        );
         assertEq(
             primeETH.balanceOf(address(stWhale)),
             primeETHBalanceBefore,
