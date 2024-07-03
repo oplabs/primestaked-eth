@@ -13,6 +13,7 @@ import { UpgradeDepositPoolNodeDelegatorOracles } from "./09_upgradeDepositPoolN
 import { DeployNativeETH } from "./10_deployNativeETH.s.sol";
 import { UnpauseNativeETH } from "./11_unpauseNativeETH.s.sol";
 import { UpgradeNodeDelegatorDelegateTo } from "./12_upgradeNodeDelegatorDelegateTo.s.sol";
+import { UpgradeLSTWithdrawals } from "./13_upgradeLSTWithdrawals.s.sol";
 
 contract DeployAll {
     // Ignores this contract when checking contract sized with
@@ -32,5 +33,6 @@ contract DeployAll {
         (new DeployNativeETH()).run();
         (new UnpauseNativeETH()).run();
         (new UpgradeNodeDelegatorDelegateTo()).run();
+        (new UpgradeLSTWithdrawals()).run();
     }
 }

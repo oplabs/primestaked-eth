@@ -76,3 +76,75 @@ tx
 `tx2uml value 0xbb9c26b621ce45ae734188fbd37d659a5b4cf8449a627e1c25646d95db471197 -v -cf ./prime.config.json -hf`
 
 ![depositAssetsIntoStrategy value](./vbb9c1197.svg)
+
+## Staker requests withdrawal of stETH
+
+tx
+[0x515e226d7ecb9f0c6705e297f0a5bf9abc3d71840a344fc2c580fe6407a2e46a](https://holesky.etherscan.io/tx/0x515e226d7ecb9f0c6705e297f0a5bf9abc3d71840a344fc2c580fe6407a2e46a)
+on Holesky.
+
+`tx2uml 0x515e226d7ecb9f0c6705e297f0a5bf9abc3d71840a344fc2c580fe6407a2e46a -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![requestWithdrawal](./515ee46a.svg)
+
+## Staker claims withdrawal of stETH
+
+tx
+[0xc6aa0bc886d60b79613885c1f7e26fe5e7833a949d2f9568dbbff2a91c756383](https://holesky.etherscan.io/tx/0xc6aa0bc886d60b79613885c1f7e26fe5e7833a949d2f9568dbbff2a91c756383)
+on Holesky.
+
+`tx2uml 0xc6aa0bc886d60b79613885c1f7e26fe5e7833a949d2f9568dbbff2a91c756383 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![claimWithdrawal](./c6aa6383.svg)
+
+## Prime Operator requests internal withdrawal of stETH
+
+tx
+[0x318133d4bd263a58598bdd6fb9e09ac7e58c263a0bb23d2fedf6a7e17f09d583](https://holesky.etherscan.io/tx/0x318133d4bd263a58598bdd6fb9e09ac7e58c263a0bb23d2fedf6a7e17f09d583)
+on Holesky.
+
+`tx2uml 0x318133d4bd263a58598bdd6fb9e09ac7e58c263a0bb23d2fedf6a7e17f09d583 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![requestInternalWithdrawal](./3181d583.svg)
+
+## Prime Operator claims internal withdrawal of stETH
+
+tx
+[0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552](https://holesky.etherscan.io/tx/0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552)
+on Holesky.
+
+`tx2uml 0x67e302c97bdc73e40bbf6fca3d85affa25a11b9fc201945cdfcd291951c21552 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![claimInternalWithdrawal](./67e31552.svg)
+
+## Prime Manager delegates to P2P EigenLayer Operator for LST Node Delegator
+
+tx
+[0x29b4158349ae1315fb9c0d57f688d3b094b989c35d89b10f0f915e008c62a007](https://holesky.etherscan.io/tx/0x29b4158349ae1315fb9c0d57f688d3b094b989c35d89b10f0f915e008c62a007)
+on Holesky.
+
+`tx2uml 0x29b4158349ae1315fb9c0d57f688d3b094b989c35d89b10f0f915e008c62a007 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![LST delegateTo](./29b4a007.svg)
+
+## Prime Manager undelegates from P2P EigenLayer Operator for LST Node Delegator
+
+tx
+[0x2d45c7bf6e4a73803b77146007aee777d1e667dac8bd933d3920a51bdc3e0329](https://holesky.etherscan.io/tx/0x2d45c7bf6e4a73803b77146007aee777d1e667dac8bd933d3920a51bdc3e0329)
+on Holesky.
+
+`tx2uml 0x2d45c7bf6e4a73803b77146007aee777d1e667dac8bd933d3920a51bdc3e0329 -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![LST undelegate](./2d450329.svg)
+
+## Prime Manager undelegates from P2P EigenLayer Operator for Native ETH Node Delegator
+
+Native ETH has been staked but not restaked into EigenLayer so there are no shares in the EigenLayer for native ETH.
+
+tx
+[0x63486f6520742ebac0aa3994409937804fa077f5926f9538a584239d5ac83b4b](https://holesky.etherscan.io/tx/0x63486f6520742ebac0aa3994409937804fa077f5926f9538a584239d5ac83b4b)
+on Holesky.
+
+`tx2uml 0x63486f6520742ebac0aa3994409937804fa077f5926f9538a584239d5ac83b4b -x -v -c holesky -e https://api-holesky.etherscan.io/api -k ${HOLESKY_ETHERSCAN_API_KEY} -u ${ARCHIVE_NODE_URL}`
+
+![ETH undelegate](./63483b4b.svg)

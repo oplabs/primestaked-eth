@@ -20,16 +20,20 @@ import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
 import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
-contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
+contract UpgradeLSTWithdrawals is BaseMainnetScript {
+    address newDepositPoolImpl;
     address newNodeDelegatorImpl;
 
     constructor() {
         // Will only execute script before this block number
-        deployBlockNum = 19_797_845;
+        // deployBlockNum = 19_379_670;
     }
 
     function _execute() internal override {
-        console.log("Running deploy script UpgradeNodeDelegatorDelegateTo");
+        console.log("Running deploy script UpgradeLSTWithdrawals");
+        // Deploy new LTRDepositPool implementation
+        newDepositPoolImpl = DepositPoolLib.deployImpl();
+
         // Deploy a new implementation of NodeDelegator
         newNodeDelegatorImpl = NodeDelegatorLib.deployImpl();
     }
@@ -39,6 +43,9 @@ contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
         vm.startPrank(Addresses.PROXY_OWNER);
         console.log("Impersonating proxy admin owner: %s", Addresses.PROXY_OWNER);
 
+        // Upgrade the DepositPool to new implementation
+        DepositPoolLib.upgrade(newDepositPoolImpl);
+
         // Upgrade the NodeDelegators to new implementation
         NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorImpl);
         NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR_NATIVE_STAKING, newNodeDelegatorImpl);
@@ -46,10 +53,9 @@ contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
 
         vm.startPrank(Addresses.ADMIN_ROLE);
         console.log("Impersonating Admin: %s", Addresses.ADMIN_ROLE);
-        // set EIGEN_DELEGATION_MANAGER address in LRTConfig
-        LRTConfig(Addresses.LRT_CONFIG).setContract(
-            LRTConstants.EIGEN_DELEGATION_MANAGER, Addresses.EIGEN_DELEGATION_MANAGER
-        );
+
+        // add burner role to lrtDepositPool so it can burn primeETH
+        LRTConfig(Addresses.LRT_CONFIG).grantRole(LRTConstants.BURNER_ROLE, address(Addresses.LRT_DEPOSIT_POOL));
 
         vm.stopPrank();
     }

@@ -74,7 +74,7 @@ const getDefenderSigner = async () => {
   const client = new Defender(credentials);
   const provider = client.relaySigner.getProvider();
 
-  const signer = client.relaySigner.getSigner(provider, { speed });
+  const signer = await client.relaySigner.getSigner(provider, { speed });
   log(
     `Using Defender Relayer account ${await signer.getAddress()} from env vars DEFENDER_RELAYER_KEY and DEFENDER_RELAYER_SECRET with speed "${speed}"`,
   );

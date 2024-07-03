@@ -10,7 +10,9 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
+import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
+import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
 import { IEigenPod } from "contracts/eigen/interfaces/IEigenPod.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
@@ -107,7 +109,7 @@ contract ForkTestBase is Test {
         });
         emit Transfer(address(0), whale, amountToTransfer);
 
-        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 99 / 100, referralId);
+        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 97 / 100, referralId);
         vm.stopPrank();
 
         // Get after asset balances
@@ -168,11 +170,14 @@ contract ForkTestNative is ForkTestBase {
     address internal constant wWhale = 0x57757E3D981446D585Af0D9Ae4d7DF6D64647806;
     address internal constant wWhale2 = 0x8EB8a3b98659Cce290402893d0123abb75E3ab28;
 
-    // Get the result.validatorRegistrationTxs[0].data from the P2P Check Status Request
-    // removed the 0x06e8fb9c function signature (4 bytes) from the validatorRegistrationTxs.data
+    // Get the result.validatorRegistrationTxs[0].data from the P2P Check Status Request.
+    // removed the 0x22f18bf5 function signature (4 bytes) from the validatorRegistrationTxs.data
+    // which calls bulkRegisterValidator on the SSVNetwork
+    // function bulkRegisterValidator(bytes[] calldata publicKeys, uint64[] calldata operatorIds,
+    // bytes[] calldata sharesData, uint256 amount, ISSVNetworkCore.Cluster memory cluster)
     bytes internal validatorRegistrationTx =
     // solhint-disable-next-line max-line-length
-        hex"0000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000001da247dd09839800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030873a2ca88b927811a0aca4998899802c10cc04cea344ddbf6682ea9b08890af131c0c708512ac631fa13a0cf6c3afa5200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000c300000000000000000000000000000000000000000000000000000000000000c600000000000000000000000000000000000000000000000000000000000000c9000000000000000000000000000000000000000000000000000000000000052098eef29c28418655939ab445d4055469758378d55dda16379334b6d0a6b6a08f7ab7f157cf48dbb0c157a93a308368cd18af9253a3ec4795a2aa9d54f7363b7e26594b2387308c9a17cf006cf20eaa6200d33ed7551c2ffa59c7bc46d73968f48a0ee942559518d6a975173656c32a75e274b1f8dbc996d7f9a756da3efc5aa57a36243b642c751674cf769c101e3388b385a358034921f979d566da8129ae1897839863912e9f34c13299c5d761cd5695572df0b51e62eca2f55b5d0b16e06792eb1dabf157f619be81921f2aa29445d2a55db8e81f5f982ab955476dbc5e8ed2e70843fe1d929ea8b15aadeb0522a49089c01266dfc97c1aa47ed72df79e1e71c194dd3c60a83319771574159fb64f6a6ba6dac16f52e0a65472b1d90d34e09977690fd96cfed424190313a7adbb195f0f1ad97913d2419933800d05ee2cf0e3088cfee25df6d51640aaba4a1028d4e6885fae080985cc7d8ff24a7409b1493e1c9f09df1419bac0f1d0ebf0c7cf1f151becfb660bc0e6430cd783b6ccb7bf20b49611ded65cf6e59809b7c6e895fd5e35e4d24d1b7a03e189246985f99607f9f5bbcdea9f2cf32ebcb369a9d6ca6134cd0ef296e69453031764d3cfed7f8f503bbcca4621761e3c4fbd6c1b7e2d020d53b8c72b6f0642d59a9287e2ee684b51b0f00b123373c683a4d6e958866e84083ab95d13ef8f1abe6bc27635a97c5b3e5ec2148513e58c5b6cf8a553ba3f12bd1c77c322e5b3040014124ee3d3a25ea0fad90b05d3261a03fa036548b29ab4fe5065b08514be6753388c3a3805636210d2307d4855aad180f6069f45d79e11cb4e8da79dd09c092b2fd70f0bfde45c00d65d2cc2369bd48af6c808c1cd1971e83a123dafd2e12dce5ac3d655e9b9a6fa8338f12abc06de1ceb6846e09de88d2e287342c8e2d2b9a5a8b292babbf2dc3fa052db41436fb0cb988b662897668c158d201e733510c6b6bdb6124d59f5a3464c9d585a4006d119a64eda827f663d8ca89384ed933b2a0d3b69048e65dbaf10a937cd0f9b020cddfba930f34db72d96f0bb8e7555b01e4f6b5f79a72f78d95dbd96f2ff5b96c1736756b0e237104c0cee4ad6e270dcb2f2c765a6e2688c7389681b88c8df4d14ba84dd3310b3f5d65dc5960b9a3895e60c4d8767871fce22dbdd4fb0e6aa3b466f3530992b3a60b91f62ecc0bf2a1ee57ab3d2a6c94ad438e28e0430708351f04bdf600ec3e4e1f6b9058413d3c383554c12a8aafd6ec28d40b0a4f35b5b697eb9344f6a0b358fa01e822c0f3974dd5d9b8ece1ac3514ad2f9df0a8092c1975df1e992d4963283d320ac8029c018c2156487e4226eddd22070a9421fc09b6fd21059cd47f72b065e5bbc79f31013b8d556b9a135e63a3c2b570c87de2b31180438024b196febb78babe13e3e7c364ea6cafe55182d0a0d6fa358379f8f2c00c62240d9811b03d4fcf2b80ff73aa290f2891f8346cd8f11dd6fa4ecef2da3da0ab47548fb6d77e61a83eea90aec59dabc35768e5165ca4b8f54800a382640bb3b11024efe28d15512665ce5f748d6b32466eda2d8dfed7fce3e0ca28d8f8859de4cd85afed13fb609999ce5dde1f1d0664c613d2fd42d0478fee82cd071572977137f95c390897065778a07377f54094a6885c7ffd23d0f12f5b1bd66cea8547953600ad88dfc86a25aecd9b2a74dd9c477821e3c77321e9f6a29d8377763b7ab84d8504d1df8355d8c870ffb2319c8b06baa1006c236c51970f70ddab21934af1e5450487628dea636e0039863df035a022fcce2a8df311fde9e4322b9651154238bdd99c9d73ae3535827c66561231a32ec8879f68fbe9c";
+        hex"000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000002600000000000000000000000000000000000000000000000001731ef08f035d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003089535bb35adad8f1fc023d03dc724923a4e765f531b58428c348175cff56a23cf3f482c2d0c9caef90f0591a6425f024000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000015c000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001690000000000000000000000000000000000000000000000000000000000000179000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000520837954075577abc2e7c04c7d4221c88d5f85d067cdd68a788c6c73696d4913c2c94d63a46d72dab85eff64347346eaed16675de56476413d9cbab145dc87ff1891c5743bfe216270af49cf9ec0f4969f90608bc97e2ebeff597e73577b75e1b2930e5a17461e1d68b1400c4e33f925428d990014f89d6973bb92ad24ffb4e0731622c3910afc2f10d2edbf93f18358dfa60635f8a77d63fc2ed00fb8bcc66328a4eff4494005a0d56840b8fe9fabe89e38b19d4fe687001591f6ce5a62db6fa694d5d4f583f341765330486cc9abad8272d71e699792be3354c265d58b6b7e567a5ac47f7e20fe87efe23ecc3fc431eb9229a80dbb2ede331bf989f2315a6ea139b3f480cd46f68c855fbf9136df82e4bc43d7f679ac145d53c100d656e7bc643f3c9701efaca27aab7105eea7062a2b2417918b90fed3babe7168ef13af098992e8f64c445dc95e6c9a2f1c3a545772048222c92dd3336e23315c8a11a08ede569726097c7627e2bcd7a83d176d315a20263acd43b64e810e3873a264be4e3f9f475b137a2e821dba303755812f546639a211c47d331c84001d1b87628cbee31adefbcddadfb7a25e636e8f9810265e1eedf93d14a4ecd37758a2812c6238423a9377a6dce42d575e77d4bc7c39f3693be239311975726f2488b36b6d9776a715a7aaf61bac5c05edc487cbcea76195dfb5bbc601fa07e0d353af9846ec997cdcbbc4b8d89773818f6f1be8b4568654226ab493482563aa8c61b9985b65be989e8ed8430288da363945888d5ce4273babcd5b7c8aa008b7ef35ece0ade513f5505e22fb9ce8f4e1517648d1679dd12aff8c64ebfffe3be562fd34bc84385d0fcb7323449ec719ab26c6c37340e3f09ca7cd56134653ff4baf046dfc1e90d97b3ea38577a746fafef4c5057c9a6c6a2626296adce28aedd38a4d107786242716227950908ffcfed1ba0777f4f273b6e6add74a75c132578228378cb32664d35c4b55069794ffe037f72f1dfee6bf7c860dd5abdaf02ef49e4c8dc64dca7bf98eefcfe2078990e4aebdd2cbea3ecc787f3c9af161d2df93cc9fb1b3883ab57406061d03cb8ab4bd019390968f0e94564be96ebaa90bc0ddc5f02cc8f266db3ed788fbe8963664fca3deec9afc004b17c4d5af91c4d643a435332339d113c5c3ec67ecc1e52a03e8e9994c09354b539e049980d5a80a239ac8eb5a2c006806ed750377176af878b21d894f093a5bafa7e72dc749d5d1ee36c0496c582488393b210348c66a9a42e44f04a4faa1e122f393ae1247d74b22200972342597db768d65494cf861234bf1d1cd72ea16a7f128092e7e90122a308cdb457bada97e4c5a16dbbc1a36bbb1d346212cc9b842daa7448bbf008277d1beefef02bc93493052a9d368b4c0211ffebe6c9fa5368b99eb12a51efb7882b5237d29bb8e51065e644514073a9d0c4dbd1d530c147d8bebfe7be830cdbb6169066b5bc7fc8c7b20a4e82f9d325ba0b5ed4590de6b5f08f80d07f9af54445136c3040e9a63c2df130df336f2a764e35e68dc3d6a714c80b8780d1dd3819a7786497aa0bb3327da449efce04549b9b3a79a29d32d1ce88d8acfbd76ff8ae9bf077f53f66f7f6b5155accfedc6d26d65f61af0a25e43f1839b1169210ab1a06dcbb02df9f9e4d5dceb4e8f1d040ce387ed42ef5164c1530913a7fb9689f0d59bc3b4f455ef49c9de08a5c19998151d07e96c1f9b856c993291b50a0a5844a8bcf28ef246455a46c505499bd498cf6ff86b20d660500d844cf95dcd771b95f85ad0143133ba068bbd0465959d2c3440eaeaf82d3bf3476f25ab506f964a72f437cdee9a6259d3de5abf258f";
     ValidatorStakeData[] internal validatorStakeData;
 
     function setUp() public override {
@@ -183,11 +188,10 @@ contract ForkTestNative is ForkTestBase {
 
         validatorStakeData.push(
             ValidatorStakeData({
-                pubkey: hex"873a2ca88b927811a0aca4998899802c10cc04cea344ddbf6682ea9b08890af131c0c708512ac631fa13a0cf6c3afa52",
-                signature: hex"a9757db51dc91096840ecefc801da6b6691aeb8fd806ff838d4001264a765f3c"
-                    hex"9224e38d1eb86bab57e62ef5e1c65ab811c305cba81e87887978191118713fd3"
-                    hex"8e96e94b12c7c9f9f0b175da873b943abd592dfce83e998d3dde5595d289b249",
-                depositDataRoot: 0xbff953046f19698fc3ae1ca8b50e1a03c2af2f899057a47fd5a655a9a6501e42
+                pubkey: hex"89535bb35adad8f1fc023d03dc724923a4e765f531b58428c348175cff56a23cf3f482c2d0c9caef90f0591a6425f024",
+                // solhint-disable-next-line max-line-length
+                signature: hex"b4ca3495c75c52e13a2c4e6544a7bede58b0decc904376d76311a8577db0cc3beab7444ef9a11517bb0f3758a0a289c305ad3813393b93e5792611da8f35229fba0e25d5156702bdb851d42a26f7e4638d87f7a1ffc339c9613c88f9cff7493f",
+                depositDataRoot: 0x4741601b5977fa2afefe3d28e6614a107758d5c4e5a5eaa187d3e7216b9407b0
             })
         );
     }
@@ -223,7 +227,7 @@ contract ForkTestNative is ForkTestBase {
             networkFeeIndex: 60_025_270_074,
             index: 291_898_093_718,
             active: true,
-            balance: 4_747_140_052_000_000_000
+            balance: 6_747_140_052_000_000_000
         });
 
         // These are the operatorIds for the first SSV Cluster. These will not be used going forward
@@ -299,10 +303,7 @@ contract ForkTestNative is ForkTestBase {
 
         // Add ETH to the Node Delegator to simulate ETH rewards
         uint256 rewards = 0.01 ether;
-        vm.startPrank(wWhale);
-        IWETH(Addresses.WETH_TOKEN).withdraw(rewards);
-        IWETH(Addresses.WETH_TOKEN).transfer(Addresses.NODE_DELEGATOR_NATIVE_STAKING, rewards);
-        vm.stopPrank();
+        addEther(Addresses.NODE_DELEGATOR_NATIVE_STAKING, rewards);
 
         // Get after asset balances
         (uint256 assetsDepositPoolAfter, uint256 assetsNDCsAfter, uint256 assetsElAfter) =
@@ -325,21 +326,28 @@ contract ForkTestNative is ForkTestBase {
         (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
 
         (
-            bytes memory publicKey,
+            bytes[] memory publicKeys,
             uint64[] memory operatorIds,
-            bytes memory sharesData,
+            bytes[] memory sharesData,
             uint256 amount,
             Cluster memory cluster
-        ) = abi.decode(validatorRegistrationTx, (bytes, uint64[], bytes, uint256, Cluster));
+        ) = abi.decode(validatorRegistrationTx, (bytes[], uint64[], bytes[], uint256, Cluster));
         console.log("publicKey:");
-        console.logBytes(publicKey);
+        console.logBytes(publicKeys[0]);
+        console.log("sharesData:");
+        console.logBytes(sharesData[0]);
         console.log("operator id: 0 %s", operatorIds[0]);
         console.log("operator id: 1 %s", operatorIds[1]);
         console.log("operator id: 2 %s", operatorIds[2]);
         console.log("operator id: 3 %s", operatorIds[3]);
-        console.log("SSV amount: %e", amount);
+        console.log("SSV deposit amount: %e", amount);
+        console.log("SSV cluster validators: %d", cluster.validatorCount);
+        console.log("SSV cluster networkFeeIndex: %d", cluster.networkFeeIndex);
+        console.log("SSV cluster index: %d", cluster.index);
+        console.log("SSV cluster active: ", cluster.active);
+        console.log("SSV cluster balance: %e", cluster.balance);
 
-        nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
+        nodeDelegator2.registerSsvValidator(publicKeys[0], operatorIds, sharesData[0], amount, cluster);
 
         (uint256 ndcEthAfter, uint256 eigenEthAfter) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
         assertEq(ndcEthAfter, ndcEthBefore, "WETH/ETH in NodeDelegator after");
@@ -357,19 +365,19 @@ contract ForkTestNative is ForkTestBase {
         lrtDepositPool.transferAssetToNodeDelegator(1, asset, 65 ether);
 
         (
-            bytes memory publicKey,
+            bytes[] memory publicKeys,
             uint64[] memory operatorIds,
-            bytes memory sharesData,
+            bytes[] memory sharesDatas,
             uint256 amount,
             Cluster memory cluster
-        ) = abi.decode(validatorRegistrationTx, (bytes, uint64[], bytes, uint256, Cluster));
+        ) = abi.decode(validatorRegistrationTx, (bytes[], uint64[], bytes[], uint256, Cluster));
 
-        nodeDelegator2.registerSsvValidator(publicKey, operatorIds, sharesData, amount, cluster);
+        nodeDelegator2.registerSsvValidator(publicKeys[0], operatorIds, sharesDatas[0], amount, cluster);
 
         (uint256 ndcEthBefore, uint256 eigenEthBefore) = nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
 
         vm.expectEmit(Addresses.NODE_DELEGATOR_NATIVE_STAKING);
-        emit ETHStaked(publicKey, 32 ether);
+        emit ETHStaked(publicKeys[0], 32 ether);
 
         nodeDelegator2.stakeEth(validatorStakeData);
 
@@ -464,7 +472,7 @@ contract ForkTestNative is ForkTestBase {
         if (sendEthWithACall) {
             address(primeZapper).call{ value: amountToTransfer }("");
         } else {
-            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 99 / 100, referralId);
+            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 97 / 100, referralId);
         }
 
         vm.stopPrank();
@@ -510,6 +518,23 @@ contract ForkTestNative is ForkTestBase {
             vm.stopPrank();
         }
     }
+
+    // undelegate from the P2P EigenLayer Operator on Native Node Delegator
+    function test_undelegateFromNativeNodeDelegator()
+        public
+        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
+        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
+    {
+        vm.startPrank(Addresses.MANAGER_ROLE);
+
+        nodeDelegator2.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+        nodeDelegator2.undelegate();
+
+        vm.stopPrank();
+    }
+
+    // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
 }
 
 contract ForkTestLST is ForkTestBase {
@@ -714,6 +739,119 @@ contract ForkTestLST is ForkTestBase {
         transfer_Eigen(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
     }
 
+    // staker withdrawal of LST
+    function test_staker_lst_withdrawal_partial() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 6 ether);
+        transfer_DelegatorNode(asset, 6 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleAssetsBefore = IERC20(asset).balanceOf(oWhale);
+
+        uint256 primeAmount = 5 ether;
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount + 1);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Claim the previously requested withdrawal
+        lrtDepositPool.claimWithdrawal(withdrawal);
+
+        assertApproxEqAbs(
+            IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei"
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_staker_lst_withdrawal_full() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 1 ether);
+        transfer_DelegatorNode(asset, 1 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleAssetsBefore = IERC20(asset).balanceOf(oWhale);
+
+        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(oWhale);
+
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Claim the previously requested withdrawal
+        lrtDepositPool.claimWithdrawal(withdrawal);
+
+        assertApproxEqAbs(
+            IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei"
+        );
+
+        vm.stopPrank();
+    }
+
+    // Prime Operator withdraws all non OETH LSTs from Eigen Layer
+    function test_operator_internal_withdrawal() public {
+        withdrawAllFromEigenLayer(Addresses.SFRXETH_TOKEN, Addresses.SFRXETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.METH_TOKEN, Addresses.METH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.STETH_TOKEN, Addresses.STETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.RETH_TOKEN, Addresses.RETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.SWETH_TOKEN, Addresses.SWETH_EIGEN_STRATEGY);
+        withdrawAllFromEigenLayer(Addresses.ETHX_TOKEN, Addresses.ETHX_EIGEN_STRATEGY);
+    }
+
+    function withdrawAllFromEigenLayer(address asset, address strategy) internal {
+        // Withdraw all the NodeDelegator's strategy shares
+        uint256 shares = IStrategy(strategy).shares(address(nodeDelegator1));
+
+        vm.recordLogs();
+
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+        nodeDelegator1.requestInternalWithdrawal(strategy, shares);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        nodeDelegator1.claimInternalWithdrawal(withdrawal);
+
+        vm.stopPrank();
+
+        assertEq(IStrategy(strategy).shares(address(nodeDelegator1)), 0, "shares after");
+    }
+
     function transfer_Eigen(address asset, address strategy) internal {
         // Get before asset balances
         (uint256 assetsDepositPoolBefore, uint256 assetsNDCsBefore, uint256 assetsElBefore) =
@@ -760,15 +898,18 @@ contract ForkTestLST is ForkTestBase {
         vm.stopPrank();
     }
 
-    // delegate to the P2P EigenLayer Operator on LST Node Delegator
-    function test_delegateFromLSTNodeDelegator()
+    // undelegate from the P2P EigenLayer Operator on LST Node Delegator
+    function test_undelegateFromLSTNodeDelegator()
         public
         assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
         assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
         assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
     {
-        vm.prank(Addresses.MANAGER_ROLE);
-        nodeDelegator1.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+        vm.startPrank(Addresses.MANAGER_ROLE);
+
+        nodeDelegator1.undelegate();
+
+        vm.stopPrank();
     }
 
     function unpauseAllStrategies() internal {

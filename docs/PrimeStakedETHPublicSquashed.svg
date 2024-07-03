@@ -20,8 +20,8 @@
 <text text-anchor="start" x="8" y="-369.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;lrtConfig: ILRTConfig &lt;&lt;LRTConfigRoleChecker&gt;&gt;</text>
 <polyline fill="none" stroke="black" points="0,-361.3 569.29,-361.3 "/>
 <text text-anchor="start" x="8" y="-344.7" font-family="Times,serif" font-size="14.00">External:</text>
-<text text-anchor="start" x="8" y="-327.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updateLRTConfig(_lrtConfig: address) &lt;&lt;PrimeStakedETH&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-311.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;initialize(admin: address, lrtConfigAddr: address) &lt;&lt;PrimeStakedETH&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-327.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;updateLRTConfig(lrtConfigAddr: address) &lt;&lt;LRTConfigRoleChecker&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-311.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;initialize(lrtConfigAddr: address) &lt;&lt;PrimeStakedETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-294.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;mint(to: address, amount: uint256) &lt;&lt;PrimeStakedETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-277.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;burnFrom(account: address, amount: uint256) &lt;&lt;PrimeStakedETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-260.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;pause() &lt;&lt;PrimeStakedETH&gt;&gt;</text>

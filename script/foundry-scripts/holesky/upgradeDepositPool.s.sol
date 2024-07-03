@@ -4,11 +4,10 @@ pragma solidity 0.8.21;
 
 import "forge-std/Script.sol";
 
-import { LRTConfig, LRTConstants } from "contracts/LRTConfig.sol";
-import { ConfigLib } from "contracts/libraries/ConfigLib.sol";
-import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
+import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
+import { AddressesHolesky } from "contracts/utils/Addresses.sol";
 
-contract RevokeRoles is Script {
+contract UpgradeDepositPool is Script {
     bool isForked;
 
     function run() external {
@@ -28,14 +27,16 @@ contract RevokeRoles is Script {
             console.log("Using deployer: %s", deployer);
         }
 
-        LRTConfig lrtConfig = ConfigLib.get();
-        lrtConfig.revokeRole(LRTConstants.OPERATOR_ROLE, AddressesHolesky.DEPLOYER);
-        lrtConfig.revokeRole(LRTConstants.MANAGER, AddressesHolesky.DEPLOYER);
-        lrtConfig.revokeRole(LRTConstants.DEFAULT_ADMIN_ROLE, AddressesHolesky.DEPLOYER);
+        // Deploy new LRTDepositPool implementation
+        address newImpl = DepositPoolLib.deployImpl();
 
         if (isForked) {
+            // Upgrade the proxy contracts
+            DepositPoolLib.upgrade(newImpl);
+
             vm.stopPrank();
         } else {
+            // use Hardhat task with Defender Relayer for Holesky network
             vm.stopBroadcast();
         }
     }
