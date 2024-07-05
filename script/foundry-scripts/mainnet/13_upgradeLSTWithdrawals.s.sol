@@ -26,7 +26,7 @@ contract UpgradeLSTWithdrawals is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = 19_379_670;
+        deployBlockNum = 20_239_881;
     }
 
     function _execute() internal override {
