@@ -175,6 +175,25 @@ const printClusterInfo = async (options) => {
   console.log("Next Nonce:", nextNonce);
 };
 
+const claimSSV = async (options) => {
+  const { signer, payload, ssvMerkledrop, ssvToken } = options;
+
+  const balanceBefore = await ssvToken.balanceOf(signer._address);
+  console.log("Balance before claim: \t", balanceBefore.toString());
+
+  const tx = await signer.sendTransaction({
+    to: ssvMerkledrop,
+    data: payload,
+  })
+
+  const balanceAfter = await ssvToken.balanceOf(signer._address);
+  console.log("Balance after claim: \t", balanceAfter.toString());
+  console.log("Claimed:", balanceAfter.sub(balanceBefore).toString());
+
+
+  await logTxDetails(tx, "claimSSV");
+}
+
 module.exports = {
   approveSSV,
   depositSSV,
@@ -183,4 +202,5 @@ module.exports = {
   printClusterInfo,
   getClusterInfo,
   splitValidatorKey,
+  claimSSV,
 };
