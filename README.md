@@ -431,21 +431,22 @@ npx hardhat splitValidatorKey --network goerli --operatorids 60.79.220.349 --ope
 ```
 
 # Claiming SSV token
-Thanks to the [incentive program](https://forum.ssv.network/t/incentivized-mainnet-program/1203) from SSV, Openzeppelin Defender Relayer can claim SSV token each months.
-Follow the following step to claim it:
-- Go on https://ssvscan.io/claim/ 
+
+Thanks to the [incentive program](https://forum.ssv.network/t/incentivized-mainnet-program/1203) from SSV, Openzeppelin
+Defender Relayer can claim SSV token each months. Follow the following step to claim it:
+
+- Go on https://ssvscan.io/claim/
 - Using RabbyWallet (or equivalent), impersonnate Relayer address
 - Click "Claiming Rewards" (green button)
 - Open the RabbyWallet pop-up
 - Click on "View Raw", it should open the transaction data by default.
 - Copy the `data` section, it should be something like 0x1a4e41c2... This is the PAYLOAD.
-- On terminal, on the root of the repo, run: 
+- On terminal, on the root of the repo, run:
   - `npx hardhat --network mainnet claimSSV --payload PAYLOAD` to claim the SSV token and transfer them to the relayer.
   - `npx hardhat --network mainnet balance  --symbol SSV ` to check how many SSV token hold the relayer.
-  - `npx hardhat --network mainnet transfer --amount AMOUNT --symbol SSV --to MULTI_SIG` to transfer SSV token to multisig. Note, amount should be in ether, for example if you want to transfer `48927251356344789668` tokens, write `48.927`.
-    This is important to remove some decimals, otherwise transaction may fail.
-
-
+  - `npx hardhat --network mainnet transfer --amount AMOUNT --symbol SSV --to MULTI_SIG` to transfer SSV token to
+    multisig. Note, amount should be in ether, for example if you want to transfer `48927251356344789668` tokens, write
+    `48.927`. This is important to remove some decimals, otherwise transaction may fail.
 
 # Credits
 

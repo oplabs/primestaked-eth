@@ -11,7 +11,7 @@ const {
   unpauseDelegator,
   printClusterInfo,
   splitValidatorKey,
-  claimSSV
+  claimSSV,
 } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { delegate, undelegate } = require("./delegation");

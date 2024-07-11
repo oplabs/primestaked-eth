@@ -181,11 +181,10 @@ const claimSSV = async (options) => {
   const tx = await signer.sendTransaction({
     to: ssvMerkledrop,
     data: payload,
-  })
-
+  });
 
   await logTxDetails(tx, "claimSSV");
-}
+};
 
 module.exports = {
   approveSSV,
