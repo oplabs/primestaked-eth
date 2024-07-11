@@ -11,6 +11,7 @@ const {
   unpauseDelegator,
   printClusterInfo,
   splitValidatorKey,
+  claimSSV,
 } = require("./ssv");
 const { setActionVars } = require("./defender");
 const { delegate, undelegate } = require("./delegation");
@@ -315,6 +316,19 @@ subtask("depositSSV", "Deposit SSV tokens from the NodeDelegator into an SSV Clu
     await depositSSV({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
   });
 task("depositSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("claimSSV", "Claim SSV rewards from Merkledrop contract")
+  .addParam("payload", "data field of tx", undefined, types.string)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const ssvMerkledrop = await parseAddress("SSV_MERKLEDROP");
+    const ssvToken = await ethers.getContractAt("IERC20", await parseAddress("SSV_TOKEN"));
+
+    await claimSSV({ ...taskArgs, signer, ssvMerkledrop, ssvToken });
+  });
+task("claimSSV").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

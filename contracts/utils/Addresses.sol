@@ -70,6 +70,7 @@ library Addresses {
     // SSV contracts
     address public constant SSV_TOKEN = 0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54;
     address public constant SSV_NETWORK = 0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1;
+    address public constant SSV_MERKLEDROP = 0xe16d6138B1D2aD4fD6603ACdb329ad1A6cD26D9f;
 
     address public constant BEACON_DEPOSIT = 0x00000000219ab540356cBB839Cbe05303d7705Fa;
 }
