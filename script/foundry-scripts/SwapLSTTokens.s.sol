@@ -53,7 +53,7 @@ contract SwapLSTTokens is Script {
         console.log("------------ Token Info -----------");
         console.log("Balance in DepositPool:", balance);
         console.log("Asset Price:", assetPrice);
-        console.log("Asset Value in OETH:", assetPrice);
+        console.log("Asset Value in OETH:", oethValue);
         console.log("-----------------------------------");
     }
 
