@@ -10,7 +10,8 @@ import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
+import { NodeDelegatorETH } from "contracts/NodeDelegatorETH.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 
 /**
@@ -23,8 +24,8 @@ contract ForkOperations is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     LRTConfig public lrtConfig;
-    NodeDelegator public nodeDelegator1;
-    NodeDelegator public nodeDelegator2;
+    NodeDelegatorLST public nodeDelegator1;
+    NodeDelegatorETH public nodeDelegator2;
     PrimeZapper public primeZapper;
 
     event ETHStaked(bytes valPubKey, uint256 amount);
@@ -36,8 +37,8 @@ contract ForkOperations is Test {
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
-        nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
-        nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
+        nodeDelegator1 = NodeDelegatorLST(Addresses.NODE_DELEGATOR);
+        nodeDelegator2 = NodeDelegatorETH(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
         primeZapper = PrimeZapper(payable(Addresses.PRIME_ZAPPER));
     }
 

@@ -10,10 +10,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
+import { NodeDelegatorETHLib } from "contracts/libraries/NodeDelegatorETHLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
@@ -21,7 +21,8 @@ import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
 contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
-    address newNodeDelegatorImpl;
+    address newNodeDelegatorLSTImpl;
+    address newNodeDelegatorETHImpl;
 
     constructor() {
         // Will only execute script before this block number
@@ -31,7 +32,8 @@ contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
     function _execute() internal override {
         console.log("Running deploy script UpgradeNodeDelegatorDelegateTo");
         // Deploy a new implementation of NodeDelegator
-        newNodeDelegatorImpl = NodeDelegatorLib.deployImpl();
+        newNodeDelegatorLSTImpl = NodeDelegatorLSTLib.deployImpl();
+        newNodeDelegatorETHImpl = NodeDelegatorETHLib.deployImpl();
     }
 
     function _fork() internal override {
@@ -40,8 +42,8 @@ contract UpgradeNodeDelegatorDelegateTo is BaseMainnetScript {
         console.log("Impersonating proxy admin owner: %s", Addresses.PROXY_OWNER);
 
         // Upgrade the NodeDelegators to new implementation
-        NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorImpl);
-        NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR_NATIVE_STAKING, newNodeDelegatorImpl);
+        NodeDelegatorLSTLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorLSTImpl);
+        NodeDelegatorETHLib.upgrade(Addresses.NODE_DELEGATOR_NATIVE_STAKING, newNodeDelegatorETHImpl);
         vm.stopPrank();
 
         vm.startPrank(Addresses.ADMIN_ROLE);

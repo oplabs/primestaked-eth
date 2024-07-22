@@ -14,7 +14,8 @@ import { MockEigenPodManager, MockEigenPod } from "contracts/eigen/mocks/MockEig
 import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
 import { MockStrategyManager } from "contracts/eigen/mocks/MockStrategyManager.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
-import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST, INodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
+import { NodeDelegatorETH, INodeDelegatorETH, ValidatorStakeData } from "contracts/NodeDelegatorETH.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
 
 import { BeaconChainProofs } from "contracts/eigen/interfaces/IEigenPod.sol";
@@ -51,7 +52,8 @@ contract MockSSVNetwork {
 }
 
 contract NodeDelegatorTest is LRTConfigTest {
-    NodeDelegator public nodeDel;
+    NodeDelegatorLST public nodeDel;
+    NodeDelegatorETH public nodeDelETH;
     address public operator;
 
     MockStrategyManager public mockEigenStrategyManager;
@@ -106,13 +108,18 @@ contract NodeDelegatorTest is LRTConfigTest {
         lrtConfig.setContract(LRTConstants.LRT_DEPOSIT_POOL, mockLRTDepositPool);
         vm.stopPrank();
 
-        // deploy NodeDelegator
+        // deploy NodeDelegator for LST
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        NodeDelegator nodeDelImpl = new NodeDelegator(address(weth));
+        NodeDelegatorLST nodeDelImpl = new NodeDelegatorLST(address(weth));
         TransparentUpgradeableProxy nodeDelProxy =
             new TransparentUpgradeableProxy(address(nodeDelImpl), address(proxyAdmin), "");
+        nodeDel = NodeDelegatorLST(address(nodeDelProxy));
 
-        nodeDel = NodeDelegator(payable(nodeDelProxy));
+        // deploy NodeDelegator for ETH
+        NodeDelegatorETH nodeDelETHImpl = new NodeDelegatorETH(address(weth));
+        TransparentUpgradeableProxy nodeDelETHProxy =
+            new TransparentUpgradeableProxy(address(nodeDelETHImpl), address(proxyAdmin), "");
+        nodeDelETH = NodeDelegatorETH(payable(nodeDelETHProxy));
 
         // Add WETH as a supported asset
         vm.prank(manager);
@@ -150,24 +157,24 @@ contract NodeDelegatorInitialize is NodeDelegatorTest {
 contract NodeDelegatorCreateEigenPod is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
-        nodeDel.initialize(address(lrtConfig));
+        nodeDelETH.initialize(address(lrtConfig));
     }
 
     function test_RevertWhenCallerIsNotLRTManager() external {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        nodeDel.createEigenPod();
+        nodeDelETH.createEigenPod();
         vm.stopPrank();
     }
 
     function test_CreateEigenPod() external {
-        assertEq(address(nodeDel.eigenPod()), address(0));
+        assertEq(address(nodeDelETH.eigenPod()), address(0));
 
         vm.startPrank(manager);
-        nodeDel.createEigenPod();
+        nodeDelETH.createEigenPod();
         vm.stopPrank();
 
-        assertFalse(address(nodeDel.eigenPod()) == address(0));
+        assertFalse(address(nodeDelETH.eigenPod()) == address(0));
     }
 }
 
@@ -251,7 +258,7 @@ contract NodeDelegatorDepositAssetIntoStrategy is NodeDelegatorTest {
         lrtConfig.addNewSupportedAsset(randomAddress, depositLimit);
 
         vm.startPrank(operator);
-        vm.expectRevert(INodeDelegator.StrategyIsNotSetForAsset.selector);
+        vm.expectRevert(INodeDelegatorLST.StrategyIsNotSetForAsset.selector);
         nodeDel.depositAssetIntoStrategy(randomAddress);
         vm.stopPrank();
     }
@@ -413,25 +420,25 @@ contract NodeDelegatorGetAssetBalance is NodeDelegatorTest {
 contract NodeDelegatorGetWETHEigenPodBalance is NodeDelegatorTest {
     function setUp() public override {
         super.setUp();
-        nodeDel.initialize(address(lrtConfig));
+        nodeDelETH.initialize(address(lrtConfig));
 
         vm.prank(manager);
-        nodeDel.createEigenPod();
+        nodeDelETH.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
         uint256 amount = 1000 ether;
-        weth.mint(address(nodeDel), amount);
+        weth.mint(address(nodeDelETH), amount);
         vm.deal(address(weth), amount);
 
         // stake ETH in EigenPodManager
         vm.prank(operator);
         ValidatorStakeData[] memory blankValidator = new ValidatorStakeData[](1);
         blankValidator[0] = ValidatorStakeData(hex"", hex"", hex"");
-        nodeDel.stakeEth(blankValidator);
+        nodeDelETH.stakeEth(blankValidator);
     }
 
     function test_GetWTHEigenPodBalance() external {
-        (uint256 wethInNDC, uint256 wethInEigenLayer) = nodeDel.getAssetBalance(address(weth));
+        (uint256 wethInNDC, uint256 wethInEigenLayer) = nodeDelETH.getAssetBalance(address(weth));
         assertEq(wethInNDC, 968 ether, "WETH in Node Delegator");
         assertEq(wethInEigenLayer, 32 ether, "ETH in EigenPod");
     }
@@ -442,14 +449,14 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
 
     function setUp() public override {
         super.setUp();
-        nodeDel.initialize(address(lrtConfig));
+        nodeDelETH.initialize(address(lrtConfig));
 
         vm.prank(manager);
-        nodeDel.createEigenPod();
+        nodeDelETH.createEigenPod();
 
         // add WETH to nodeDelegator so it can deposit it into the EigenPodManager
         amount = 96 ether;
-        weth.mint(address(nodeDel), amount);
+        weth.mint(address(nodeDelETH), amount);
         vm.deal(address(weth), amount);
     }
 
@@ -457,16 +464,16 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         ValidatorStakeData[] memory validators = new ValidatorStakeData[](0);
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
-        nodeDel.stakeEth(validators);
+        nodeDelETH.stakeEth(validators);
         vm.stopPrank();
     }
 
     function test_stakeETH() external {
         // add WETH to nodeDelegator so it can deposit it into 3 validators
-        weth.mint(address(nodeDel), amount);
+        weth.mint(address(nodeDelETH), amount);
         vm.deal(address(weth), amount);
 
-        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
+        (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDelETH.getAssetBalance(address(weth));
 
         vm.prank(operator);
         ValidatorStakeData memory someValidator = ValidatorStakeData(new bytes(1), hex"", hex"");
@@ -476,21 +483,21 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
         validators[0] = someValidator;
         validators[1] = someValidator1;
         validators[2] = someValidator2;
-        nodeDel.stakeEth(validators);
+        nodeDelETH.stakeEth(validators);
 
-        (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDel.getAssetBalance(address(weth));
+        (uint256 nodeDelWethAfter, uint256 ethEigenPodBalance) = nodeDelETH.getAssetBalance(address(weth));
 
         assertEq(nodeDelWethAfter, nodeDelWethBefore - amount, "NodeDelegator balance did not decrease");
 
         assertEq(ethEigenPodBalance, amount + ethEigenPodBalanceBefore, "Incorrect ETH balance in EigenPod");
 
-        uint256 stakedButNotVerifiedEth = nodeDel.stakedButNotVerifiedEth();
+        uint256 stakedButNotVerifiedEth = nodeDelETH.stakedButNotVerifiedEth();
         assertEq(stakedButNotVerifiedEth, amount, "Incorrect staked but not verified ETH");
     }
 
     function test_revertStakeETH() external {
         // add WETH to nodeDelegator so it can deposit it into 2 validators
-        weth.mint(address(nodeDel), amount);
+        weth.mint(address(nodeDelETH), amount);
         vm.deal(address(weth), amount);
 
         (uint256 nodeDelWethBefore, uint256 ethEigenPodBalanceBefore) = nodeDel.getAssetBalance(address(weth));
@@ -504,7 +511,7 @@ contract NodeDelegatorStakeETH is NodeDelegatorTest {
 
         bytes4 selector = bytes4(keccak256("ValidatorAlreadyStaked(bytes)"));
         vm.expectRevert(abi.encodeWithSelector(selector, new bytes(1)));
-        nodeDel.stakeEth(validators);
+        nodeDelETH.stakeEth(validators);
     }
 }
 
@@ -586,7 +593,7 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
 
     function setUp() public override {
         super.setUp();
-        nodeDel.initialize(address(lrtConfig));
+        nodeDelETH.initialize(address(lrtConfig));
         ssvToken = new MockToken("SSV", "SSV");
         ssvToken.mint(manager, 1000 ether);
 
@@ -607,7 +614,7 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
     function test_approveRevertWhenCallerIsNotLRTManager() external {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
-        nodeDel.approveSSV();
+        nodeDelETH.approveSSV();
         vm.stopPrank();
     }
 
@@ -615,7 +622,7 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigManager.selector);
 
-        nodeDel.depositSSV(operatorIds, 10 ether, cluster);
+        nodeDelETH.depositSSV(operatorIds, 10 ether, cluster);
         vm.stopPrank();
     }
 
@@ -623,7 +630,7 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
 
-        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+        nodeDelETH.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
         vm.stopPrank();
     }
 
@@ -631,29 +638,29 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.prank(manager);
 
         expectEmit();
-        emit IERC20.Approval(address(nodeDel), ssvNetwork, type(uint256).max);
+        emit IERC20.Approval(address(nodeDelETH), ssvNetwork, type(uint256).max);
 
-        nodeDel.approveSSV();
+        nodeDelETH.approveSSV();
     }
 
     function test_depositSSV() external {
         vm.startPrank(manager);
 
-        nodeDel.approveSSV();
-        ssvToken.transfer(address(nodeDel), 10 ether);
+        nodeDelETH.approveSSV();
+        ssvToken.transfer(address(nodeDelETH), 10 ether);
 
-        nodeDel.depositSSV(operatorIds, 10 ether, cluster);
+        nodeDelETH.depositSSV(operatorIds, 10 ether, cluster);
         vm.stopPrank();
     }
 
     function test_registerValidator() external {
         vm.startPrank(manager);
 
-        nodeDel.approveSSV();
-        ssvToken.transfer(address(nodeDel), 10 ether);
+        nodeDelETH.approveSSV();
+        ssvToken.transfer(address(nodeDelETH), 10 ether);
         vm.stopPrank();
 
         vm.prank(operator);
-        nodeDel.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+        nodeDelETH.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
     }
 }

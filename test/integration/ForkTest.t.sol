@@ -20,7 +20,8 @@ import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST, INodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
+import { NodeDelegatorETH, INodeDelegatorETH, ValidatorStakeData } from "contracts/NodeDelegatorETH.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
@@ -33,7 +34,7 @@ contract ForkTestBase is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     LRTConfig public lrtConfig;
-    NodeDelegator public nodeDelegator1;
+    NodeDelegatorLST public nodeDelegator1;
 
     address internal constant stWhale = 0xE53FFF67f9f384d20Ebea36F43b93DC49Ed22753;
     address internal constant xWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
@@ -49,7 +50,6 @@ contract ForkTestBase is Test {
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
-    event ETHRewardsWithdrawInitiated(uint256 amount);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -58,7 +58,7 @@ contract ForkTestBase is Test {
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
-        nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
+        nodeDelegator1 = NodeDelegatorLST(payable(Addresses.NODE_DELEGATOR));
 
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
@@ -164,7 +164,7 @@ contract ForkTestBase is Test {
 // TODO basic primeETH token tests. eg transfer, approve, transferFrom
 
 contract ForkTestNative is ForkTestBase {
-    NodeDelegator public nodeDelegator2;
+    NodeDelegatorETH public nodeDelegator2;
     PrimeZapper public primeZapper;
 
     // WETH whales that are not contracts
@@ -184,7 +184,7 @@ contract ForkTestNative is ForkTestBase {
     function setUp() public override {
         super.setUp();
 
-        nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
+        nodeDelegator2 = NodeDelegatorETH(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
         primeZapper = PrimeZapper(payable(Addresses.PRIME_ZAPPER));
 
         validatorStakeData.push(
@@ -400,7 +400,7 @@ contract ForkTestNative is ForkTestBase {
 
         // Should fail to register a second time
         vm.expectRevert(
-            abi.encodeWithSelector(INodeDelegator.ValidatorAlreadyStaked.selector, validatorStakeData[0].pubkey)
+            abi.encodeWithSelector(INodeDelegatorETH.ValidatorAlreadyStaked.selector, validatorStakeData[0].pubkey)
         );
         nodeDelegator2.stakeEth(validatorStakeData);
 

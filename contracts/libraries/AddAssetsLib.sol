@@ -8,7 +8,7 @@ import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { INodeDelegatorLST } from "contracts/interfaces/INodeDelegatorLST.sol";
 import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 
 uint256 constant maxDeposits = 100_000 ether;
@@ -122,7 +122,7 @@ library AddAssetsLib {
         lrtOracle.updatePriceOracleFor(asset, address(chainlinkOracleProxy));
 
         // TODO this needs to handle multiple Node Delegators
-        NodeDelegator(payable(Addresses.NODE_DELEGATOR)).maxApproveToEigenStrategyManager(asset);
+        INodeDelegatorLST(Addresses.NODE_DELEGATOR).maxApproveToEigenStrategyManager(asset);
     }
 
     function configureAsset(bytes32 tokenId, address asset, address strategy, address assetOracle) internal {
@@ -137,6 +137,6 @@ library AddAssetsLib {
         lrtOracle.updatePriceOracleFor(asset, assetOracle);
 
         // TODO this needs to handle multiple Node Delegators
-        NodeDelegator(payable(Addresses.NODE_DELEGATOR)).maxApproveToEigenStrategyManager(asset);
+        INodeDelegatorLST(Addresses.NODE_DELEGATOR).maxApproveToEigenStrategyManager(asset);
     }
 }

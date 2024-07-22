@@ -83,4 +83,6 @@ interface ILRTDepositPool {
         external
         view
         returns (uint256 depositPoolAssets, uint256 ndcAssets, uint256 eigenAssets);
+
+    function optIn(address asset) external;
 }

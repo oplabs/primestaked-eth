@@ -5,232 +5,232 @@ hide footbox
 
 title "Prime Staked resaking process using SSV validators managed by P2P"
 
-' actor "Staker" as staker
+actor "Staker" as staker
 actor "Operator" as op <<Prime>>
-' actor "Manager" as man <<Prime>>
-' participant "API" as api <<P2P>>
+actor "Manager" as man <<Prime>>
+participant "API" as api <<P2P>>
 actor "Operators" as ssvOp <<SSV>>
 
 box "Execution Chain"
-' participant "DepositPool" as dp <<Prime>>
+participant "DepositPool" as dp <<Prime>>
 participant "NodeDelegator" as nd <<Prime>>
 participant "SSV Network" as ssvNet <<SSV>>
-' participant "SSV Token" as ssv <<SSV>>
-' participant "WETH" as weth <<Wrapped ETH>>
+participant "SSV Token" as ssv <<SSV>>
+participant "WETH" as weth <<Wrapped ETH>>
 participant "EigenPodManager" as podMan <<EigenLayer>>
 participant "EigenPod" as pod <<EigenLayer>>
-' participant "StrategyManager" as stratMan <<EigenLayer>>
+participant "StrategyManager" as stratMan <<EigenLayer>>
 participant "Delayed\nWithdrawal\nRouter" as dwr <<EigenLayer>>
-' participant "Deposit" as dep <<Beacon>>
+participant "Deposit" as dep <<Beacon>>
 end box
 
 box "Beacon chain"
 participant "Validator" as val <<Beacon>>
 end box
 
-' group Manager setup of EigenPod and SSV Network
-' man -> nd : createEigenPod()
-' activate nd
-' nd -> podMan : createPod()
-' activate podMan
-' podMan ->o pod: contructor()
-' activate pod
-' return
-' return
-' return
+group Manager setup of EigenPod and SSV Network
+man -> nd : createEigenPod()
+activate nd
+nd -> podMan : createPod()
+activate podMan
+podMan ->o pod: contructor()
+activate pod
+return
+return
+return
 
-' man -> nd : approveSSV()
-' activate nd
-' nd -> ssv : approve(\nSSV Network,\namount)
-' activate ssv
-' note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
-' return
-' ' nd -> ssvNet : setFeeRecipientAddress(\nrecipient)
-' ' activate ssvNet
-' ' note right : NodeDelegator set as the fee recipient
-' ' return
-' return
-
-' man -> ssv : transfer(\nfrom\nto\namount)
-' activate ssv
-' note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
-' return
-
-' end
-
-' group Operator creates a new SSV validator
-
-' op -> api: POST\neth/staking/ssv/request/create\nuuid,\nvalidatorsCount,\ntype,\nwithdrawalAddress,\nfeeRecipientAddress,\nssvOwnerAddress,\noperationPeriodInDays
-' activate api
-' note right
-' withdrawalAddress is EigenPod
-' feeRecipientAddress is NodeDelegator
-' ssvOwnerAddress is NodeDelegator
-' type is without-encrypt-key
-' end note
-' api -> api: private key
-' note right : generate a validator private key
-' api -> api: split(key)
-' note right : splits validator key into multiple KeyShares
-' return
-
-' op -> api: status(uuid)
-' activate api
-' return status,\nvalidatorRegistration,\nshareData
-' note right : validatorRegistration contains the pubkey, operatorIds and cluster details
-
-' op -> nd : registerSsvValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
-' activate nd
-' note right
-' cluster data:
-' The number of validators in the cluster
-' The index of network fees related to this cluster
-' The last index calculated for the cluster
-' Flag indicating whether the cluster is active
-' The SSV balance of the cluster
-' end note
-' nd -> ssvNet : registerValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
+man -> nd : approveSSV()
+activate nd
+nd -> ssv : approve(\nSSV Network,\namount)
+activate ssv
+note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
+return
+' nd -> ssvNet : setFeeRecipientAddress(\nrecipient)
 ' activate ssvNet
-' ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
-' activate ssv
-' note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
+' note right : NodeDelegator set as the fee recipient
 ' return
-' return
-' return
+return
 
-' end group
+man -> ssv : transfer(\nfrom\nto\namount)
+activate ssv
+note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
+return
 
-' group User deposits WETH into Prime Staked
+end
 
-' staker -> dp : deposit(asset, amount)
-' note right : WETH from staker\nis transferred to DepositPool
-' activate dp
-' return
+group Operator creates a new SSV validator
 
-' end group
+op -> api: POST\neth/staking/ssv/request/create\nuuid,\nvalidatorsCount,\ntype,\nwithdrawalAddress,\nfeeRecipientAddress,\nssvOwnerAddress,\noperationPeriodInDays
+activate api
+note right
+withdrawalAddress is EigenPod
+feeRecipientAddress is NodeDelegator
+ssvOwnerAddress is NodeDelegator
+type is without-encrypt-key
+end note
+api -> api: private key
+note right : generate a validator private key
+api -> api: split(key)
+note right : splits validator key into multiple KeyShares
+return
 
-' group Operator Stakes 32 ETH to new validator
+op -> api: status(uuid)
+activate api
+return status,\nvalidatorRegistration,\nshareData
+note right : validatorRegistration contains the pubkey, operatorIds and cluster details
 
-' op -> dp : transferAssetToNodeDelegator(\nndcIndex,\nasset\namount)
-' activate dp
-' note right : WETH transfer\nfrom DepositPool\nto Node Delegator
-' return
+op -> nd : registerSsvValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
+activate nd
+note right
+cluster data:
+The number of validators in the cluster
+The index of network fees related to this cluster
+The last index calculated for the cluster
+Flag indicating whether the cluster is active
+The SSV balance of the cluster
+end note
+nd -> ssvNet : registerValidator(\npublicKey,\noperatorIds,\nsharesData,\namount,\ncluster)
+activate ssvNet
+ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+activate ssv
+note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
+return
+return
+return
 
-' ' op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
-' ' activate nd
-' ' nd -> weth : withdraw(\namount)
-' ' activate weth
-' ' note right : WETH burned for ETH
-' ' return ETH
-' ' nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
-' ' note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
-' ' activate podMan
-' ' podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
-' ' activate pod
-' ' pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
-' ' activate dep
-' ' return
-' ' return
-' ' return
-' ' return
+end group
 
-' op -> nd : stakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
+group User deposits WETH into Prime Staked
+
+staker -> dp : deposit(asset, amount)
+note right : WETH from staker\nis transferred to DepositPool
+activate dp
+return
+
+end group
+
+group Operator Stakes 32 ETH to new validator
+
+op -> dp : transferAssetToNodeDelegator(\nndcIndex,\nasset\namount)
+activate dp
+note right : WETH transfer\nfrom DepositPool\nto Node Delegator
+return
+
+' op -> nd : stakeEth(\npubkey,\nsignature,\ndepositDataRoot)
 ' activate nd
 ' nd -> weth : withdraw(\namount)
 ' activate weth
 ' note right : WETH burned for ETH
 ' return ETH
-
-' loop For each validator
-
 ' nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
 ' note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
 ' activate podMan
 ' podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
 ' activate pod
-' note right : 32 ETH from EigenPodManager\nis sent to EigenPod
 ' pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
 ' activate dep
-' note right : 32 ETH from EigenPod\nis sent to Beacon Deposit
+' return
 ' return
 ' return
 ' return
 
-' end loop
+op -> nd : stakeEth(\n[pubkey,\nsignature,\ndepositDataRoot])
+activate nd
+nd -> weth : withdraw(\namount)
+activate weth
+note right : WETH burned for ETH
+return ETH
+
+loop For each validator
+
+nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
+note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
+activate podMan
+podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
+activate pod
+note right : 32 ETH from EigenPodManager\nis sent to EigenPod
+pod -> dep : stake(\npubkey,\nwithdrawal_credentials,\nsignature,\ndepositDataRoot)
+activate dep
+note right : 32 ETH from EigenPod\nis sent to Beacon Deposit
+return
+return
+return
+
+end loop
+return
+
+end group
+
+' group Manager adds another validator
+
+' man -> api: POST nodes-request/create\nuuid,\ntype,\nnodesOptions,\neigenPodOwnerAddress,\ncontrollerAddress,\nfeeRecipientAddress
+' activate api
+' note right : eigenPodOwnerAddress is the NodeDelegator
 ' return
+
+' man -> api: status(uuid)
+' activate api
+' return status,\neigenPodAddress,\npubkey,\nsignature,\ndepositDataRoot,\nwithdrawalCredentials,\ndepositMessageRoot
 
 ' end group
 
-' ' group Manager adds another validator
 
-' ' man -> api: POST nodes-request/create\nuuid,\ntype,\nnodesOptions,\neigenPodOwnerAddress,\ncontrollerAddress,\nfeeRecipientAddress
-' ' activate api
-' ' note right : eigenPodOwnerAddress is the NodeDelegator
-' ' return
+group Manager deposits more SSV to SSV cluster
 
-' ' man -> api: status(uuid)
-' ' activate api
-' ' return status,\neigenPodAddress,\npubkey,\nsignature,\ndepositDataRoot,\nwithdrawalCredentials,\ndepositMessageRoot
+man -> ssv : transfer(\nto\namount)
+activate ssv
+note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
+return
 
-' ' end group
-
-
-' group Manager deposits more SSV to SSV cluster
-
-' man -> ssv : transfer(\nto\namount)
-' activate ssv
-' note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
-' return
-
-' man -> nd : depositSSV(\noperatorIds,\namount,\ncluster)
-' activate nd
-' note right : cluster is latest cluster data. eg balance
-' nd -> ssvNet : deposit(\nclusterOwner,\noperatorIds,\namount,\ncluster)
-' activate ssvNet
-' note right : clusterOwner is NodeDelegator
-' ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
-' activate ssv
-' note right: transfer SSV tokens\nfrom DelegatorNode\nto SSV Network
-' return
-' return
-' return
-' end group
+man -> nd : depositSSV(\noperatorIds,\namount,\ncluster)
+activate nd
+note right : cluster is latest cluster data. eg balance
+nd -> ssvNet : deposit(\nclusterOwner,\noperatorIds,\namount,\ncluster)
+activate ssvNet
+note right : clusterOwner is NodeDelegator
+ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
+activate ssv
+note right: transfer SSV tokens\nfrom DelegatorNode\nto SSV Network
+return
+return
+return
+end group
 
 
-' group Operator verifies validator
+group Operator verifies validator
 
-' op -> val : get Beacon state
-' activate val
-' return state
+op -> val : get Beacon state
+activate val
+return state
 
-' op -> val : get Beacon block
-' activate val
-' return block
+op -> val : get Beacon block
+activate val
+return block
 
-' op -> val : get Beacon block header
-' activate val
-' return block header
+op -> val : get Beacon block header
+activate val
+return block header
 
-' op -> op : generate(\nstate,\nblock,\nblock header)
-' activate op
-' note right : generate proofs using EigenPod Proofs Generator tool
-' return proofs, validatorFields
+op -> op : generate(\nstate,\nblock,\nblock header)
+activate op
+note right : generate proofs using EigenPod Proofs Generator tool
+return proofs, validatorFields
 
-' op -> pod : verifyWithdrawalCredentialsAndBalance(\noracleBlockNumber,\nvalidatorIndex\nproofs,\nvalidatorFields)
-' activate pod
-' note right
-' verify validator's balance is >= 32 ETH
-' and withdrawal credentials point to EigenPod
-' end note
-' pod -> podMan : restakeBeaconChainETH(\npodOwner,\namount)
-' activate podMan
-' podMan -> stratMan : depositBeaconChainETH(\nstaker,\namount)
-' activate stratMan
-' note right : add ETH strategy shares to NodeDelegator
-' return
-' return
-' return
-' end group
+op -> pod : verifyWithdrawalCredentialsAndBalance(\noracleBlockNumber,\nvalidatorIndex\nproofs,\nvalidatorFields)
+activate pod
+note right
+verify validator's balance is >= 32 ETH
+and withdrawal credentials point to EigenPod
+end note
+pod -> podMan : restakeBeaconChainETH(\npodOwner,\namount)
+activate podMan
+podMan -> stratMan : depositBeaconChainETH(\nstaker,\namount)
+activate stratMan
+note right : add ETH strategy shares to NodeDelegator
+return
+return
+return
+end group
 
 group Operator withdraws consensus rewards
 
@@ -285,7 +285,7 @@ note right : stop paying SSV to Operators\n and reduce required SSV collateral
 return
 return
 
-... wait for the validator to be swept on the Beacon chain\ncurrent time is every 8.5 days ...
+... wait for the validator to be swept on the Beacon chain\ncurrent time is every 8-10 days ...
 
 val -> pod : ETH
 note left : transfer staked ETH and rewards\nfrom Beacon Deposit\nto EigenPod

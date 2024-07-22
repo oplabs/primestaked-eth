@@ -3,9 +3,9 @@ pragma solidity 0.8.21;
 
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
@@ -22,11 +22,11 @@ contract UpgradeDepositPoolNodeDelegator is BaseMainnetScript {
     }
 
     address newDepositPoolImpl;
-    address newNodeDelegatorLibImpl;
+    address newNodeDelegatorLSTImpl;
 
     function _execute() internal override {
         newDepositPoolImpl = DepositPoolLib.deployImpl();
-        newNodeDelegatorLibImpl = NodeDelegatorLib.deployImpl();
+        newNodeDelegatorLSTImpl = NodeDelegatorLSTLib.deployImpl();
     }
 
     function _fork() internal override {
@@ -35,7 +35,7 @@ contract UpgradeDepositPoolNodeDelegator is BaseMainnetScript {
 
         // Upgrade the proxies
         LRTDepositPool depositPool = DepositPoolLib.upgrade(newDepositPoolImpl);
-        NodeDelegator nodeDelegator = NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorLibImpl);
+        NodeDelegatorLST nodeDelegator = NodeDelegatorLSTLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorLSTImpl);
 
         // Opt in for OETH rebasing
         depositPool.optIn(Addresses.OETH_TOKEN);

@@ -48,21 +48,38 @@
 
 ![Oracle Storage](../docs/LRTOracleStorage.svg)
 
-## NodeDelegator
+## NodeDelegatorLST
 
-[NodeDelegator.sol](./NodeDelegator.sol)
+[NodeDelegatorLST.sol](./NodeDelegatorLST.sol)
 
 ### Hierarchy
 
-![NodeDelegator Hierarchy](../docs/NodeDelegatorHierarchy.svg)
+![NodeDelegatorLST Hierarchy](../docs/NodeDelegatorLSTHierarchy.svg)
 
 ### Squashed
 
-![NodeDelegator Squashed](../docs/NodeDelegatorSquashed.svg)
+![NodeDelegatorLST Squashed](../docs/NodeDelegatorLSTSquashed.svg)
 
 ### Storage
 
-![NodeDelegator Storage](../docs/NodeDelegatorStorage.svg)
+![NodeDelegatorLST Storage](../docs/NodeDelegatorLSTStorage.svg)
+
+## NodeDelegatorETH
+
+[NodeDelegatorETH.sol](./NodeDelegatorETH.sol)
+
+### Hierarchy
+
+![NodeDelegatorETH Hierarchy](../docs/NodeDelegatorETHHierarchy.svg)
+
+### Squashed
+
+![NodeDelegatorETH Squashed](../docs/NodeDelegatorETHSquashed.svg)
+
+### Storage
+
+![NodeDelegatorETH Storage](../docs/NodeDelegatorETHStorage.svg)
+
 
 ## LRTConfig
 

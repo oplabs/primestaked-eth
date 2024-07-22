@@ -4,7 +4,8 @@ pragma solidity 0.8.21;
 
 import "forge-std/Script.sol";
 
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
+import { NodeDelegatorETHLib } from "contracts/libraries/NodeDelegatorETHLib.sol";
 import { AddressesHolesky } from "contracts/utils/Addresses.sol";
 
 contract UpgradeNodeDelegators is Script {
@@ -27,13 +28,14 @@ contract UpgradeNodeDelegators is Script {
             console.log("Using deployer: %s", deployer);
         }
 
-        // Deploy new DelegatorNode implementation
-        address nodeImpl = NodeDelegatorLib.deployImpl();
+        // Deploy new DelegatorNode implementations
+        address lstImpl = NodeDelegatorLSTLib.deployImpl();
+        address ethImpl = NodeDelegatorETHLib.deployImpl();
 
         if (isForked) {
             // Upgrade the proxy contracts
-            NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR, nodeImpl);
-            NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING, nodeImpl);
+            NodeDelegatorLSTLib.upgrade(AddressesHolesky.NODE_DELEGATOR, lstImpl);
+            NodeDelegatorETHLib.upgrade(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING, ethImpl);
 
             vm.stopPrank();
         } else {

@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import { IDelegationManager } from "../eigen/interfaces/IDelegationManager.sol";
 import { Cluster } from "./ISSVNetwork.sol";
 
-interface INodeDelegator {
+interface INodeDelegatorLST {
     // event
     event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
     event ETHDepositFromDepositPool(uint256 depositAmount);
@@ -18,9 +18,6 @@ interface INodeDelegator {
     );
     event Delegate(address indexed operator);
     event Undelegate(address indexed strategy, uint256 strategyShares);
-    event ConsensusRewards(uint256 amount);
-    event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
-    event SlashedValidator(uint256 slashedAmount, uint256 stakedButNotVerifiedEth);
 
     // errors
     error TokenTransferFailed(); // 0x045c4b02
@@ -31,7 +28,6 @@ interface INodeDelegator {
     error StakersWithdrawalNotFound(); // 0x0110c83d
     error NotInternalWithdrawal(); // 0xb1345ad5
     error NotSingleStrategyWithdrawal(); // 0xc18ea890
-    error NoEigenPod(); // 5dd90f17
 
     // methods
     function depositAssetIntoStrategy(address asset) external;
@@ -49,17 +45,6 @@ interface INodeDelegator {
         external
         returns (address asset, uint256 assets);
 
-    function exitSsvValidator(bytes calldata publicKey, uint64[] calldata operatorIds) external;
-    function removeSsvValidator(
-        bytes calldata publicKey,
-        uint64[] calldata operatorIds,
-        Cluster calldata cluster
-    )
-        external;
-
-    function requestEthWithdrawal() external;
-    function claimEthWithdrawal() external;
-
     function maxApproveToEigenStrategyManager(address asset) external;
 
     function getAssetBalances() external view returns (address[] memory, uint256[] memory);
@@ -68,4 +53,6 @@ interface INodeDelegator {
 
     function delegateTo(address operator) external;
     function undelegate() external;
+
+    function optIn(address asset) external;
 }
