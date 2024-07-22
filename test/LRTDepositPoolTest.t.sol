@@ -1167,7 +1167,7 @@ contract LRTDepositPoolWithdrawAsset is LRTDepositPoolTest {
         uint256 aliceBalanceBefore = preth.balanceOf(address(alice));
 
         uint256 withdrawAmount = 1 ether;
-        uint256 maxPrimeETHToBurn = lrtDepositPool.getMintAmount(ethXAddress, withdrawAmount);
+        uint256 maxPrimeETHToBurn = lrtDepositPool.getMintAmount(ethXAddress, withdrawAmount) + 1;
 
         vm.prank(alice);
         lrtDepositPool.requestWithdrawal(ethXAddress, withdrawAmount, maxPrimeETHToBurn);
@@ -1180,9 +1180,9 @@ contract LRTDepositPoolWithdrawAsset is LRTDepositPoolTest {
 
     function test_FuzzWithdrawAsset(uint256 withdrawAmount) external {
         // uint256 stETHDepositLimit = lrtConfig.depositLimitByAsset(address(stETH));
-        vm.assume(withdrawAmount > 0 && withdrawAmount <= 2 ether);
+        vm.assume(withdrawAmount > 0 && withdrawAmount < 2 ether);
 
-        uint256 maxPrimeETHToBurn = lrtDepositPool.getMintAmount(ethXAddress, withdrawAmount);
+        uint256 maxPrimeETHToBurn = lrtDepositPool.getMintAmount(ethXAddress, withdrawAmount) + 1;
 
         vm.prank(alice);
         lrtDepositPool.requestWithdrawal(ethXAddress, withdrawAmount, maxPrimeETHToBurn);

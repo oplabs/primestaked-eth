@@ -11,6 +11,14 @@ interface INodeDelegator {
     event ETHStaked(bytes valPubKey, uint256 amount);
     event ETHRewardsWithdrawInitiated(uint256 amount);
     event ETHRewardsClaimed(uint256 amount);
+    event RequestWithdrawal(
+        address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 strategyShares
+    );
+    event ClaimWithdrawal(
+        address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 assets
+    );
+    event Delegate(address indexed operator);
+    event Undelegate(address indexed strategy, uint256 strategyShares);
     event ConsensusRewards(uint256 amount);
     event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
     event SlashedValidator(uint256 slashedAmount, uint256 stakedButNotVerifiedEth);

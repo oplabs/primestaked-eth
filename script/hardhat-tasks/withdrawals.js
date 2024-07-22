@@ -1,4 +1,4 @@
-const { parseEther } = require("ethers").utils;
+const { parseEther, formatUnits } = require("ethers").utils;
 
 const { parseAddress } = require("../utils/addressParser");
 const { resolveAddress } = require("../utils/assets");
@@ -30,9 +30,19 @@ const claimWithdrawal = async ({ signer, depositPool, requestTx, delegationManag
 
 const requestInternalWithdrawal = async ({ signer, nodeDelegator, shares, symbol }) => {
   const strategyAddress = await parseAddress(`${symbol.toUpperCase()}_EIGEN_STRATEGY`);
-  const shareUnits = parseEther(shares.toString());
 
-  log(`About to request internal withdrawal of ${shares} ${symbol} shares from EigenLayer strategy`);
+  let shareUnits;
+  if (!shares) {
+    const strategy = await ethers.getContractAt("IStrategy", strategyAddress);
+    shareUnits = await strategy.shares(nodeDelegator.address);
+    log(`The NodeDelegator has ${formatUnits(shareUnits, 18)} ${symbol} shares in the EigenLayer strategy`);
+  } else {
+    shareUnits = parseEther(shares.toString());
+  }
+
+  log(
+    `About to request internal withdrawal of ${formatUnits(shareUnits, 18)} ${symbol} shares from EigenLayer strategy`,
+  );
   const tx = await nodeDelegator.connect(signer).requestInternalWithdrawal(strategyAddress, shareUnits);
   await logTxDetails(tx, "requestInternalWithdrawal");
 };

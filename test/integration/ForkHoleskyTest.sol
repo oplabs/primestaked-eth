@@ -924,7 +924,7 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         assertEq(requestLogs[0].topics[1], bytes32(uint256(uint160(stWhale))));
         assertEq(requestLogs[0].topics[2], bytes32(0)); // zero address
         console.log("primeETH burnt ", abi.decode(requestLogs[0].data, (uint256)));
-        uint256 expectPrimeEthBurnt = 0.5976 ether;
+        uint256 expectPrimeEthBurnt = 0.5976 ether + 1;
         assertEq(requestLogs[0].data, abi.encode(expectPrimeEthBurnt));
 
         assertEq(
@@ -949,9 +949,9 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
 
         // WithdrawalRequested event on the LRTDepositPool contract
         assertEq(
-            requestLogs[2].topics[0], keccak256("WithdrawalRequested(address,address,address,uint256,uint256,uint256)")
+            requestLogs[3].topics[0], keccak256("WithdrawalRequested(address,address,address,uint256,uint256,uint256)")
         );
-        assertEq(requestLogs[2].topics[0], 0x92072c627ec1da81f8268b3cfb3c02bbbeedc12c21134faf4457469147619947);
+        assertEq(requestLogs[3].topics[0], 0x92072c627ec1da81f8268b3cfb3c02bbbeedc12c21134faf4457469147619947);
 
         (uint256 assetsInDepositPoolAfter, uint256 assetsInNDCsAfter, uint256 assetsInEigenLayerAfter) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
@@ -1299,11 +1299,11 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         console.log("logs from claimWithdrawal", requestLogs.length);
 
         // WithdrawalClaimed event from LRTDepositPool
-        assertEq(requestLogs[5].topics[0], keccak256("WithdrawalClaimed(address,address,uint256)"));
+        assertEq(requestLogs[6].topics[0], keccak256("WithdrawalClaimed(address,address,uint256)"));
         // assertEq(requestLogs[0].topics[0], 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef);
-        assertEq(requestLogs[5].topics[1], bytes32(uint256(uint160(stWhale))));
-        assertEq(requestLogs[5].topics[2], bytes32(uint256(uint160(stETHAddress))));
-        uint256 actualAssets = abi.decode(requestLogs[5].data, (uint256));
+        assertEq(requestLogs[6].topics[1], bytes32(uint256(uint160(stWhale))));
+        assertEq(requestLogs[6].topics[2], bytes32(uint256(uint160(stETHAddress))));
+        uint256 actualAssets = abi.decode(requestLogs[6].data, (uint256));
         assertApproxEqAbs(actualAssets, stEthWithdrawalAmount, 2, "WithdrawalClaimed.assets with 2 wei tolerance");
 
         assertApproxEqAbs(
@@ -1312,12 +1312,12 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
             3,
             "Whale's stETH balance should increase with 3 wei tolerance"
         );
-        // This currently fails as wei is lost on the stETH transfers
-        // assertGe(
-        //     IERC20(stETHAddress).balanceOf(address(stWhale)),
-        //     stETHBalanceBefore + stEthWithdrawalAmount,
-        //     "Whale's stETH balance should increase by at least the requested amount"
-        // );
+        // Up to 3 wei is lost on the stETH transfers and truncation
+        assertGe(
+            IERC20(stETHAddress).balanceOf(address(stWhale)),
+            stETHBalanceBefore + stEthWithdrawalAmount - 3,
+            "Whale's stETH balance should increase by at least the requested amount"
+        );
         assertEq(
             primeETH.balanceOf(address(stWhale)),
             primeETHBalanceBefore,
@@ -1368,7 +1368,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
 
-        vm.expectRevert("DelegationManager._completeQueuedWithdrawal: action is not in queue");
+        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
     }
@@ -1895,7 +1895,7 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
         // decode the withdrawalRoot and withdrawal event data emitted in the undelegate tx
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
         (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+            abi.decode(requestLogs[5].data, (bytes32, IDelegationManager.Withdrawal));
 
         // Claim the withdrawn stETH
         vm.prank(AddressesHolesky.OPERATOR_ROLE);

@@ -175,6 +175,17 @@ const printClusterInfo = async (options) => {
   console.log("Next Nonce:", nextNonce);
 };
 
+const claimSSV = async (options) => {
+  const { signer, payload, ssvMerkledrop, ssvToken } = options;
+
+  const tx = await signer.sendTransaction({
+    to: ssvMerkledrop,
+    data: payload,
+  });
+
+  await logTxDetails(tx, "claimSSV");
+};
+
 module.exports = {
   approveSSV,
   depositSSV,
@@ -183,4 +194,5 @@ module.exports = {
   printClusterInfo,
   getClusterInfo,
   splitValidatorKey,
+  claimSSV,
 };

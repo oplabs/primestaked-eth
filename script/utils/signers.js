@@ -1,5 +1,5 @@
 const { Wallet } = require("ethers");
-const { Defender } = require("@openzeppelin/defender-sdk");
+const { DefenderRelaySigner, DefenderRelayProvider } = require("@openzeppelin/defender-relay-client/lib/ethers");
 const hhHelpers = require("@nomicfoundation/hardhat-network-helpers");
 
 const { ethereumAddress, privateKey } = require("./regex");
@@ -67,14 +67,14 @@ const getDefenderSigner = async () => {
     );
     process.exit(2);
   }
-  const credentials = {
-    relayerApiKey: process.env.DEFENDER_RELAYER_KEY,
-    relayerApiSecret: process.env.DEFENDER_RELAYER_SECRET,
-  };
-  const client = new Defender(credentials);
-  const provider = client.relaySigner.getProvider();
 
-  const signer = await client.relaySigner.getSigner(provider, { speed });
+  const credentials = { apiKey: process.env.DEFENDER_RELAYER_KEY, apiSecret: process.env.DEFENDER_RELAYER_SECRET };
+
+  const provider = new DefenderRelayProvider(credentials);
+  const signer = new DefenderRelaySigner(credentials, provider, {
+    speed,
+  });
+
   log(
     `Using Defender Relayer account ${await signer.getAddress()} from env vars DEFENDER_RELAYER_KEY and DEFENDER_RELAYER_SECRET with speed "${speed}"`,
   );

@@ -29,6 +29,7 @@ struct ValidatorStakeData {
 /// @title NodeDelegator Contract
 /// @notice The contract that handles the depositing of assets into strategies
 contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
+    address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH;
 
@@ -320,6 +321,39 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         delegationManager.delegateTo(
             operator, ISignatureUtils.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
         );
+
+        emit Delegate(operator);
+    }
+
+    /// @notice Undelegates all staked LST assets from this NodeDelegator from the
+    /// previously delegated to EigenLayer Operator.
+    /// This also forces a withdrawal so the assets will need to be claimed.
+    function undelegate() external onlyLRTManager {
+        address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
+        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
+
+        // Get the amount of strategy shares owned by this NodeDelegator contract
+        IStrategyManager strategyManager = IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
+
+        // For each asset
+        address[] memory assets = lrtConfig.getSupportedAssetList();
+        for (uint256 i = 0; i < assets.length; ++i) {
+            // Skip WETH as ETH restaked into EigenLayer is not yet supported by the NodeDelegator.
+            if (assets[i] == WETH) {
+                continue;
+            }
+
+            // Get the EigenLayer strategy for the LST asset
+            address strategy = lrtConfig.assetStrategy(assets[i]);
+
+            uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
+            // account for the strategy shares pending internal withdrawal
+            pendingInternalShareWithdrawals[strategy] += strategyShares;
+
+            emit Undelegate(strategy, strategyShares);
+        }
+
+        delegationManager.undelegate(address(this));
     }
 
     /// @notice Undelegates all staked assets from this NodeDelegator from the
@@ -504,7 +538,10 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         bytes32 withdrawalRoot = _requestWithdrawal(strategyAddress, strategyShares);
 
         // store a mapping of the returned withdrawalRoot to the staker withdrawing
+        require(withdrawalRequests[withdrawalRoot] == address(0), "Withdrawal already requested");
         withdrawalRequests[withdrawalRoot] = staker;
+
+        emit RequestWithdrawal(strategyAddress, withdrawalRoot, staker, strategyShares);
     }
 
     /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.
@@ -516,10 +553,12 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @param strategyShares the amount of EigenLayer strategy shares to redeem
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external onlyLRTOperator {
         // request the withdrawal of the LSTs from EigenLayer's underlying strategy.
-        _requestWithdrawal(strategyAddress, strategyShares);
+        bytes32 withdrawalRoot = _requestWithdrawal(strategyAddress, strategyShares);
 
         // account for the pending withdrawal as the shares are no longer accounted for in the EigenLayer strategy
         pendingInternalShareWithdrawals[strategyAddress] += strategyShares;
+
+        emit RequestWithdrawal(strategyAddress, withdrawalRoot, address(0), strategyShares);
     }
 
     /// @dev request the withdrawal of the LSTs from EigenLayer's underlying strategy.
@@ -538,10 +577,11 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         IDelegationManager.QueuedWithdrawalParams[] memory requests = new IDelegationManager.QueuedWithdrawalParams[](1);
         requests[0] = IDelegationManager.QueuedWithdrawalParams(strategies, shares, address(this));
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
+        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
 
         // request the withdrawal from EigenLayer.
         // Will emit the Withdrawal event from EigenLayer's DelegationManager which is needed for the claim.
-        withdrawalRoot = IDelegationManager(delegationManagerAddress).queueWithdrawals(requests)[0];
+        withdrawalRoot = delegationManager.queueWithdrawals(requests)[0];
     }
 
     /// @notice Claims the previously requested withdrawal from EigenLayer's underlying strategy.
@@ -567,6 +607,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         if (withdrawalRequests[withdrawalRoot] != staker) {
             revert StakersWithdrawalNotFound();
         }
+        withdrawalRequests[withdrawalRoot] = DEAD_ADDRESS;
 
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = IStrategy(withdrawal.strategies[0]).underlyingToken();
@@ -586,6 +627,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // transfer withdrawn assets to the staker
             IERC20(asset).transfer(staker, assets);
         }
+
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, assets);
     }
 
     /// @notice Claims the previously requested internal withdrawal from the underlying EigenLayer strategy.
@@ -634,6 +677,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
             // transfer withdrawn assets to the Deposit Pool
             IERC20(asset).transfer(lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL), assets);
         }
+
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, address(0), assets);
     }
 
     /// @dev Returns the keccak256 hash of `withdrawal`.
