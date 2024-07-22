@@ -571,7 +571,7 @@ contract ForkTestNative is ForkTestBase {
     }
 }
 
-contract c is ForkTestBase {
+contract ForkTestLST is ForkTestBase {
     function setUp() public override {
         super.setUp();
 
