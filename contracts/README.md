@@ -80,7 +80,6 @@
 
 ![NodeDelegatorETH Storage](../docs/NodeDelegatorETHStorage.svg)
 
-
 ## LRTConfig
 
 [LRTConfig.sol](./LRTConfig.sol)

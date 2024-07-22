@@ -65,8 +65,9 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         // init LRTOracle
         lrtOracleProxy.initialize(address(lrtConfigProxy));
 
-        nodeDelegatorProxy1 =
-            NodeDelegatorLST(payable(proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), salt)));
+        nodeDelegatorProxy1 = NodeDelegatorLST(
+            payable(proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), salt))
+        );
 
         // init NodeDelegator
         nodeDelegatorProxy1.initialize(address(lrtConfigProxy));
