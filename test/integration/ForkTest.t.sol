@@ -537,6 +537,51 @@ contract ForkTestNative is ForkTestBase {
 
     // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
 
+    function test_exitSsvValidators() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        uint64[] memory operatorIds = new uint64[](4);
+        operatorIds[0] = 193;
+        operatorIds[1] = 196;
+        operatorIds[2] = 199;
+        operatorIds[3] = 202;
+
+        bytes[] memory publicKeys = new bytes[](2);
+        publicKeys[0] =
+            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
+        publicKeys[1] =
+            hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
+
+        nodeDelegator2.exitSsvValidators(publicKeys, operatorIds);
+
+        vm.stopPrank();
+    }
+
+    function test_removeSsvValidators() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        Cluster memory cluster = Cluster({
+            validatorCount: 28,
+            networkFeeIndex: 63_459_958_614,
+            index: 62_030_899_188,
+            active: true,
+            balance: 45_461_840_401_950_000_000
+        });
+        uint64[] memory operatorIds = new uint64[](4);
+        operatorIds[0] = 193;
+        operatorIds[1] = 196;
+        operatorIds[2] = 199;
+        operatorIds[3] = 202;
+
+        nodeDelegator2.removeSsvValidator(
+            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c",
+            operatorIds,
+            cluster
+        );
+
+        vm.stopPrank();
+    }
+
     function test_requestEthWithdrawal() public {
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
