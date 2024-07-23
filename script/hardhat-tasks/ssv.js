@@ -1,9 +1,11 @@
-const { logTxDetails } = require("../utils/txLogger");
 const { parseUnits, formatUnits } = require("ethers/lib/utils");
+const fsp = require("fs").promises;
+const path = require("path");
 const { ClusterScanner, NonceScanner } = require("ssv-scanner");
 const { SSVKeys, KeyShares, KeySharesItem, SSVKeysException } = require("ssv-keys");
-const path = require("path");
-const fsp = require("fs").promises;
+
+const { logTxDetails } = require("../utils/txLogger");
+const { publicKey } = require("../utils/regex");
 
 const log = require("../utils/logger")("task:ssv");
 
@@ -28,6 +30,38 @@ const depositSSV = async (options) => {
   log(`Cluster: ${JSON.stringify(clusterInfo.snapshot)}`);
   const tx = await nodeDelegator.connect(signer).depositSSV(operatorIds, amountBN, clusterInfo.cluster);
   await logTxDetails(tx, "depositSSV");
+};
+
+const exitValidator = async (options) => {
+  const { signer, nodeDelegator, pubkey, operatorids } = options;
+  log(`Splitting operator IDs ${operatorids}`);
+  const operatorIds = operatorids.split(".").map((id) => parseInt(id));
+
+  if (!pubkey.match(publicKey)) {
+    throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${pubkey}`);
+  }
+
+  log(`About to exit validator with pub key ${pubkey} in the SSV Cluster with operator IDs ${operatorIds}`);
+  const tx = await nodeDelegator.connect(signer).exitSsvValidator(pubkey, operatorIds);
+  await logTxDetails(tx, "exitSsvValidator");
+};
+
+const removeSsvValidator = async (options) => {
+  const { signer, chainId, nodeDelegator, pubkey, operatorids, ssvNetwork } = options;
+  log(`Splitting operator IDs ${operatorids}`);
+  const operatorIds = operatorids.split(".").map((id) => parseInt(id));
+
+  if (!pubkey.match(publicKey)) {
+    throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${pubkey}`);
+  }
+
+  // Cluster details
+  const clusterInfo = await getClusterInfo({ chainId, ssvNetwork, operatorids, ownerAddress: nodeDelegator.address });
+
+  log(`About to remove validator with pub key ${pubkey} from the SSV Cluster with operator IDs ${operatorIds}`);
+  log(`Cluster: ${JSON.stringify(clusterInfo.snapshot)}`);
+  const tx = await nodeDelegator.connect(signer).removeSsvValidator(pubkey, operatorIds, clusterInfo.cluster);
+  await logTxDetails(tx, "removeSsvValidator");
 };
 
 const pauseDelegator = async ({ signer, nodeDelegator }) => {
@@ -189,6 +223,8 @@ const claimSSV = async (options) => {
 module.exports = {
   approveSSV,
   depositSSV,
+  exitValidator,
+  removeSsvValidator,
   pauseDelegator,
   unpauseDelegator,
   printClusterInfo,

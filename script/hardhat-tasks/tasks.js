@@ -7,6 +7,8 @@ const { snapshot } = require("./snapshot");
 const {
   approveSSV,
   depositSSV,
+  exitValidator,
+  removeSsvValidator,
   pauseDelegator,
   unpauseDelegator,
   printClusterInfo,
@@ -329,6 +331,52 @@ subtask("claimSSV", "Claim SSV rewards from Merkledrop contract")
     await claimSSV({ ...taskArgs, signer, ssvMerkledrop, ssvToken });
   });
 task("claimSSV").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("exitValidator", "Exit a validator from the Beacon chain")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addParam("pubkey", "Public key of the validator to exit", undefined, types.string)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    undefined,
+    types.string,
+  )
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+
+    await exitValidator({ ...taskArgs, signer, nodeDelegator });
+  });
+task("exitValidator").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("removeValidator", "Remove a validator from a SSV Cluster")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addParam("pubkey", "Public key of the validator to exit", undefined, types.string)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    undefined,
+    types.string,
+  )
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const network = await ethers.provider.getNetwork();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+    const ssvNetwork = await parseAddress("SSV_NETWORK");
+
+    await removeSsvValidator({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
+  });
+task("removeValidator").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
