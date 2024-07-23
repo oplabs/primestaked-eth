@@ -49,6 +49,10 @@ contract MockSSVNetwork {
     {
         IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
     }
+
+    function exitValidator(bytes memory publicKey, uint64[] memory operatorIds) external { }
+
+    function removeValidator(bytes memory publicKey, uint64[] memory operatorIds, Cluster memory cluster) external { }
 }
 
 contract NodeDelegatorTest is LRTConfigTest {
@@ -634,6 +638,22 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.stopPrank();
     }
 
+    function test_exitValidatorRevertWhenCallerIsNotLRTOperator() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+
+        nodeDelETH.exitSsvValidator(hex"", operatorIds);
+        vm.stopPrank();
+    }
+
+    function test_removeValidatorRevertWhenCallerIsNotLRTOperator() external {
+        vm.startPrank(alice);
+        vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
+
+        nodeDelETH.removeSsvValidator(hex"", operatorIds, cluster);
+        vm.stopPrank();
+    }
+
     function test_approveSSV() external {
         vm.prank(manager);
 
@@ -653,14 +673,17 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.stopPrank();
     }
 
-    function test_registerValidator() external {
+    function test_validatorOperations() external {
         vm.startPrank(manager);
 
         nodeDelETH.approveSSV();
         ssvToken.transfer(address(nodeDelETH), 10 ether);
         vm.stopPrank();
 
-        vm.prank(operator);
+        vm.startPrank(operator);
         nodeDelETH.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
+        nodeDelETH.exitSsvValidator(hex"", operatorIds);
+        nodeDelETH.removeSsvValidator(hex"", operatorIds, cluster);
+        vm.stopPrank();
     }
 }
