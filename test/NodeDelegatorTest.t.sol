@@ -642,7 +642,9 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
 
-        nodeDelETH.exitSsvValidator(hex"", operatorIds);
+        bytes[] memory publicKeys = new bytes[](1);
+        publicKeys[0] = hex"";
+        nodeDelETH.exitSsvValidators(publicKeys, operatorIds);
         vm.stopPrank();
     }
 
@@ -650,7 +652,9 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         vm.startPrank(alice);
         vm.expectRevert(ILRTConfig.CallerNotLRTConfigOperator.selector);
 
-        nodeDelETH.removeSsvValidator(hex"", operatorIds, cluster);
+        bytes[] memory publicKeys = new bytes[](1);
+        publicKeys[0] = hex"";
+        nodeDelETH.removeSsvValidators(publicKeys, operatorIds, cluster);
         vm.stopPrank();
     }
 
@@ -682,8 +686,11 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
 
         vm.startPrank(operator);
         nodeDelETH.registerSsvValidator(hex"", operatorIds, hex"", 10 ether, cluster);
-        nodeDelETH.exitSsvValidator(hex"", operatorIds);
-        nodeDelETH.removeSsvValidator(hex"", operatorIds, cluster);
+
+        bytes[] memory publicKeys = new bytes[](1);
+        publicKeys[0] = hex"";
+        nodeDelETH.exitSsvValidators(publicKeys, operatorIds);
+        nodeDelETH.removeSsvValidators(publicKeys, operatorIds, cluster);
         vm.stopPrank();
     }
 }

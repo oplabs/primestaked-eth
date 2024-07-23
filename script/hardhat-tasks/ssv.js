@@ -32,36 +32,44 @@ const depositSSV = async (options) => {
   await logTxDetails(tx, "depositSSV");
 };
 
-const exitValidator = async (options) => {
+const exitValidators = async (options) => {
   const { signer, nodeDelegator, pubkey, operatorids } = options;
   log(`Splitting operator IDs ${operatorids}`);
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
 
-  if (!pubkey.match(publicKey)) {
-    throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${pubkey}`);
-  }
+  const publicKeys = pubkeys.split(",");
+  publicKeys.forEach((key) => {
+    if (!key.match(publicKey)) {
+      throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${key}`);
+    }
+  });
 
-  log(`About to exit validator with pub key ${pubkey} in the SSV Cluster with operator IDs ${operatorIds}`);
-  const tx = await nodeDelegator.connect(signer).exitSsvValidator(pubkey, operatorIds);
-  await logTxDetails(tx, "exitSsvValidator");
+  log(`About to exit validators with public keys ${publicKeys} in the SSV Cluster with operator IDs ${operatorIds}`);
+  const tx = await nodeDelegator.connect(signer).exitSsvValidators(publicKeys, operatorIds);
+  await logTxDetails(tx, "exitSsvValidators");
 };
 
-const removeSsvValidator = async (options) => {
-  const { signer, chainId, nodeDelegator, pubkey, operatorids, ssvNetwork } = options;
+const removeSsvValidators = async (options) => {
+  const { signer, chainId, nodeDelegator, pubkeys, operatorids, ssvNetwork } = options;
   log(`Splitting operator IDs ${operatorids}`);
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
 
-  if (!pubkey.match(publicKey)) {
-    throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${pubkey}`);
-  }
+  const publicKeys = pubkeys.split(",");
+  publicKeys.forEach((key) => {
+    if (!key.match(publicKey)) {
+      throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${key}`);
+    }
+  });
 
   // Cluster details
   const clusterInfo = await getClusterInfo({ chainId, ssvNetwork, operatorids, ownerAddress: nodeDelegator.address });
 
-  log(`About to remove validator with pub key ${pubkey} from the SSV Cluster with operator IDs ${operatorIds}`);
+  log(
+    `About to remove validators with public keys ${publicKeys} from the SSV Cluster with operator IDs ${operatorIds}`,
+  );
   log(`Cluster: ${JSON.stringify(clusterInfo.snapshot)}`);
-  const tx = await nodeDelegator.connect(signer).removeSsvValidator(pubkey, operatorIds, clusterInfo.cluster);
-  await logTxDetails(tx, "removeSsvValidator");
+  const tx = await nodeDelegator.connect(signer).removeSsvValidators(publicKeys, operatorIds, clusterInfo.cluster);
+  await logTxDetails(tx, "removeSsvValidators");
 };
 
 const pauseDelegator = async ({ signer, nodeDelegator }) => {
@@ -223,8 +231,8 @@ const claimSSV = async (options) => {
 module.exports = {
   approveSSV,
   depositSSV,
-  exitValidator,
-  removeSsvValidator,
+  exitValidators,
+  removeSsvValidators,
   pauseDelegator,
   unpauseDelegator,
   printClusterInfo,

@@ -5,17 +5,9 @@ import { IDelegationManager } from "../eigen/interfaces/IDelegationManager.sol";
 import { Cluster } from "./ISSVNetwork.sol";
 
 interface INodeDelegatorETH {
-    // event
-    // event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
     event ETHDepositFromDepositPool(uint256 depositAmount);
     event EigenPodCreated(address indexed eigenPod, address indexed podOwner);
     event ETHStaked(bytes valPubKey, uint256 amount);
-    // event RequestWithdrawal(
-    //     address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 strategyShares
-    // );
-    // event ClaimWithdrawal(
-    //     address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 assets
-    // );
     event Delegate(address indexed operator);
     event Undelegate(address indexed strategy, uint256 strategyShares);
     event ConsensusRewards(uint256 amount);
@@ -24,34 +16,14 @@ interface INodeDelegatorETH {
 
     // errors
     error TokenTransferFailed(); // 0x045c4b02
-    // error StrategyIsNotSetForAsset(); // 0x615c938
     error InvalidETHSender(); // 0xe811a0c2
     error InsufficientWETH(uint256 balance); // 0x2ed796b4
     error ValidatorAlreadyStaked(bytes pubkey); // 0x2229546d
-    // error StakersWithdrawalNotFound(); // 0x0110c83d
-    // error NotInternalWithdrawal(); // 0xb1345ad5
-    // error NotSingleStrategyWithdrawal(); // 0xc18ea890
     error NoEigenPod(); // 5dd90f17
 
-    // methods
-    // function depositAssetIntoStrategy(address asset) external;
-    // function depositAssetsIntoStrategy(address[] calldata assets) external;
-
-    // function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external;
-    // function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external;
-    // function claimWithdrawal(
-    //     IDelegationManager.Withdrawal calldata withdrawal,
-    //     address staker
-    // )
-    //     external
-    //     returns (address asset, uint256 assets);
-    // function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
-    //     external
-    //     returns (address asset, uint256 assets);
-
-    function exitSsvValidator(bytes calldata publicKey, uint64[] calldata operatorIds) external;
-    function removeSsvValidator(
-        bytes calldata publicKey,
+    function exitSsvValidators(bytes[] calldata publicKeys, uint64[] calldata operatorIds) external;
+    function removeSsvValidators(
+        bytes[] calldata publicKeys,
         uint64[] calldata operatorIds,
         Cluster calldata cluster
     )
