@@ -31,6 +31,8 @@ const {
   requestInternalWithdrawal,
   claimInternalWithdrawal,
   claimInternalWithdrawals,
+  requestEthWithdrawal,
+  claimEthWithdrawal
 } = require("./withdrawals");
 
 const log = require("../utils/logger")("task");
@@ -128,6 +130,34 @@ subtask("claimInternalWithdrawals", "Prime Operator claims multiple LST withdraw
     await claimInternalWithdrawals({ ...taskArgs, signer, nodeDelegator, delegationManager });
   });
 task("claimInternalWithdrawals").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask(
+  "requestEthWithdrawal",
+  "Prime Operator requests Ether withdrawal from EigenLayer's EigenPod contract.",
+).setAction(async (taskArgs) => {
+  const signer = await getSigner();
+  const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR_NATIVE_STAKING");
+  const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+
+  await requestEthWithdrawal({ ...taskArgs, signer, nodeDelegator });
+});
+task("requestEthWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask(
+  "claimEthWithdrawal",
+  "Prime Operator claims Ether withdrawal from EigenLayer's DelayedWithdrawalRouter contract.",
+).setAction(async (taskArgs) => {
+  const signer = await getSigner();
+  const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR_NATIVE_STAKING");
+  const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+
+  await claimEthWithdrawal({ ...taskArgs, signer, nodeDelegator });
+});
+task("claimEthWithdrawal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

@@ -65,10 +65,24 @@ const claimInternalWithdrawals = async ({ signer, nodeDelegator, requestTx, dele
   }
 };
 
+const requestEthWithdrawal = async ({ signer, nodeDelegator }) => {
+  log(`About to request Ether withdrawal from EigenLayer's EigenPod contract`);
+  const tx = await nodeDelegator.connect(signer).requestEthWithdrawal();
+  await logTxDetails(tx, "requestEthWithdrawal");
+};
+
+const claimEthWithdrawal = async ({ signer, nodeDelegator }) => {
+  log(`About to claim Ether withdrawal from EigenLayer's DelayedWithdrawalRouter contract`);
+  const tx = await nodeDelegator.connect(signer).claimEthWithdrawal();
+  await logTxDetails(tx, "claimEthWithdrawal");
+};
+
 module.exports = {
   requestWithdrawal,
   claimWithdrawal,
   requestInternalWithdrawal,
   claimInternalWithdrawal,
   claimInternalWithdrawals,
+  requestEthWithdrawal,
+  claimEthWithdrawal,
 };
