@@ -22,8 +22,8 @@ interface INodeDelegatorETH {
     error NoEigenPod(); // 5dd90f17
 
     function exitSsvValidators(bytes[] calldata publicKeys, uint64[] calldata operatorIds) external;
-    function removeSsvValidators(
-        bytes[] calldata publicKeys,
+    function removeSsvValidator(
+        bytes calldata publicKey,
         uint64[] calldata operatorIds,
         Cluster calldata cluster
     )

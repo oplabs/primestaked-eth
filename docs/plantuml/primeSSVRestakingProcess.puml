@@ -262,18 +262,22 @@ end group
 
 group Operator full withdraw from validator
 
-op -> nd : exitSsvValidator(\npublicKey\noperatorIds)
+op -> nd : exitSsvValidators(\npublicKeys\noperatorIds)
 activate nd
+loop publicKeys
 nd -> ssvNet : exitValidator(\npublicKey\noperatorIds)
 activate ssvNet
 return
+end loop
 return
 
-ssvOp -> ssvOp : sign(\npk,\nexit message)
+loop privateKeys
+ssvOp -> ssvOp : sign(\nprivateKey,\nexit message)
 note right : voluntary exit message signed by the validator private key
 ssvOp -> val : signed voluntary exit message
 activate val
 return
+end loop
 
 ... wait until validator has exited.\nmin four epochs (~25 min), currently 1.5 hours but can take a number of days depending on the number of validators in the exit queue ...
 

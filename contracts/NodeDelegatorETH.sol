@@ -330,15 +330,15 @@ contract NodeDelegatorETH is
         }
     }
 
-    /// @dev Remove validators from a SSV Cluster.
-    /// Make sure `exitSsvValidators` is called before and all the validators have exited the Beacon chain.
-    /// If removed before a validator has exited the beacon chain will result in the validator being slashed.
+    /// @dev Remove a validator from the SSV Cluster.
+    /// Make sure `exitSsvValidators` is called before and the validate has exited the Beacon chain.
+    /// If removed before the validator has exited the beacon chain will result in the validator being slashed.
     /// Only the Operator can call this function.
-    /// @param publicKeys Array of validator public keys
+    /// @param publicKey The public key of the validator
     /// @param operatorIds The operator IDs of the SSV Cluster
     /// @param cluster The SSV cluster details including the validator count and SSV balance
-    function removeSsvValidators(
-        bytes[] calldata publicKeys,
+    function removeSsvValidator(
+        bytes calldata publicKey,
         uint64[] calldata operatorIds,
         Cluster calldata cluster
     )
@@ -348,9 +348,7 @@ contract NodeDelegatorETH is
     {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
-        for (uint256 i = 0; i < publicKeys.length; ++i) {
-            ISSVNetwork(SSV_NETWORK_ADDRESS).removeValidator(publicKeys[i], operatorIds, cluster);
-        }
+        ISSVNetwork(SSV_NETWORK_ADDRESS).removeValidator(publicKey, operatorIds, cluster);
     }
 
     /// @dev Withdraw all ether in the EigenPod which can be from beacon consensus rewards or validator exits.
