@@ -32,7 +32,7 @@ const {
   claimInternalWithdrawal,
   claimInternalWithdrawals,
   requestEthWithdrawal,
-  claimEthWithdrawal
+  claimEthWithdrawal,
 } = require("./withdrawals");
 
 const log = require("../utils/logger")("task");
