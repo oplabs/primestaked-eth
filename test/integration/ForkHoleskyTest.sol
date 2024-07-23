@@ -69,10 +69,16 @@ contract ForkHoleskyTestBase is Test {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
 
+        vm.label(AddressesHolesky.LRT_DEPOSIT_POOL, "depositPool");
+        vm.label(AddressesHolesky.PRIME_STAKED_ETH, "primeETH");
+        vm.label(AddressesHolesky.NODE_DELEGATOR, "nodeDelegator1");
+
         vm.label(stETHAddress, "stETH");
         vm.label(stWhale, "stWhale");
+        vm.label(AddressesHolesky.STETH_EIGEN_STRATEGY, "stEthEigenStrategy");
         vm.label(rEthAddress, "rETH");
         vm.label(rWhale, "rWhale");
+        vm.label(AddressesHolesky.RETH_EIGEN_STRATEGY, "rEthEigenStrategy");
 
         // upgrade the LRTDepositPool and NodeDelegator implementations
         vm.startPrank(AddressesHolesky.PROXY_OWNER);
@@ -1886,6 +1892,8 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
     function test_undelegateClaimStETH() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
         (uint256 stETHDepositPoolBefore, uint256 stETHInNDCsBefore, uint256 stETHInEigenLayerBefore) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
+        uint256 pendingInternalShareWithdrawalsBefore =
+            nodeDelegator1.pendingInternalShareWithdrawals(AddressesHolesky.STETH_EIGEN_STRATEGY);
 
         vm.startPrank(AddressesHolesky.MANAGER_ROLE);
 
@@ -1914,10 +1922,10 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
 
         assertEq(
             stETHDepositPoolAfter,
-            stETHDepositPoolBefore + stETHInEigenLayerBefore - 2,
-            "stETH previously in EigenLayer now in DepositPool less 2 wei"
+            stETHDepositPoolBefore + stETHInEigenLayerBefore - pendingInternalShareWithdrawalsBefore,
+            "stETH previously in EigenLayer now in DepositPool less any pending internal withdrawals"
         );
-        assertEq(stETHInNDCsAfter, stETHInNDCsBefore + 1, "1 wei extra stETH in NodeDelegators after");
+        assertEq(stETHInNDCsAfter, stETHInNDCsBefore, "stETH in NodeDelegators after");
         assertEq(stETHInEigenLayerAfter, 0, "no stETH in EigenLayer after");
     }
 
