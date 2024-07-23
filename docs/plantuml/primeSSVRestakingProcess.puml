@@ -13,7 +13,7 @@ actor "Operators" as ssvOp <<SSV>>
 
 box "Execution Chain"
 participant "DepositPool" as dp <<Prime>>
-participant "NodeDelegator" as nd <<Prime>>
+participant "NodeDelegatorETH" as nd <<Prime>>
 participant "SSV Network" as ssvNet <<SSV>>
 participant "SSV Token" as ssv <<SSV>>
 participant "WETH" as weth <<Wrapped ETH>>
@@ -43,17 +43,17 @@ man -> nd : approveSSV()
 activate nd
 nd -> ssv : approve(\nSSV Network,\namount)
 activate ssv
-note right : NodeDelegator approves\nSSV Network to spend\nSSV tokens
+note right : NodeDelegatorETH approves\nSSV Network to spend\nSSV tokens
 return
 ' nd -> ssvNet : setFeeRecipientAddress(\nrecipient)
 ' activate ssvNet
-' note right : NodeDelegator set as the fee recipient
+' note right : NodeDelegatorETH set as the fee recipient
 ' return
 return
 
 man -> ssv : transfer(\nfrom\nto\namount)
 activate ssv
-note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
+note right : transfer SSV tokens\nfrom Manager\nto NodeDelegatorETH
 return
 
 end
@@ -64,8 +64,8 @@ op -> api: POST\neth/staking/ssv/request/create\nuuid,\nvalidatorsCount,\ntype,\
 activate api
 note right
 withdrawalAddress is EigenPod
-feeRecipientAddress is NodeDelegator
-ssvOwnerAddress is NodeDelegator
+feeRecipientAddress is NodeDelegatorETH
+ssvOwnerAddress is NodeDelegatorETH
 type is without-encrypt-key
 end note
 api -> api: private key
@@ -93,7 +93,7 @@ nd -> ssvNet : registerValidator(\npublicKey,\noperatorIds,\nsharesData,\namount
 activate ssvNet
 ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
 activate ssv
-note right: transfer SSV tokens\nfrom NodeDelegator\nto SSV Network
+note right: transfer SSV tokens\nfrom NodeDelegatorETH\nto SSV Network
 return
 return
 return
@@ -123,7 +123,7 @@ return
 ' note right : WETH burned for ETH
 ' return ETH
 ' nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
-' note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
+' note right : 32 ETH from NodeDelegatorETH\nis sent to EigenPodManager
 ' activate podMan
 ' podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
 ' activate pod
@@ -144,7 +144,7 @@ return ETH
 loop For each validator
 
 nd -> podMan : stake(\npayableAmount\npubkey,\nsignature,\ndepositDataRoot)
-note right : 32 ETH from NodeDelegator\nis sent to EigenPodManager
+note right : 32 ETH from NodeDelegatorETH\nis sent to EigenPodManager
 activate podMan
 podMan -> pod : stake(\npubkey,\nsignature,\ndepositDataRoot)
 activate pod
@@ -165,7 +165,7 @@ end group
 
 ' man -> api: POST nodes-request/create\nuuid,\ntype,\nnodesOptions,\neigenPodOwnerAddress,\ncontrollerAddress,\nfeeRecipientAddress
 ' activate api
-' note right : eigenPodOwnerAddress is the NodeDelegator
+' note right : eigenPodOwnerAddress is the NodeDelegatorETH
 ' return
 
 ' man -> api: status(uuid)
@@ -179,7 +179,7 @@ group Manager deposits more SSV to SSV cluster
 
 man -> ssv : transfer(\nto\namount)
 activate ssv
-note right : transfer SSV tokens\nfrom Manager\nto NodeDelegator
+note right : transfer SSV tokens\nfrom Manager\nto NodeDelegatorETH
 return
 
 man -> nd : depositSSV(\noperatorIds,\namount,\ncluster)
@@ -187,7 +187,7 @@ activate nd
 note right : cluster is latest cluster data. eg balance
 nd -> ssvNet : deposit(\nclusterOwner,\noperatorIds,\namount,\ncluster)
 activate ssvNet
-note right : clusterOwner is NodeDelegator
+note right : clusterOwner is NodeDelegatorETH
 ssvNet -> ssv : transferFrom(\nfrom\nto\namount)
 activate ssv
 note right: transfer SSV tokens\nfrom DelegatorNode\nto SSV Network
@@ -226,7 +226,7 @@ pod -> podMan : restakeBeaconChainETH(\npodOwner,\namount)
 activate podMan
 podMan -> stratMan : depositBeaconChainETH(\nstaker,\namount)
 activate stratMan
-note right : add ETH strategy shares to NodeDelegator
+note right : add ETH strategy shares to NodeDelegatorETH
 return
 return
 return
@@ -254,7 +254,7 @@ activate nd
 nd -> dwr : claimDelayedWithdrawals(maxClaims = 1)
 activate dwr
 dwr -> nd : ETH
-note right : transfers ETH\nfrom Delayed Withdrawal Router\nto NodeDelegator
+note right : transfers ETH\nfrom Delayed Withdrawal Router\nto NodeDelegatorETH
 return
 return
 
@@ -307,7 +307,7 @@ activate nd
 nd -> dwr : claimDelayedWithdrawals(maxClaims = 1)
 activate dwr
 dwr -> nd : ETH
-note right : transfers ETH\nfrom Delayed Withdrawal Router\nto NodeDelegator
+note right : transfers ETH\nfrom Delayed Withdrawal Router\nto NodeDelegatorETH
 return
 return
 
