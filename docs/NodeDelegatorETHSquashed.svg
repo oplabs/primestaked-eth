@@ -63,7 +63,7 @@
 <text text-anchor="start" x="8" y="-798.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;_stakeEth(pubkey: bytes, signature: bytes, depositDataRoot: bytes32) &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-781.5" font-family="Times,serif" font-size="14.00">External:</text>
 <text text-anchor="start" x="8" y="-764.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;&lt;&lt;payable&gt;&gt; null() &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
-<text text-anchor="start" x="8" y="-747.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;exitSsvValidator(publicKey: bytes, operatorIds: uint64[]) &lt;&lt;onlyLRTOperator, whenNotPaused&gt;&gt; &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
+<text text-anchor="start" x="8" y="-747.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;exitSsvValidators(publicKeys: bytes[], operatorIds: uint64[]) &lt;&lt;onlyLRTOperator, whenNotPaused&gt;&gt; &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-731.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;removeSsvValidator(publicKey: bytes, operatorIds: uint64[], cluster: Cluster) &lt;&lt;onlyLRTOperator, whenNotPaused&gt;&gt; &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-714.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;requestEthWithdrawal() &lt;&lt;onlyLRTOperator&gt;&gt; &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-697.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimEthWithdrawal() &lt;&lt;onlyLRTOperator&gt;&gt; &lt;&lt;NodeDelegatorETH&gt;&gt;</text>
