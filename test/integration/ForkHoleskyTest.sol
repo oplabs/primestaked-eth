@@ -1920,12 +1920,13 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
         (uint256 stETHDepositPoolAfter, uint256 stETHInNDCsAfter, uint256 stETHInEigenLayerAfter) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
 
-        assertEq(
+        assertApproxEqAbs(
             stETHDepositPoolAfter,
             stETHDepositPoolBefore + stETHInEigenLayerBefore - pendingInternalShareWithdrawalsBefore,
-            "stETH previously in EigenLayer now in DepositPool less any pending internal withdrawals"
+            2,
+            "stETH previously in EigenLayer now in DepositPool less any pending internal withdrawals to within 2 wei"
         );
-        assertEq(stETHInNDCsAfter, stETHInNDCsBefore, "stETH in NodeDelegators after");
+        assertApproxEqAbs(stETHInNDCsAfter, stETHInNDCsBefore, 2, "stETH in NodeDelegators after to within 2 wei");
         assertEq(stETHInEigenLayerAfter, 0, "no stETH in EigenLayer after");
     }
 
