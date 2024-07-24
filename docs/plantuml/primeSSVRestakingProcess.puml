@@ -264,11 +264,9 @@ group Operator full withdraw from validator
 
 op -> nd : exitSsvValidators(\npublicKeys\noperatorIds)
 activate nd
-loop publicKeys
-nd -> ssvNet : exitValidator(\npublicKey\noperatorIds)
+nd -> ssvNet : bulkExitValidator(\npublicKeys\noperatorIds)
 activate ssvNet
 return
-end loop
 return
 
 loop privateKeys
@@ -281,9 +279,9 @@ end loop
 
 ... wait until validator has exited.\nmin four epochs (~25 min), currently 1.5 hours but can take a number of days depending on the number of validators in the exit queue ...
 
-op -> nd : removeSsvValidator(\npublicKey,\noperatorIds,\ncluster)
+op -> nd : removeSsvValidators(\npublicKeys,\noperatorIds,\ncluster)
 activate nd
-nd -> ssvNet : removeValidator(\npublicKey\noperatorIds,\ncluster)
+nd -> ssvNet : bulkRemoveValidator(\npublicKeys\noperatorIds,\ncluster)
 activate ssvNet
 note right : stop paying SSV to Operators\n and reduce required SSV collateral
 return

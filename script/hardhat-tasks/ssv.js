@@ -33,7 +33,7 @@ const depositSSV = async (options) => {
 };
 
 const exitValidators = async (options) => {
-  const { signer, nodeDelegator, pubkey, operatorids } = options;
+  const { signer, nodeDelegator, pubkeys, operatorids } = options;
   log(`Splitting operator IDs ${operatorids}`);
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
 
@@ -49,18 +49,27 @@ const exitValidators = async (options) => {
   await logTxDetails(tx, "exitSsvValidators");
 };
 
-const removeSsvValidator = async (options) => {
-  const { signer, chainId, nodeDelegator, pubkey, operatorids, ssvNetwork } = options;
+const removeSsvValidators = async (options) => {
+  const { signer, chainId, nodeDelegator, pubkeys, operatorids, ssvNetwork } = options;
   log(`Splitting operator IDs ${operatorids}`);
   const operatorIds = operatorids.split(".").map((id) => parseInt(id));
+
+  const publicKeys = pubkeys.split(",");
+  publicKeys.forEach((key) => {
+    if (!key.match(publicKey)) {
+      throw new Error(`Public key is not 48 bytes in hexadecimal format with a 0x prefix: ${key}`);
+    }
+  });
 
   // Cluster details
   const clusterInfo = await getClusterInfo({ chainId, ssvNetwork, operatorids, ownerAddress: nodeDelegator.address });
 
-  log(`About to remove a validator with public key ${pubkey} from the SSV Cluster with operator IDs ${operatorIds}`);
+  log(
+    `About to remove validators with public keys ${publicKeys} from the SSV Cluster with operator IDs ${operatorIds}`,
+  );
   log(`Cluster: ${JSON.stringify(clusterInfo.snapshot)}`);
-  const tx = await nodeDelegator.connect(signer).removeSsvValidator(pubkey, operatorIds, clusterInfo.cluster);
-  await logTxDetails(tx, "removeSsvValidator");
+  const tx = await nodeDelegator.connect(signer).removeSsvValidators(publicKeys, operatorIds, clusterInfo.cluster);
+  await logTxDetails(tx, "removeSsvValidators");
 };
 
 const pauseDelegator = async ({ signer, nodeDelegator }) => {
@@ -223,7 +232,7 @@ module.exports = {
   approveSSV,
   depositSSV,
   exitValidators,
-  removeSsvValidator,
+  removeSsvValidators,
   pauseDelegator,
   unpauseDelegator,
   printClusterInfo,

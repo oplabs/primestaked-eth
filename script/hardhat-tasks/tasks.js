@@ -8,7 +8,7 @@ const {
   approveSSV,
   depositSSV,
   exitValidators,
-  removeSsvValidator,
+  removeSsvValidators,
   pauseDelegator,
   unpauseDelegator,
   printClusterInfo,
@@ -386,9 +386,9 @@ task("exitValidators").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("removeSsvValidator", "Remove a validator from a SSV Cluster")
+subtask("removeSsvValidators", "Remove a validator from a SSV Cluster")
   .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
-  .addParam("pubkey", "A validator public key in hexadecimal format", undefined, types.string)
+  .addParam("pubkeys", "Comma separated list of validator public keys in hexadecimal format", undefined, types.string)
   .addParam(
     "operatorids",
     "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
@@ -404,9 +404,9 @@ subtask("removeSsvValidator", "Remove a validator from a SSV Cluster")
     const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
     const ssvNetwork = await parseAddress("SSV_NETWORK");
 
-    await removeSsvValidator({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
+    await removeSsvValidators({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
   });
-task("removeSsvValidator").setAction(async (_, __, runSuper) => {
+task("removeSsvValidators").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 

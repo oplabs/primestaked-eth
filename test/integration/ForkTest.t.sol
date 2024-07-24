@@ -573,11 +573,13 @@ contract ForkTestNative is ForkTestBase {
         operatorIds[2] = 199;
         operatorIds[3] = 202;
 
-        nodeDelegator2.removeSsvValidator(
-            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c",
-            operatorIds,
-            cluster
-        );
+        bytes[] memory publicKeys = new bytes[](2);
+        publicKeys[0] =
+            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
+        publicKeys[1] =
+            hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
+
+        nodeDelegator2.removeSsvValidators(publicKeys, operatorIds, cluster);
 
         vm.stopPrank();
     }
