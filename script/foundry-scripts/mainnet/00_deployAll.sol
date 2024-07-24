@@ -15,6 +15,7 @@ import { UnpauseNativeETH } from "./11_unpauseNativeETH.s.sol";
 import { UpgradeNodeDelegatorDelegateTo } from "./12_upgradeNodeDelegatorDelegateTo.s.sol";
 import { UpgradeLSTWithdrawals } from "./13_upgradeLSTWithdrawals.s.sol";
 import { UpgradeEthWithdrawals } from "./14_upgradeEthWithdrawals.s.sol";
+import { YieldNestIntegration } from "./15_yieldNestIntegration.s.sol";
 
 contract DeployAll {
     // Ignores this contract when checking contract sized with
@@ -36,5 +37,6 @@ contract DeployAll {
         (new UpgradeNodeDelegatorDelegateTo()).run();
         (new UpgradeLSTWithdrawals()).run();
         (new UpgradeEthWithdrawals()).run();
+        (new YieldNestIntegration()).run();
     }
 }

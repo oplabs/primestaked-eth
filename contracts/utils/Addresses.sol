@@ -73,6 +73,10 @@ library Addresses {
     address public constant SSV_MERKLEDROP = 0xe16d6138B1D2aD4fD6603ACdb329ad1A6cD26D9f;
 
     address public constant BEACON_DEPOSIT = 0x00000000219ab540356cBB839Cbe05303d7705Fa;
+
+    // TODO add when they are deployed
+    address public constant YN_LSD_E = 0x0000000000000000000000000000000000000011;
+    address public constant YN_EIGEN_DEPOSIT_ADAPTER = 0x0000000000000000000000000000000000000022;
 }
 
 library AddressesGoerli {
@@ -176,4 +180,8 @@ library AddressesHolesky {
     // SSV contracts
     address public constant SSV_TOKEN = 0xad45A78180961079BFaeEe349704F411dfF947C6;
     address public constant SSV_NETWORK = 0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA;
+
+    // TODO add when they are deployed
+    address public constant YN_LSD_E = 0x1000000000000000000000000000000000000011;
+    address public constant YN_EIGEN_DEPOSIT_ADAPTER = 0x1000000000000000000000000000000000000022;
 }

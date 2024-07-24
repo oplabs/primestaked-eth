@@ -39,7 +39,8 @@ interface INodeDelegatorLST {
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external;
     function claimWithdrawal(
         IDelegationManager.Withdrawal calldata withdrawal,
-        address staker
+        address staker,
+        address receiver
     )
         external
         returns (address asset, uint256 assets);

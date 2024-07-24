@@ -1407,7 +1407,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         vm.expectRevert(ILRTConfig.CallerNotLRTDepositPool.selector);
         vm.prank(maliciousUser);
-        nodeDelegator1.claimWithdrawal(withdrawal, maliciousUser);
+        nodeDelegator1.claimWithdrawal(withdrawal, maliciousUser, maliciousUser);
     }
 }
 

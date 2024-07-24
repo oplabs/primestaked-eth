@@ -10,6 +10,7 @@ import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
 import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { INodeDelegatorLST } from "./interfaces/INodeDelegatorLST.sol";
+import { IynEigenDepositAdapter } from "./interfaces/IynEigenDepositAdapter.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
 
@@ -26,6 +27,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address public immutable WETH;
     address public immutable WITHDRAW_ASSET;
 
+    address public immutable ynLSDe;
+    address public immutable ynEigenDepositAdapter;
+
     uint256 public maxNodeDelegatorLimit;
     uint256 public minAmountToDeposit;
 
@@ -33,11 +37,13 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address[] public nodeDelegatorQueue;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _weth, address _withdrawAsset) {
+    constructor(address _weth, address _withdrawAsset, address _ynLSDe, address _ynEigenDepositAdapter) {
         UtilLib.checkNonZeroAddress(_weth);
         UtilLib.checkNonZeroAddress(_withdrawAsset);
         WETH = _weth;
         WITHDRAW_ASSET = _withdrawAsset;
+        ynLSDe = _ynLSDe;
+        ynEigenDepositAdapter = _ynEigenDepositAdapter;
 
         _disableInitializers();
     }
@@ -188,11 +194,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
                         Withdraw functions
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice PrimeETH staker requests the withdrawal of a liquid staking token (LST) from
-    // its respective underlying EigenLayer strategy.
+    /// @notice PrimeETH staker requests the withdrawal of OETH from its underlying EigenLayer strategy.
     /// @dev Will emit the `Withdrawal` event from EigenLayer's `DelegationManager` contract
     /// which is needed for the `claimWithdrawal` call.
-    /// @param asset address of the liquid staking token (LST) being requested. eg OETH. Can not be WETH.
+    /// @param asset address of the liquid staking token (LST) being requested. Only OETH us supported. Can not be WETH.
     /// @param assetAmount the amount of LSTs to withdraw.
     /// @param maxPrimeETH the maximum amount of primeETH tokens that can be burned.
     /// @return primeETHAmount the amount of primeETH tokens that were burned.
@@ -242,7 +247,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         emit WithdrawalRequested(msg.sender, asset, strategyAddress, primeETHAmount, assetAmount, strategyShares);
     }
 
-    /// @notice PrimeETH staker claims the withdrawal of their previously requested liquid staking token (LST).
+    /// @notice PrimeETH staker claims the withdrawal of their previously requested OETH.
     /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract
     /// before claiming the withdrawal.
     /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
@@ -259,9 +264,37 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
 
         // Claim the withdrawal from the NodeDelegator
-        (asset, assets) = INodeDelegatorLST(nodeDelegator).claimWithdrawal(withdrawal, msg.sender);
+        (asset, assets) = INodeDelegatorLST(nodeDelegator).claimWithdrawal(withdrawal, msg.sender, msg.sender);
 
         emit WithdrawalClaimed(msg.sender, asset, assets);
+    }
+
+    /// @notice PrimeETH staker claims the withdrawal of their previously requested OETH
+    /// but instead of receiving OETH, the OETH is deposited into Yield Nest and the withdrawer receives ynLSDe tokens.
+    /// Must wait `minWithdrawalDelayBlocks` on EigenLayer's `DelegationManager` contract
+    /// before claiming the withdrawal.
+    /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
+    /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
+    /// @return ynLSDeAmount the amount of ynLSDe tokens received after OETH is deposited into Yield Nest
+    function claimWithdrawalYn(IDelegationManager.Withdrawal calldata withdrawal)
+        external
+        whenNotPaused
+        nonReentrant
+        returns (uint256 ynLSDeAmount)
+    {
+        // Get the NodeDelegatorLST contract to request the withdrawal from
+        address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
+
+        // Claim the withdrawal of OETH from the NodeDelegatorLST
+        (, uint256 oethAmount) = INodeDelegatorLST(nodeDelegator).claimWithdrawal(withdrawal, msg.sender, address(this));
+
+        // Approve the ynEigenDepositAdapter to spend the OETH, which is the withdrawal asset
+        IERC20(WITHDRAW_ASSET).approve(ynEigenDepositAdapter, oethAmount);
+        // Deposit the OETH into Yield Nest's adaptor and receive ynLSDe tokens
+        uint256 ynLSDeAmount =
+            IynEigenDepositAdapter(ynEigenDepositAdapter).deposit(IERC20(WITHDRAW_ASSET), oethAmount, msg.sender);
+
+        emit WithdrawalClaimed(msg.sender, ynLSDe, ynLSDeAmount);
     }
 
     /*//////////////////////////////////////////////////////////////

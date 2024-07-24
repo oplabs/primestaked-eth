@@ -41,7 +41,11 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         lrtConfigProxy = LRTConfig(Addresses.LRT_CONFIG);
 
-        address lrtDepositPoolImplementation = address(new LRTDepositPool(Addresses.WETH_TOKEN, Addresses.OETH_TOKEN));
+        address lrtDepositPoolImplementation = address(
+            new LRTDepositPool(
+                Addresses.WETH_TOKEN, Addresses.OETH_TOKEN, Addresses.YN_LSD_E, Addresses.YN_EIGEN_DEPOSIT_ADAPTER
+            )
+        );
         address lrtOracleImplementation = address(new LRTOracle());
         address nodeDelegatorImplementation = address(new NodeDelegatorLST(Addresses.WETH_TOKEN));
         //address chainlinkPriceOracleImplementation = address(new ChainlinkPriceOracle());

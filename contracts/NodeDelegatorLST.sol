@@ -359,7 +359,8 @@ contract NodeDelegatorLST is
     /// @return assets the amount of LSTs received from the withdrawal
     function claimWithdrawal(
         IDelegationManager.Withdrawal calldata withdrawal,
-        address staker
+        address staker,
+        address receiver
     )
         external
         onlyDepositPool
@@ -389,8 +390,8 @@ contract NodeDelegatorLST is
         // Calculate the amount of assets returned from the withdrawal
         assets = IERC20(asset).balanceOf(address(this)) - assetsBefore;
         if (assets > 0) {
-            // transfer withdrawn assets to the staker
-            IERC20(asset).transfer(staker, assets);
+            // transfer withdrawn assets to the receiver, which is either the staker or the LRTDepositPool contract
+            IERC20(asset).transfer(receiver, assets);
         }
 
         emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, assets);
