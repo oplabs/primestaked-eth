@@ -1,7 +1,7 @@
 const { subtask, task, types } = require("hardhat/config");
 const { KeyValueStoreClient } = require("defender-kvstore-client");
 
-const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
+const { depositPrime, depositAssetEL, depositAllEL, transferToDepositPool } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
 const { snapshot } = require("./snapshot");
 const {
@@ -222,6 +222,23 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
     }
   });
 task("depositEL").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("withdrawNode", "Transfers assets from a NodeDelegator to the Deposit Pool contract")
+  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
+  .addParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
+
+    const asset = await resolveAsset(taskArgs.symbol, signer);
+    await transferToDepositPool({ ...taskArgs, signer, nodeDelegator, asset });
+  });
+task("withdrawNode").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
