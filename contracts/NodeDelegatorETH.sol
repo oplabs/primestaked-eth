@@ -325,9 +325,7 @@ contract NodeDelegatorETH is
     {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
-        for (uint256 i = 0; i < publicKeys.length; ++i) {
-            ISSVNetwork(SSV_NETWORK_ADDRESS).exitValidator(publicKeys[i], operatorIds);
-        }
+        ISSVNetwork(SSV_NETWORK_ADDRESS).bulkExitValidator(publicKeys, operatorIds);
     }
 
     /// @dev Remove a validator from the SSV Cluster.

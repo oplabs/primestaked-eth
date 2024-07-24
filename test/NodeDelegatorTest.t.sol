@@ -6,8 +6,9 @@ import "forge-std/console.sol";
 
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
-import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib, IERC20 } from "./LRTConfigTest.t.sol";
+import { LRTConfigTest, ILRTConfig, LRTConstants, UtilLib } from "./LRTConfigTest.t.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { MockDelayedWithdrawalRouter } from "contracts/eigen/mocks/MockDelayedWithdrawalRouter.sol";
 import { MockEigenPodManager, MockEigenPod } from "contracts/eigen/mocks/MockEigenPodManager.sol";
@@ -17,43 +18,9 @@ import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { NodeDelegatorLST, INodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
 import { NodeDelegatorETH, INodeDelegatorETH, ValidatorStakeData } from "contracts/NodeDelegatorETH.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
+import { MockSSVNetwork } from "contracts/mocks/MockSSVNetwork.sol";
 
 import { BeaconChainProofs } from "contracts/eigen/interfaces/IEigenPod.sol";
-
-contract MockSSVNetwork {
-    address public ssvToken;
-
-    constructor(address _ssvToken) {
-        ssvToken = _ssvToken;
-    }
-
-    function deposit(
-        address clusterOwner,
-        uint64[] memory operatorIds,
-        uint256 amount,
-        Cluster memory cluster
-    )
-        public
-    {
-        IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
-    }
-
-    function registerValidator(
-        bytes memory publicKey,
-        uint64[] memory operatorIds,
-        bytes memory sharesData,
-        uint256 amount,
-        Cluster memory cluster
-    )
-        external
-    {
-        IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
-    }
-
-    function exitValidator(bytes memory publicKey, uint64[] memory operatorIds) external { }
-
-    function removeValidator(bytes memory publicKey, uint64[] memory operatorIds, Cluster memory cluster) external { }
-}
 
 contract NodeDelegatorTest is LRTConfigTest {
     NodeDelegatorLST public nodeDel;
