@@ -293,6 +293,13 @@ contract NodeDelegatorETH is
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
 
+    // @dev Withdraws SSV Tokens from a SSV Cluster
+    function withdrawSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external onlyLRTManager {
+        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
+
+        ISSVNetwork(SSV_NETWORK_ADDRESS).withdraw(operatorIds, amount, cluster);
+    }
+
     /// @dev Registers a new validator in the SSV Cluster
     function registerSsvValidator(
         bytes calldata publicKey,

@@ -23,6 +23,10 @@ contract MockSSVNetwork {
         IERC20(ssvToken).transferFrom(msg.sender, address(this), amount);
     }
 
+    function withdraw(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) public {
+        IERC20(ssvToken).transfer(msg.sender, amount);
+    }
+
     function registerValidator(
         bytes memory publicKey,
         uint64[] memory operatorIds,

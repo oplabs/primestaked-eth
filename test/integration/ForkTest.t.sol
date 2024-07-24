@@ -221,7 +221,7 @@ contract ForkTestNative is ForkTestBase {
         uint256 amount = 3e18;
         deal(address(Addresses.SSV_TOKEN), Addresses.MANAGER_ROLE, amount);
 
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.startPrank(Addresses.MANAGER_ROLE);
 
         Cluster memory cluster = Cluster({
             validatorCount: 1,
@@ -242,6 +242,10 @@ contract ForkTestNative is ForkTestBase {
         emit Transfer(address(nodeDelegator2), Addresses.SSV_NETWORK, amount);
 
         nodeDelegator2.depositSSV(operatorIds, amount, cluster);
+
+        cluster.balance += amount;
+        nodeDelegator2.withdrawSSV(operatorIds, amount, cluster);
+        vm.stopPrank();
     }
 
     function test_deposit_WETH() public {

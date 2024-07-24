@@ -40,4 +40,7 @@ interface INodeDelegatorETH {
 
     function delegateTo(address operator) external;
     function undelegate() external;
+
+    function depositSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external;
+    function withdrawSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external;
 }

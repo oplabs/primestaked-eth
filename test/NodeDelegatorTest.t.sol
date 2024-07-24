@@ -641,6 +641,9 @@ contract NodeDelegatorSSV is NodeDelegatorTest {
         ssvToken.transfer(address(nodeDelETH), 10 ether);
 
         nodeDelETH.depositSSV(operatorIds, 10 ether, cluster);
+
+        cluster.balance += 10 ether;
+        nodeDelETH.withdrawSSV(operatorIds, 2 ether, cluster);
         vm.stopPrank();
     }
 
