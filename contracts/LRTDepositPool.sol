@@ -9,7 +9,7 @@ import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
 import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
 import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
-import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
+import { INodeDelegatorLST } from "./interfaces/INodeDelegatorLST.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
 
@@ -100,7 +100,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
 
         uint256 ndcsCount = nodeDelegatorQueue.length;
         for (uint256 i; i < ndcsCount;) {
-            (uint256 _ndcAssets, uint256 _eigenAssets) = INodeDelegator(nodeDelegatorQueue[i]).getAssetBalance(asset);
+            (uint256 _ndcAssets, uint256 _eigenAssets) = INodeDelegatorLST(nodeDelegatorQueue[i]).getAssetBalance(asset);
             ndcAssets += _ndcAssets;
             eigenAssets += _eigenAssets;
             unchecked {
@@ -237,7 +237,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         address strategyAddress = lrtConfig.assetStrategy(asset);
         uint256 strategyShares = IStrategy(strategyAddress).underlyingToShares(assetAmount);
 
-        INodeDelegator(nodeDelegator).requestWithdrawal(strategyAddress, strategyShares, msg.sender);
+        INodeDelegatorLST(nodeDelegator).requestWithdrawal(strategyAddress, strategyShares, msg.sender);
 
         emit WithdrawalRequested(msg.sender, asset, strategyAddress, primeETHAmount, assetAmount, strategyShares);
     }
@@ -259,7 +259,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         address nodeDelegator = nodeDelegatorQueue[LST_NDC_INDEX];
 
         // Claim the withdrawal from the NodeDelegator
-        (asset, assets) = INodeDelegator(nodeDelegator).claimWithdrawal(withdrawal, msg.sender);
+        (asset, assets) = INodeDelegatorLST(nodeDelegator).claimWithdrawal(withdrawal, msg.sender);
 
         emit WithdrawalClaimed(msg.sender, asset, assets);
     }
@@ -301,7 +301,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     function removeNodeDelegatorContractFromQueue(address nodeDelegatorAddress) public onlyLRTAdmin {
         // revert if node delegator contract has assets lying in it or it has asset in EigenLayer asset strategies
         (address[] memory assets, uint256[] memory assetBalances) =
-            INodeDelegator(nodeDelegatorAddress).getAssetBalances();
+            INodeDelegatorLST(nodeDelegatorAddress).getAssetBalances();
 
         uint256 assetsLength = assets.length;
         for (uint256 i; i < assetsLength;) {

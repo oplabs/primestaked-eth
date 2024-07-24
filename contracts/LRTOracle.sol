@@ -9,7 +9,6 @@ import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { IPriceFetcher } from "./interfaces/IPriceFetcher.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
-import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
