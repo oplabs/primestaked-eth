@@ -88,7 +88,23 @@ const operateValidators = async ({ store, signer, contracts, config }) => {
 
       if (!stake) break;
 
+      // if (currentState.state === "validator_registered") {
+      //   await depositEth(signer, store, currentState.uuid, contracts.nodeDelegator, currentState.metadata.depositData);
+      //   currentState = await getState(store);
+      // }
+
       if (currentState.state === "validator_registered") {
+        await getDepositData(
+          store,
+          currentState.uuid,
+          "deposit_data_got", // next state
+          p2p_api_key,
+          p2p_base_url,
+        );
+        currentState = await getState(store);
+      }
+
+      if (currentState.state === "deposit_data_got") {
         await depositEth(signer, store, currentState.uuid, contracts.nodeDelegator, currentState.metadata.depositData);
         currentState = await getState(store);
       }
@@ -172,6 +188,7 @@ const updateState = async (requestUUID, state, store, metadata = {}) => {
       "validator_creation_confirmed",
       "register_transaction_broadcast",
       "validator_registered",
+      "deposit_data_got",
       "deposit_transaction_broadcast",
       "deposit_confirmed",
     ].includes(state)
@@ -281,6 +298,9 @@ const createValidatorRequest = async (
   });
 
   await updateState(uuid, "validator_creation_issued", store);
+
+  // wait 30 seconds
+  await sleep(30000);
 };
 
 const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, txHash, methodName, newState) => {
@@ -290,6 +310,48 @@ const waitForTransactionAndUpdateStateOnSuccess = async (store, uuid, provider, 
     throw Error(`Transaction with hash "${txHash}" not found for method "${methodName}" and uuid "${uuid}"`);
   }
   await updateState(uuid, newState, store);
+};
+
+const getDepositData = async (store, uuid, nextState, p2p_api_key, p2p_base_url) => {
+  const doConfirmation = async () => {
+    if (!uuid) {
+      throw Error(`UUID is required to get deposit data.`);
+    }
+    const response = await p2pRequest(
+      `https://${p2p_base_url}/api/v1/eth/staking/ssv/request/deposit-data/${uuid}`,
+      p2p_api_key,
+      "GET",
+    );
+    if (response.error != null) {
+      log(`Error getting deposit data with uuid ${uuid}: ${response.error}`);
+      // TODO: we shouldn't log full P2P responses. They break the logs
+      //log(response);
+      return false;
+    } else if (response.result?.status != "validator-ready") {
+      log(`Deposit data with request uuid ${uuid} are not ready yet. Status: ${response.result?.status}`);
+      return false;
+    } else if (response.result?.status === "validator-ready") {
+      log(`Deposit data with request uuid ${uuid} is ready`);
+
+      const depositData = {
+        pubkey: response.result.depositData[0].pubkey,
+        signature: response.result.depositData[0].signature,
+        depositDataRoot: response.result.depositData[0].depositDataRoot,
+      };
+      await updateState(uuid, nextState, store, {
+        depositData,
+      });
+      log(`signature: ${depositData.signature}`);
+      log(`depositDataRoot: ${depositData.depositDataRoot}`);
+      return true;
+    } else {
+      log(`Error getting deposit data with uuid ${uuid}: ${response.error}`);
+      log(response);
+      throw Error(`Failed to get deposit data with uuid ${uuid}.`);
+    }
+  };
+
+  await retry(doConfirmation, uuid, store);
 };
 
 const depositEth = async (signer, store, uuid, nodeDelegator, depositData) => {
@@ -327,9 +389,9 @@ const broadcastRegisterValidator = async (signer, store, uuid, metadata, nodeDel
   // the publicKey and sharesData params are not encoded correctly by P2P so we will ignore them
   const [_publicKey, operatorIds, _sharesData, amount, cluster] = registerTransactionParams;
   // get publicKey and sharesData state storage
-  const publicKey = metadata.depositData.pubkey;
+  const publicKey = metadata.pubkey;
   if (!publicKey) {
-    throw Error(`pubkey not found in metadata.depositData: ${metadata?.depositData}`);
+    throw Error(`pubkey not found in metadata: ${metadata}`);
   }
   const { sharesData } = metadata;
   if (!sharesData) {
@@ -371,17 +433,19 @@ const confirmValidatorCreatedRequest = async (p2p_api_key, p2p_base_url, uuid, s
       log(`Error processing request uuid: ${uuid} error: ${response}`);
     } else if (response.result.status === "ready") {
       const registerValidatorData = response.result.validatorRegistrationTxs[0].data;
-      const depositData = response.result.depositData[0];
+      const pubkey = response.result.encryptedShares[0].publicKey;
+      // const depositData = response.result.depositData[0];
       const sharesData = response.result.encryptedShares[0].sharesData;
       await updateState(uuid, "validator_creation_confirmed", store, {
         registerValidatorData,
-        depositData,
+        pubkey,
+        // depositData,
         sharesData,
       });
       log(`Validator created using uuid: ${uuid} is ready`);
-      log(`Primary key: ${depositData.pubkey}`);
-      log(`signature: ${depositData.signature}`);
-      log(`depositDataRoot: ${depositData.depositDataRoot}`);
+      log(`Primary key: ${pubkey}`);
+      // log(`signature: ${depositData.signature}`);
+      // log(`depositDataRoot: ${depositData.depositDataRoot}`);
       log(`sharesData: ${sharesData}`);
       return true;
     } else {
@@ -440,6 +504,22 @@ const stakeEth = async ({ signer, nodeDelegator }) => {
   const tx = await nodeDelegator.connect(signer).stakeEth([[pubkey, signature, depositDataRoot]]);
 
   await logTxDetails(tx, "stakeEth");
+};
+
+const retry = async (apiCall, uuid, store, attempts = 20) => {
+  let counter = 0;
+  while (true) {
+    if (await apiCall()) {
+      break;
+    }
+    counter++;
+
+    if (counter > attempts) {
+      // Will not clear the state
+      throw new Error(`Failed P2P API call after ${attempts} attempts.`);
+    }
+    await sleep(3000);
+  }
 };
 
 module.exports = {
