@@ -10,11 +10,12 @@ import { IStrategy } from "./eigen/interfaces/IStrategy.sol";
 import { IPrimeETH } from "./interfaces/IPrimeETH.sol";
 import { ILRTOracle } from "./interfaces/ILRTOracle.sol";
 import { INodeDelegatorLST } from "./interfaces/INodeDelegatorLST.sol";
-import { IynEigenDepositAdapter } from "./interfaces/IynEigenDepositAdapter.sol";
 import { ILRTDepositPool } from "./interfaces/ILRTDepositPool.sol";
+import { IynEigen } from "./interfaces/IynEigen.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC4626 } from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
@@ -27,8 +28,10 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address public immutable WETH;
     address public immutable WITHDRAW_ASSET;
 
+    /// @notice Wrapped OETH (woETH)
+    address public immutable woETH;
+    // Yield Nest's EigenLayer vault for ETH (ynLSDe)
     address public immutable ynLSDe;
-    address public immutable ynEigenDepositAdapter;
 
     uint256 public maxNodeDelegatorLimit;
     uint256 public minAmountToDeposit;
@@ -37,13 +40,13 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address[] public nodeDelegatorQueue;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _weth, address _withdrawAsset, address _ynLSDe, address _ynEigenDepositAdapter) {
+    constructor(address _weth, address _withdrawAsset, address _woETH, address _ynLSDe) {
         UtilLib.checkNonZeroAddress(_weth);
         UtilLib.checkNonZeroAddress(_withdrawAsset);
         WETH = _weth;
         WITHDRAW_ASSET = _withdrawAsset;
+        woETH = _woETH;
         ynLSDe = _ynLSDe;
-        ynEigenDepositAdapter = _ynEigenDepositAdapter;
 
         _disableInitializers();
     }
@@ -288,11 +291,16 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         // Claim the withdrawal of OETH from the NodeDelegatorLST
         (, uint256 oethAmount) = INodeDelegatorLST(nodeDelegator).claimWithdrawal(withdrawal, msg.sender, address(this));
 
-        // Approve the ynEigenDepositAdapter to spend the OETH, which is the withdrawal asset
-        IERC20(WITHDRAW_ASSET).approve(ynEigenDepositAdapter, oethAmount);
-        // Deposit the OETH into Yield Nest's adaptor and receive ynLSDe tokens
-        uint256 ynLSDeAmount =
-            IynEigenDepositAdapter(ynEigenDepositAdapter).deposit(IERC20(WITHDRAW_ASSET), oethAmount, msg.sender);
+        // Convert to Wrapped OETH (woETH)
+        // Approve the woETH to spend the OETH
+        IERC20(WITHDRAW_ASSET).approve(woETH, oethAmount);
+        uint256 woethAmount = IERC4626(woETH).deposit(oethAmount, address(this));
+
+        // Approve the ynEigen to spend the woETH
+        IERC20(woETH).approve(ynLSDe, woethAmount);
+
+        // Deposit the woETH into Yield Nest's LSD vault and receive ynLSDe tokens
+        uint256 ynLSDeAmount = IynEigen(ynLSDe).deposit(IERC20(woETH), woethAmount, msg.sender);
 
         emit WithdrawalClaimed(msg.sender, ynLSDe, ynLSDeAmount);
     }

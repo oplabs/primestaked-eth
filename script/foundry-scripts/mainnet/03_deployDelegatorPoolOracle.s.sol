@@ -10,7 +10,7 @@ import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { NodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -41,11 +41,8 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         proxyFactory = ProxyFactory(Addresses.PROXY_FACTORY);
         lrtConfigProxy = LRTConfig(Addresses.LRT_CONFIG);
 
-        address lrtDepositPoolImplementation = address(
-            new LRTDepositPool(
-                Addresses.WETH_TOKEN, Addresses.OETH_TOKEN, Addresses.YN_LSD_E, Addresses.YN_EIGEN_DEPOSIT_ADAPTER
-            )
-        );
+        address lrtDepositPoolImplementation =
+            address(new LRTDepositPool(Addresses.WETH_TOKEN, Addresses.OETH_TOKEN, Addresses.WOETH, Addresses.YN_LSD_E));
         address lrtOracleImplementation = address(new LRTOracle());
         address nodeDelegatorImplementation = address(new NodeDelegatorLST(Addresses.WETH_TOKEN));
         //address chainlinkPriceOracleImplementation = address(new ChainlinkPriceOracle());
@@ -104,19 +101,10 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         uint256 chainId = block.chainid;
         // list of all strategy deployments on below link
         // https://github.com/Layr-Labs/eigenlayer-contracts#deployments
-        if (chainId == 1) {
-            // mainnet
-            strategyManager = Addresses.EIGEN_STRATEGY_MANAGER;
-            stETHStrategy = Addresses.STETH_EIGEN_STRATEGY;
-            ethXStrategy = Addresses.ETHX_EIGEN_STRATEGY;
-            oethStrategy = Addresses.OETH_EIGEN_STRATEGY;
-        } else {
-            // testnet
-            strategyManager = AddressesGoerli.EIGEN_STRATEGY_MANAGER;
-            stETHStrategy = AddressesGoerli.STETH_EIGEN_STRATEGY;
-            ethXStrategy = AddressesGoerli.ETHX_EIGEN_STRATEGY;
-            oethStrategy = address(0);
-        }
+        strategyManager = Addresses.EIGEN_STRATEGY_MANAGER;
+        stETHStrategy = Addresses.STETH_EIGEN_STRATEGY;
+        ethXStrategy = Addresses.ETHX_EIGEN_STRATEGY;
+        oethStrategy = Addresses.OETH_EIGEN_STRATEGY;
     }
 
     function setUpByAdmin() private {

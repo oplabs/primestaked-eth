@@ -8,7 +8,8 @@ import { PrimeStakedETHTest, ILRTConfig, UtilLib, LRTConstants } from "./PrimeSt
 import { ILRTDepositPool } from "contracts/interfaces/ILRTDepositPool.sol";
 import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
 import { MockToken } from "contracts/mocks/MockToken.sol";
-import { MockYnEigenDepositAdapter } from "contracts/mocks/MockYnEigenDepositAdapter.sol";
+import { MockWOETH } from "contracts/mocks/MockWOETH.sol";
+import { MockYnEigen } from "contracts/mocks/MockYnEigen.sol";
 import { MockNodeDelegator } from "contracts/mocks/MockNodeDelegator.sol";
 import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
 
@@ -40,23 +41,23 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     uint256 public minimunAmountOfPRETHToReceive;
     string public referralId;
 
-    MockToken public ynLSDe;
-    MockYnEigenDepositAdapter public ynEigenDepositAdapter;
+    MockWOETH public woETH;
+    MockYnEigen public ynLSDe;
 
     event ETHDeposit(address indexed depositor, uint256 depositAmount, uint256 prethMintAmount, string referralId);
 
     function setUp() public virtual override(PrimeStakedETHTest, BaseTest) {
         super.setUp();
 
-        ynLSDe = new MockToken("Yield Nest LSD for Ether", "ynLSDe");
-        vm.label(address(ynLSDe), "ynLSDe");
+        woETH = new MockWOETH(oeth);
+        ynLSDe = new MockYnEigen("Yield Nest LSD for Ether", "ynLSDe");
 
-        ynEigenDepositAdapter = new MockYnEigenDepositAdapter(address(ynLSDe));
+        vm.label(address(woETH), "woETH");
+        vm.label(address(ynLSDe), "ynLSDe");
 
         // deploy LRTDepositPool
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        LRTDepositPool contractImpl =
-            new LRTDepositPool(address(weth), address(ethX), address(ynLSDe), address(ynEigenDepositAdapter));
+        LRTDepositPool contractImpl = new LRTDepositPool(address(weth), address(ethX), address(woETH), address(ynLSDe));
         TransparentUpgradeableProxy contractProxy =
             new TransparentUpgradeableProxy(address(contractImpl), address(proxyAdmin), "");
 
