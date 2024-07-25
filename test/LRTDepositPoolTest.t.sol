@@ -41,7 +41,7 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     uint256 public minimunAmountOfPRETHToReceive;
     string public referralId;
 
-    MockWOETH public woETH;
+    MockWOETH public wOETH;
     MockYnEigen public ynLSDe;
 
     event ETHDeposit(address indexed depositor, uint256 depositAmount, uint256 prethMintAmount, string referralId);
@@ -49,15 +49,15 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     function setUp() public virtual override(PrimeStakedETHTest, BaseTest) {
         super.setUp();
 
-        woETH = new MockWOETH(oeth);
+        wOETH = new MockWOETH(oeth);
         ynLSDe = new MockYnEigen("Yield Nest LSD for Ether", "ynLSDe");
 
-        vm.label(address(woETH), "woETH");
+        vm.label(address(wOETH), "wOETH");
         vm.label(address(ynLSDe), "ynLSDe");
 
         // deploy LRTDepositPool
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        LRTDepositPool contractImpl = new LRTDepositPool(address(weth), address(ethX), address(woETH), address(ynLSDe));
+        LRTDepositPool contractImpl = new LRTDepositPool(address(weth), address(ethX), address(wOETH), address(ynLSDe));
         TransparentUpgradeableProxy contractProxy =
             new TransparentUpgradeableProxy(address(contractImpl), address(proxyAdmin), "");
 

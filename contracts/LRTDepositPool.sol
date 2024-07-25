@@ -28,8 +28,8 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address public immutable WETH;
     address public immutable WITHDRAW_ASSET;
 
-    /// @notice Wrapped OETH (woETH)
-    address public immutable woETH;
+    /// @notice Wrapped OETH (wOETH)
+    address public immutable wOETH;
     // Yield Nest's EigenLayer vault for ETH (ynLSDe)
     address public immutable ynLSDe;
 
@@ -40,12 +40,12 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     address[] public nodeDelegatorQueue;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _weth, address _withdrawAsset, address _woETH, address _ynLSDe) {
+    constructor(address _weth, address _withdrawAsset, address _wOETH, address _ynLSDe) {
         UtilLib.checkNonZeroAddress(_weth);
         UtilLib.checkNonZeroAddress(_withdrawAsset);
         WETH = _weth;
         WITHDRAW_ASSET = _withdrawAsset;
-        woETH = _woETH;
+        wOETH = _wOETH;
         ynLSDe = _ynLSDe;
 
         _disableInitializers();
@@ -291,16 +291,16 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         // Claim the withdrawal of OETH from the NodeDelegatorLST
         (, uint256 oethAmount) = INodeDelegatorLST(nodeDelegator).claimWithdrawal(withdrawal, msg.sender, address(this));
 
-        // Convert to Wrapped OETH (woETH)
-        // Approve the woETH to spend the OETH
-        IERC20(WITHDRAW_ASSET).approve(woETH, oethAmount);
-        uint256 woethAmount = IERC4626(woETH).deposit(oethAmount, address(this));
+        // Convert to Wrapped OETH (wOETH)
+        // Approve the wOETH to spend the OETH
+        IERC20(WITHDRAW_ASSET).approve(wOETH, oethAmount);
+        uint256 woethAmount = IERC4626(wOETH).deposit(oethAmount, address(this));
 
-        // Approve the ynEigen to spend the woETH
-        IERC20(woETH).approve(ynLSDe, woethAmount);
+        // Approve the ynEigen to spend the wOETH
+        IERC20(wOETH).approve(ynLSDe, woethAmount);
 
-        // Deposit the woETH into Yield Nest's LSD vault and receive ynLSDe tokens
-        uint256 ynLSDeAmount = IynEigen(ynLSDe).deposit(IERC20(woETH), woethAmount, msg.sender);
+        // Deposit the wOETH into Yield Nest's LSD vault and receive ynLSDe tokens
+        uint256 ynLSDeAmount = IynEigen(ynLSDe).deposit(IERC20(wOETH), woethAmount, msg.sender);
 
         emit WithdrawalClaimed(msg.sender, ynLSDe, ynLSDeAmount);
     }
