@@ -29,12 +29,13 @@ contract NodeDelegatorLST is
     address public immutable WETH;
 
     /// @dev The EigenPod is created and owned by this contract
-    address public deprecated_eigenPod;
+    address internal deprecated_eigenPod;
     /// @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
-    uint256 public deprecated_stakedButNotVerifiedEth;
+    uint256 internal deprecated_stakedButNotVerifiedEth;
 
     uint256 internal constant DUST_AMOUNT = 10;
+    mapping(bytes32 pubkeyHash => bool hasStaked) internal deprecated_validatorsStaked;
 
     /// @dev Maps the withdrawalRoots from the EigenLayer DelegationManager to the staker requesting the withdrawal.
     /// Is not populated for internal withdrawals
