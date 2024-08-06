@@ -33,6 +33,8 @@ interface INodeDelegatorLST {
     function depositAssetIntoStrategy(address asset) external;
     function depositAssetsIntoStrategy(address[] calldata assets) external;
 
+    function transferBackToLRTDepositPool(address asset, uint256 amount) external;
+
     function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external;
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external;
     function claimWithdrawal(
