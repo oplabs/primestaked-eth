@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import { IDelegationManager } from "../eigen/interfaces/IDelegationManager.sol";
 import { Cluster } from "./ISSVNetwork.sol";
+import { ValidatorStakeData } from "../NodeDelegatorETH.sol";
 
 interface INodeDelegatorETH {
     event ETHDepositFromDepositPool(uint256 depositAmount);
@@ -20,6 +21,20 @@ interface INodeDelegatorETH {
     error InsufficientWETH(uint256 balance); // 0x2ed796b4
     error ValidatorAlreadyStaked(bytes pubkey); // 0x2229546d
     error NoEigenPod(); // 5dd90f17
+
+    function createEigenPod() external;
+
+    function transferBackToLRTDepositPool(address asset, uint256 amount) external;
+
+    function registerSsvValidator(
+        bytes calldata publicKey,
+        uint64[] calldata operatorIds,
+        bytes calldata sharesData,
+        uint256 amount,
+        Cluster calldata cluster
+    )
+        external;
+    function stakeEth(ValidatorStakeData[] calldata validators) external;
 
     function exitSsvValidators(bytes[] calldata publicKeys, uint64[] calldata operatorIds) external;
     function removeSsvValidators(
@@ -41,6 +56,7 @@ interface INodeDelegatorETH {
     function delegateTo(address operator) external;
     function undelegate() external;
 
+    function approveSSV() external;
     function depositSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external;
     function withdrawSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external;
 }
