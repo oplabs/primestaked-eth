@@ -50,7 +50,7 @@ contract NodeDelegatorETH is
 
     /// @dev Maps the withdrawalRoots from the EigenLayer DelegationManager to the staker requesting the withdrawal.
     /// Is not populated for internal withdrawals
-    mapping(bytes32 => address) public withdrawalRequests;
+    mapping(bytes32 => address) internal deprecated_withdrawalRequests;
     /// @dev Maps each EigenLayer strategy to the total amount of shares pending from internal withdrawals.
     /// This does not include pending external withdrawals from Stakers as the PrimeETH total supply
     // is reduced on external withdrawal request.
