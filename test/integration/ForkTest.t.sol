@@ -525,18 +525,19 @@ contract ForkTestNative is ForkTestBase {
     }
 
     // undelegate from the P2P EigenLayer Operator on Native Node Delegator
-    function test_undelegateFromNativeNodeDelegator()
-        public
-        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
-        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
-        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
-    {
-        vm.startPrank(Addresses.MANAGER_ROLE);
+    function test_revertDelegateNativeNodeDelegator() public {
+        vm.prank(Addresses.MANAGER_ROLE);
 
+        vm.expectRevert("Unsupported");
         nodeDelegator2.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
-        nodeDelegator2.undelegate();
+    }
 
-        vm.stopPrank();
+    // undelegate from the P2P EigenLayer Operator on Native Node Delegator
+    function test_revertUndelegateNativeNodeDelegator() public {
+        vm.prank(Addresses.MANAGER_ROLE);
+
+        vm.expectRevert("Unsupported");
+        nodeDelegator2.undelegate();
     }
 
     // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
