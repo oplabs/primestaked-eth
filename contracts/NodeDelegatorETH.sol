@@ -335,7 +335,7 @@ contract NodeDelegatorETH is
 
     /// @dev Remove validators from the SSV Cluster.
     /// Make sure `exitSsvValidators` is called before and all the validators have exited the Beacon chain.
-    /// If removed before the validator has exited the beacon chain will result in the validator being slashed.
+    /// If removed before the validator has exited the beacon chain will result in the validator being penalized.
     /// Only the Operator can call this function.
     /// @param publicKeys Array of validator public keys
     /// @param operatorIds The operator IDs of the SSV Cluster
