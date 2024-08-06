@@ -54,7 +54,7 @@ contract NodeDelegatorETH is
     /// @dev Maps each EigenLayer strategy to the total amount of shares pending from internal withdrawals.
     /// This does not include pending external withdrawals from Stakers as the PrimeETH total supply
     // is reduced on external withdrawal request.
-    mapping(address => uint256) public pendingInternalShareWithdrawals;
+    mapping(address => uint256) internal deprecated_pendingInternalShareWithdrawals;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address _weth) {
@@ -225,45 +225,14 @@ contract NodeDelegatorETH is
     /// This includes both both LSTs and native ETH.
     /// @param operator the address of the EigenLayer Operator to delegate to.
     function delegateTo(address operator) external onlyLRTManager {
-        address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
-        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
-
-        delegationManager.delegateTo(
-            operator, ISignatureUtils.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
-        );
-
-        emit Delegate(operator);
+        revert("Unsupported");
     }
 
     /// @notice Undelegates all staked LST assets from this contract from the
     /// previously delegated to EigenLayer Operator.
     /// This also forces a withdrawal so the assets will need to be claimed.
     function undelegate() external onlyLRTManager {
-        address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
-        IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
-
-        // Get the amount of strategy shares owned by this contract
-        IStrategyManager strategyManager = IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
-
-        // For each asset
-        address[] memory assets = lrtConfig.getSupportedAssetList();
-        for (uint256 i = 0; i < assets.length; ++i) {
-            // Skip WETH as ETH restaked into EigenLayer is not yet supported by this NodeDelegatorETH contract.
-            if (assets[i] == WETH) {
-                continue;
-            }
-
-            // Get the EigenLayer strategy for the LST asset
-            address strategy = lrtConfig.assetStrategy(assets[i]);
-
-            uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
-            // account for the strategy shares pending internal withdrawal
-            pendingInternalShareWithdrawals[strategy] += strategyShares;
-
-            emit Undelegate(strategy, strategyShares);
-        }
-
-        delegationManager.undelegate(address(this));
+        revert("Unsupported");
     }
 
     /// @dev Triggers stopped state. Contract must not be paused.
