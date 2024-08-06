@@ -391,15 +391,18 @@ contract NodeDelegatorETH is
 
         // If no Beacon chain consensus rewards swept
         if (ethRemaining == 0) {
-            // do nothing
-        } else if (ethRemaining < MIN_SLASHED_AMOUNT) {
-            // Beacon chain consensus rewards swept (partial validator withdrawals)
-            emit ConsensusRewards(ethRemaining);
-        } else {
-            // Beacon chain consensus rewards swept but also a slashed validator fully exited
-            stakedButNotVerifiedEth -= FULL_STAKE;
-            emit SlashedValidator(ethRemaining, stakedButNotVerifiedEth);
+            return;
         }
+
+        // Beacon chain consensus rewards swept (partial validator withdrawals)
+        if (ethRemaining < MIN_SLASHED_AMOUNT) {
+            emit ConsensusRewards(ethRemaining);
+            return;
+        }
+
+        // Beacon chain consensus rewards swept but also a slashed validator fully exited
+        stakedButNotVerifiedEth -= FULL_STAKE;
+        emit SlashedValidator(ethRemaining, stakedButNotVerifiedEth);
     }
 
     /// @dev allow NodeDelegatorETH to receive execution rewards from MEV and
