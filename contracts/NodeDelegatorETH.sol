@@ -16,7 +16,6 @@ import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
 import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegatorETH } from "./interfaces/INodeDelegatorETH.sol";
 import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
-// import { IOETH } from "./interfaces/IOETH.sol";
 import { IWETH } from "./interfaces/IWETH.sol";
 
 struct ValidatorStakeData {
