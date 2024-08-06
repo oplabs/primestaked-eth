@@ -14,7 +14,7 @@
 <title>1</title>
 <polygon fill="#f2f2f2" stroke="black" points="0,-0.5 0,-440.5 1868.69,-440.5 1868.69,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="934.34" y="-423.9" font-family="Courier New" font-size="14.00">NodeDelegatorETH &lt;&lt;Contract&gt;&gt;</text>
-<text text-anchor="middle" x="934.34" y="-407.1" font-family="Courier New" font-size="14.00">0x21d0236713FB6d84D493EC350FaC83139Bb2d164</text>
+<text text-anchor="middle" x="934.34" y="-407.1" font-family="Courier New" font-size="14.00">0xBCcC37412044956F8416820BB785C4Aa8207580F</text>
 <polyline fill="none" stroke="black" points="0,-398.9 1868.69,-398.9 "/>
 <text text-anchor="middle" x="41.61" y="-382.3" font-family="Courier New" font-size="14.00">slot</text>
 <text text-anchor="middle" x="41.61" y="-365.5" font-family="Courier New" font-size="14.00"> &#160;</text>
@@ -67,7 +67,7 @@
 <text text-anchor="middle" x="368.46" y="-141.5" font-family="Courier New" font-size="14.00">0x00000000000000000000000064CA544F57533AA7A80BB71BCF3D35F5CB6C20CC</text>
 <text text-anchor="middle" x="368.46" y="-124.7" font-family="Courier New" font-size="14.00"> &#160;</text>
 <polyline fill="none" stroke="black" points="83.21,-116.5 653.7,-116.5 "/>
-<text text-anchor="middle" x="368.46" y="-99.9" font-family="Courier New" font-size="14.00">0x000000000000000000000000000000000000000000000003782DACE9D9000000</text>
+<text text-anchor="middle" x="368.46" y="-99.9" font-family="Courier New" font-size="14.00">0x000000000000000000000000000000000000000000000006F05B59D3B2000000</text>
 <text text-anchor="middle" x="368.46" y="-83.1" font-family="Courier New" font-size="14.00"> &#160;</text>
 <polyline fill="none" stroke="black" points="83.21,-74.9 653.7,-74.9 "/>
 <text text-anchor="middle" x="368.46" y="-58.3" font-family="Courier New" font-size="14.00"> </text>
@@ -110,13 +110,13 @@
 <text text-anchor="middle" x="1505.45" y="-124.7" font-family="Courier New" font-size="14.00"> 0x64ca544f57533AA7A80BB71BCf3d35f5CB6C20cc </text>
 <polyline fill="none" stroke="black" points="653.7,-116.5 1868.69,-116.5 "/>
 <text text-anchor="middle" x="1261.13" y="-99.9" font-family="Courier New" font-size="14.00">uint256: stakedButNotVerifiedEth (32)</text>
-<text text-anchor="middle" x="1261.13" y="-83.1" font-family="Courier New" font-size="14.00"> 64,000,000,000,000,000,000 </text>
+<text text-anchor="middle" x="1261.13" y="-83.1" font-family="Courier New" font-size="14.00"> 128,000,000,000,000,000,000 </text>
 <polyline fill="none" stroke="black" points="653.7,-74.9 1868.69,-74.9 "/>
 <text text-anchor="middle" x="1260.73" y="-58.3" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;bool): validatorsStaked (32)</text>
 <polyline fill="none" stroke="black" points="653.7,-50.1 1868.69,-50.1 "/>
-<text text-anchor="middle" x="1260.74" y="-33.5" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;address): withdrawalRequests (32)</text>
+<text text-anchor="middle" x="1260.94" y="-33.5" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;address): deprecated_withdrawalRequests (32)</text>
 <polyline fill="none" stroke="black" points="653.7,-25.3 1868.69,-25.3 "/>
-<text text-anchor="middle" x="1260.84" y="-8.7" font-family="Courier New" font-size="14.00">mapping(address=&gt;uint256): pendingInternalShareWithdrawals (32)</text>
+<text text-anchor="middle" x="1261.05" y="-8.7" font-family="Courier New" font-size="14.00">mapping(address=&gt;uint256): deprecated_pendingInternalShareWithdrawals (32)</text>
 </g>
 </g>
 </svg>
