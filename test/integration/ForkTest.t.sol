@@ -50,6 +50,8 @@ contract ForkTestBase is Test {
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
+    event ConsensusRewards(uint256 amount);
+    event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -589,13 +591,12 @@ contract ForkTestNative is ForkTestBase {
         vm.stopPrank();
     }
 
-    function test_requestEthWithdrawal() public {
+    function test_requestEthWithdrawalConsensusRewards() public {
         vm.startPrank(Addresses.OPERATOR_ROLE);
 
         uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
         uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
         assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
-
         (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
             nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
 
@@ -618,12 +619,74 @@ contract ForkTestNative is ForkTestBase {
             "can claim withdrawal"
         );
 
+        vm.expectEmit();
+        emit ConsensusRewards(eigenPodBalanceBefore);
+
         nodeDelegator2.claimEthWithdrawal();
 
         (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
             nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
         assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + eigenPodBalanceBefore, "ND WETH after claim");
         assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest, "EL WETH after claim");
+
+        assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
+        assertEq(
+            address(nodeDelegator2).balance,
+            nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
+            "NodeDelegator balance after"
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_requestEthWithdrawalValidatorExits() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        nodeDelegator2.requestEthWithdrawal();
+        vm.roll(block.number + 50_400);
+        nodeDelegator2.claimEthWithdrawal();
+
+        // Simulate 3 validators exiting with some consensus rewards
+        uint256 exitAmount = 96.5 ether;
+        vm.deal(Addresses.EIGEN_POD, exitAmount);
+
+        uint256 ethInValidatorsBefore = nodeDelegator2.stakedButNotVerifiedEth();
+        uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
+        uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
+        assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
+        (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+
+        nodeDelegator2.requestEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
+        assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
+
+        vm.roll(block.number + 50_400);
+
+        // Check the last withdrawal request can be claimed
+        uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
+            .userWithdrawalsLength(address(nodeDelegator2));
+        assertTrue(
+            IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
+                address(nodeDelegator2), withdrawalRequests - 1
+            ),
+            "can claim withdrawal"
+        );
+
+        vm.expectEmit();
+        emit WithdrawnValidators(3, ethInValidatorsBefore - 96 ether);
+        vm.expectEmit();
+        emit ConsensusRewards(0.5 ether);
+
+        nodeDelegator2.claimEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + exitAmount, "ND WETH after claim");
+        assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest - 96 ether, "EL WETH after claim");
 
         assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
         assertEq(
