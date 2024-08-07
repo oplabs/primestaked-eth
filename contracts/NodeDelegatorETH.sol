@@ -332,7 +332,7 @@ contract NodeDelegatorETH is
 
     /// @dev Claim previously requested ether withdrawals from EigenLayer's DelayedWithdrawalRouter contract.
     /// Need to account if the ether is from validator exits or beacon chain consensus rewards.
-    function claimEthWithdrawal() external onlyLRTOperator {
+    function claimEthWithdrawal() external onlyLRTOperator nonReentrant {
         uint256 ethBefore = address(this).balance;
 
         address delayerWithdrawalRouter = lrtConfig.getContract(LRTConstants.EIGEN_DELAYED_WITHDRAWAL_ROUTER);
