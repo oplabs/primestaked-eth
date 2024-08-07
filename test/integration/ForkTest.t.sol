@@ -596,7 +596,15 @@ contract ForkTestNative is ForkTestBase {
         uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
         assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
 
+        (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+
         nodeDelegator2.requestEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
+        assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
 
         vm.roll(block.number + 50_400);
 
@@ -611,6 +619,11 @@ contract ForkTestNative is ForkTestBase {
         );
 
         nodeDelegator2.claimEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + eigenPodBalanceBefore, "ND WETH after claim");
+        assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest, "EL WETH after claim");
 
         assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
         assertEq(
