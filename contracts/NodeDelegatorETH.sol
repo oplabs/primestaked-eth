@@ -9,11 +9,8 @@ import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
 
-import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
 import { IDelayedWithdrawalRouter } from "./eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IEigenPodManager, IEigenPod } from "./eigen/interfaces/IEigenPodManager.sol";
-import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
-import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegatorETH } from "./interfaces/INodeDelegatorETH.sol";
 import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
 import { IWETH } from "./interfaces/IWETH.sol";

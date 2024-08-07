@@ -14,7 +14,6 @@ import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
 import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegatorLST } from "./interfaces/INodeDelegatorLST.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
-import { IWETH } from "./interfaces/IWETH.sol";
 
 /// @title NodeDelegatorLST Contract
 /// @notice The contract that handles the depositing of assets into strategies
