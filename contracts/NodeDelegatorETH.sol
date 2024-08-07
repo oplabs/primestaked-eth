@@ -354,7 +354,7 @@ contract NodeDelegatorETH is
             emit WithdrawnValidators(fullyWithdrawnValidators, stakedButNotVerifiedEth);
         }
 
-        uint256 ethRemaining = ethClaimed - fullyWithdrawnValidators * FULL_STAKE;
+        uint256 ethRemaining = ethClaimed - (fullyWithdrawnValidators * FULL_STAKE);
         // should be less than a whole validator stake
         require(ethRemaining < FULL_STAKE, "Unexpected accounting");
 
