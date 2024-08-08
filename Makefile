@@ -40,11 +40,11 @@ minimal-deploy-local-test :; forge script script/foundry-scripts/DeployMinimal.s
 deposit-limits-mainnet :; forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url ${MAINNET_RPC_URL}  --broadcast
 deposit-limits-fork :; IS_FORK=true forge script script/foundry-scripts/UpdateDepositLimits.s.sol:UpdateDepositLimits --rpc-url localhost --sender ${MAINNET_PROXY_AMIN_OWNER} --unlocked --broadcast
 
-# deploy LST withdrawals
-deploy-mainnet :; forge script script/foundry-scripts/mainnet/13_upgradeLSTWithdrawals.s.sol:UpgradeLSTWithdrawals --rpc-url ${MAINNET_RPC_URL}  --broadcast --slow --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv --legacy
-deploy-fork :; IS_FORK=true forge script script/foundry-scripts/mainnet/13_upgradeLSTWithdrawals.s.sol:UpgradeLSTWithdrawals --rpc-url localhost -vvv --legacy
-deploy-local :; forge script script/foundry-scripts/mainnet/13_upgradeLSTWithdrawals.s.sol:UpgradeLSTWithdrawals --rpc-url localhost --broadcast --slow -vvv  --legacy
-deploy-testnet :; forge script script/foundry-scripts/mainnet/13_upgradeLSTWithdrawals.s.sol:UpgradeLSTWithdrawals --rpc-url ${TESTNET_RPC_URL} --broadcast --slow -vvv  --legacy
+# deploy new Node Delegators
+deploy-mainnet :; forge script script/foundry-scripts/mainnet/14_upgradeEthWithdrawals.s.sol:UpgradeEthWithdrawals --rpc-url ${MAINNET_RPC_URL}  --broadcast --slow --etherscan-api-key ${ETHERSCAN_API_KEY} --verify -vvv --legacy
+deploy-fork :; IS_FORK=true forge script script/foundry-scripts/mainnet/14_upgradeEthWithdrawals.s.sol:UpgradeEthWithdrawals --rpc-url localhost -vvv --legacy
+deploy-local :; forge script script/foundry-scripts/mainnet/14_upgradeEthWithdrawals.s.sol:UpgradeEthWithdrawals --rpc-url localhost --broadcast --slow -vvv  --legacy
+deploy-testnet :; forge script script/foundry-scripts/mainnet/14_upgradeEthWithdrawals.s.sol:UpgradeEthWithdrawals --rpc-url ${TESTNET_RPC_URL} --broadcast --slow -vvv  --legacy
 
 # Started a local forked node
 ifneq ($(BLOCK_NUMBER),)

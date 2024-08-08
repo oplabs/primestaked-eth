@@ -52,6 +52,9 @@ contract UpgradeEthWithdrawals is BaseMainnetScript {
         LRTConfig(Addresses.LRT_CONFIG).setContract(
             LRTConstants.EIGEN_DELAYED_WITHDRAWAL_ROUTER, Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER
         );
+        console.log("keccak256 EIGEN_DELAYED_WITHDRAWAL_ROUTER:");
+        console.logBytes32(LRTConstants.EIGEN_DELAYED_WITHDRAWAL_ROUTER);
+        console.log("Set EIGEN_DELAYED_WITHDRAWAL_ROUTER in LRTConfig to ", Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER);
 
         vm.stopPrank();
     }
