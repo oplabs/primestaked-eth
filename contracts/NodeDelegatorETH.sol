@@ -345,7 +345,7 @@ contract NodeDelegatorETH is
         // Account for the claimed ether
         if (ethClaimed >= FULL_STAKE) {
             // explicitly cast to uint256 as we want to round to a whole number of validators
-            fullyWithdrawnValidators = uint256(ethClaimed / FULL_STAKE);
+            fullyWithdrawnValidators = ethClaimed / FULL_STAKE;
             stakedButNotVerifiedEth -= fullyWithdrawnValidators * FULL_STAKE;
 
             emit WithdrawnValidators(fullyWithdrawnValidators, stakedButNotVerifiedEth);
