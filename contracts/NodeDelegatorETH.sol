@@ -144,7 +144,7 @@ contract NodeDelegatorETH is
     /// @return eigenAssets asset amount deposited in underlying EigenLayer strategy
     /// or native ETH staked into an EigenPod.
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
-        ndcAssets += IERC20(asset).balanceOf(address(this));
+        ndcAssets = IERC20(asset).balanceOf(address(this));
 
         // If an LST asset
         if (asset != WETH) {
@@ -257,7 +257,7 @@ contract NodeDelegatorETH is
         ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
     }
 
-    // @dev Withdraws SSV Tokens from a SSV Cluster
+    /// @dev Withdraws SSV Tokens from a SSV Cluster
     function withdrawSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external onlyLRTManager {
         address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
 
@@ -345,7 +345,7 @@ contract NodeDelegatorETH is
         // Account for the claimed ether
         if (ethClaimed >= FULL_STAKE) {
             // explicitly cast to uint256 as we want to round to a whole number of validators
-            fullyWithdrawnValidators = uint256(ethClaimed / FULL_STAKE);
+            fullyWithdrawnValidators = ethClaimed / FULL_STAKE;
             stakedButNotVerifiedEth -= fullyWithdrawnValidators * FULL_STAKE;
 
             emit WithdrawnValidators(fullyWithdrawnValidators, stakedButNotVerifiedEth);
