@@ -1,12 +1,14 @@
 const { subtask, task, types } = require("hardhat/config");
 const { KeyValueStoreClient } = require("defender-kvstore-client");
 
-const { depositPrime, depositAssetEL, depositAllEL } = require("./deposits");
+const { depositPrime, depositAssetEL, depositAllEL, transferToDepositPool } = require("./deposits");
 const { operateValidators, registerVal, stakeEth } = require("./p2p");
 const { snapshot } = require("./snapshot");
 const {
   approveSSV,
   depositSSV,
+  exitValidators,
+  removeSsvValidators,
   pauseDelegator,
   unpauseDelegator,
   printClusterInfo,
@@ -29,6 +31,8 @@ const {
   requestInternalWithdrawal,
   claimInternalWithdrawal,
   claimInternalWithdrawals,
+  requestEthWithdrawal,
+  claimEthWithdrawal,
 } = require("./withdrawals");
 
 const log = require("../utils/logger")("task");
@@ -91,7 +95,7 @@ subtask("requestInternalWithdrawal", "Prime Operator requests LST withdrawal fro
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
 
     await requestInternalWithdrawal({ ...taskArgs, signer, nodeDelegator });
   });
@@ -104,7 +108,7 @@ subtask("claimInternalWithdrawal", "Prime Operator claims LST withdrawal from th
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
     const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
     const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
 
@@ -119,13 +123,41 @@ subtask("claimInternalWithdrawals", "Prime Operator claims multiple LST withdraw
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR");
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
     const delegationManagerAddress = await parseAddress("EIGEN_DELEGATION_MANAGER");
     const delegationManager = await ethers.getContractAt("IDelegationManager", delegationManagerAddress);
 
     await claimInternalWithdrawals({ ...taskArgs, signer, nodeDelegator, delegationManager });
   });
 task("claimInternalWithdrawals").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask(
+  "requestEthWithdrawal",
+  "Prime Operator requests Ether withdrawal from EigenLayer's EigenPod contract.",
+).setAction(async (taskArgs) => {
+  const signer = await getSigner();
+  const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR_NATIVE_STAKING");
+  const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+
+  await requestEthWithdrawal({ ...taskArgs, signer, nodeDelegator });
+});
+task("requestEthWithdrawal").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask(
+  "claimEthWithdrawal",
+  "Prime Operator claims Ether withdrawal from EigenLayer's DelayedWithdrawalRouter contract.",
+).setAction(async (taskArgs) => {
+  const signer = await getSigner();
+  const nodeDelegatorAddress = await parseAddress("NODE_DELEGATOR_NATIVE_STAKING");
+  const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+
+  await claimEthWithdrawal({ ...taskArgs, signer, nodeDelegator });
+});
+task("claimEthWithdrawal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
@@ -137,7 +169,7 @@ subtask("delegate", "Prime Manager delegates to an EigenLayer Operator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
 
     await delegate({ ...taskArgs, signer, nodeDelegator });
   });
@@ -152,7 +184,7 @@ subtask("undelegate", "Prime Manager undelegates from an EigenLayer Operator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
 
     await undelegate({ ...taskArgs, signer, nodeDelegator });
   });
@@ -171,7 +203,7 @@ subtask("depositEL", "Deposit an asset to EigenLayer")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
 
     if (taskArgs.symbol === "ALL") {
       const assets = [
@@ -193,6 +225,23 @@ task("depositEL").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
+subtask("withdrawNode", "Transfers assets from a NodeDelegator to the Deposit Pool contract")
+  .addParam("symbol", "Symbol of the token. eg OETH, stETH, mETH or ETHx", "WETH", types.string)
+  .addParam("index", "Index of Node Delegator", 1, types.int)
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
+
+    const asset = await resolveAsset(taskArgs.symbol, signer);
+    await transferToDepositPool({ ...taskArgs, signer, nodeDelegator, asset });
+  });
+task("withdrawNode").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
 subtask("snap", "Display the assets in the different layers of PrimeETH").setAction(snapshot);
 task("snap").setAction(async (_, __, runSuper) => {
   return runSuper();
@@ -206,7 +255,7 @@ subtask("approveSSV", "Approve the SSV Network to transfer SSV tokens from NodeD
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
 
     await approveSSV({ ...taskArgs, signer, nodeDelegator });
   });
@@ -270,7 +319,7 @@ subtask("getClusterInfo", "Print out information regarding SSV cluster")
   .addParam(
     "operatorids",
     "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
-    "",
+    undefined,
     types.string,
   )
   .addOptionalParam("owner", "Address of the cluster owner. Default to NodeDelegator", undefined, types.string)
@@ -310,7 +359,7 @@ subtask("depositSSV", "Deposit SSV tokens from the NodeDelegator into an SSV Clu
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
     const ssvNetwork = await parseAddress("SSV_NETWORK");
 
     await depositSSV({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
@@ -332,6 +381,52 @@ task("claimSSV").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
+subtask("exitValidators", "Exit validators from the Beacon chain")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addParam("pubkeys", "Comma separated list of validator public keys in hexadecimal format", undefined, types.string)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    undefined,
+    types.string,
+  )
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+
+    await exitValidators({ ...taskArgs, signer, nodeDelegator });
+  });
+task("exitValidators").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("removeValidators", "Remove a validator from a SSV Cluster")
+  .addOptionalParam("index", "Index of Node Delegator", 1, types.int)
+  .addParam("pubkeys", "Comma separated list of validator public keys in hexadecimal format", undefined, types.string)
+  .addParam(
+    "operatorids",
+    "4 operator ids separated with a dot: same as IP format. E.g. 60.79.220.349",
+    undefined,
+    types.string,
+  )
+  .setAction(async (taskArgs) => {
+    const signer = await getSigner();
+    const network = await ethers.provider.getNetwork();
+
+    const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
+    const nodeDelegatorAddress = await parseAddress(addressName);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
+    const ssvNetwork = await parseAddress("SSV_NETWORK");
+
+    await removeSsvValidators({ ...taskArgs, signer, nodeDelegator, ssvNetwork, chainId: network.chainId });
+  });
+task("removeValidators").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
 // Prime Management
 subtask("pauseDelegator", "Manager pause a NodeDelegator")
   .addOptionalParam("index", "Index of Node Delegator", 0, types.int)
@@ -340,7 +435,7 @@ subtask("pauseDelegator", "Manager pause a NodeDelegator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
 
     await pauseDelegator({ ...taskArgs, signer, nodeDelegator });
   });
@@ -355,7 +450,7 @@ subtask("unpauseDelegator", "Admin unpause a NodeDelegator")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorLST", nodeDelegatorAddress);
 
     await unpauseDelegator({ ...taskArgs, signer, nodeDelegator });
   });
@@ -387,7 +482,7 @@ subtask("operateValidators", "Creates a new SSV validator and stakes 32 ether")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
 
     const contracts = {
       nodeDelegator,
@@ -433,7 +528,7 @@ subtask("registerVal", "Register a validator for testing purposes")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
 
     await registerVal({ signer, nodeDelegator });
   });
@@ -448,7 +543,7 @@ subtask("stakeEth", "Stake ETH into validator for testing purposes")
 
     const addressName = taskArgs.index === 1 ? "NODE_DELEGATOR_NATIVE_STAKING" : "NODE_DELEGATOR";
     const nodeDelegatorAddress = await parseAddress(addressName);
-    const nodeDelegator = await ethers.getContractAt("NodeDelegator", nodeDelegatorAddress);
+    const nodeDelegator = await ethers.getContractAt("NodeDelegatorETH", nodeDelegatorAddress);
 
     await stakeEth({ signer, nodeDelegator });
   });

@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
@@ -26,7 +26,7 @@ contract UpgradeDepositPoolNodeDelegatorOracles is BaseMainnetScript {
 
     function _execute() internal override {
         newDepositPoolImpl = DepositPoolLib.deployImpl();
-        newNodeDelegatorImpl = NodeDelegatorLib.deployImpl();
+        newNodeDelegatorImpl = NodeDelegatorLSTLib.deployImpl();
         newOracleImpl = OraclesLib.deployLRTOracleImpl();
         newChainlinkOracle = OraclesLib.deployChainlinkOracle();
     }
@@ -35,7 +35,7 @@ contract UpgradeDepositPoolNodeDelegatorOracles is BaseMainnetScript {
         vm.startPrank(Addresses.PROXY_OWNER);
         // Upgrade the proxies
         DepositPoolLib.upgrade(newDepositPoolImpl);
-        NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorImpl);
+        NodeDelegatorLSTLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorImpl);
         OraclesLib.upgradeLRTOracle(newOracleImpl);
         // OraclesLib.upgradeChainlinkOracle(newChainlinkOracle);
         vm.stopPrank();

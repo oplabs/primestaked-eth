@@ -11,14 +11,14 @@
 
 ### Proxied contracts
 
-| Contract Name                                                | Proxy Address                                                                                                              | Implementation Address                                                                                                     |
-| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [PrimeStakedETH](./contracts/README.md#primestakedeth)       | [0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615](https://etherscan.io/address/0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615#code) | [0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2](https://etherscan.io/address/0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2#code) |
-| [LRTDepositPool](./contracts/README.md#lrtdepositpool)       | [0xA479582c8b64533102F6F528774C536e354B8d32](https://etherscan.io/address/0xA479582c8b64533102F6F528774C536e354B8d32#code) | [0x5bB25326bAf12B8a46438BC8eCE452F44F033efA](https://etherscan.io/address/0x5bB25326bAf12B8a46438BC8eCE452F44F033efA#code) |
-| [LRTConfig](./contracts/README.md#lrtconfig)                 | [0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF](https://etherscan.io/address/0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF#code) | [0xcdfD989e689872506E2897316b10e29c84AB087F](https://etherscan.io/address/0xcdfD989e689872506E2897316b10e29c84AB087F#code) |
-| [LRTOracle](./contracts/README.md#lrtoracle)                 | [0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32](https://etherscan.io/address/0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32#code) | [0x76f6f696869Cc42c49A24acB4fbaB17E3B8fEE14](https://etherscan.io/address/0x76f6f696869Cc42c49A24acB4fbaB17E3B8fEE14#code) |
-| [NodeDelegator](./contracts/README.md#nodedelegator) index 0 | [0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2](https://etherscan.io/address/0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2#code) | [0x50609798dc4EAb5a9557F7A96526A867acD42A19](https://etherscan.io/address/0x50609798dc4EAb5a9557F7A96526A867acD42A19#code) |
-| [NodeDelegator](./contracts/README.md#nodedelegator) index 1 | [0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087](https://etherscan.io/address/0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087#code) | [0x50609798dc4EAb5a9557F7A96526A867acD42A19](https://etherscan.io/address/0x50609798dc4EAb5a9557F7A96526A867acD42A19#code) |
+| Contract Name                                                      | Proxy Address                                                                                                              | Implementation Address                                                                                                     |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [PrimeStakedETH](./contracts/README.md#primestakedeth)             | [0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615](https://etherscan.io/address/0x6ef3D766Dfe02Dc4bF04aAe9122EB9A0Ded25615#code) | [0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2](https://etherscan.io/address/0xd2fA8845c0998b327E25CcE94dbf8cafE8D234A2#code) |
+| [LRTDepositPool](./contracts/README.md#lrtdepositpool)             | [0xA479582c8b64533102F6F528774C536e354B8d32](https://etherscan.io/address/0xA479582c8b64533102F6F528774C536e354B8d32#code) | [0x5bB25326bAf12B8a46438BC8eCE452F44F033efA](https://etherscan.io/address/0x5bB25326bAf12B8a46438BC8eCE452F44F033efA#code) |
+| [LRTConfig](./contracts/README.md#lrtconfig)                       | [0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF](https://etherscan.io/address/0xF879c7859b6DE6FAdaFB74224Ff05b16871646bF#code) | [0xcdfD989e689872506E2897316b10e29c84AB087F](https://etherscan.io/address/0xcdfD989e689872506E2897316b10e29c84AB087F#code) |
+| [LRTOracle](./contracts/README.md#lrtoracle)                       | [0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32](https://etherscan.io/address/0xA755c18CD2376ee238daA5Ce88AcF17Ea74C1c32#code) | [0x76f6f696869Cc42c49A24acB4fbaB17E3B8fEE14](https://etherscan.io/address/0x76f6f696869Cc42c49A24acB4fbaB17E3B8fEE14#code) |
+| [NodeDelegatorLST](./contracts/README.md#nodedelegatorlst) index 0 | [0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2](https://etherscan.io/address/0x8bBBCB5F4D31a6db3201D40F478f30Dc4F704aE2#code) | [0x50609798dc4EAb5a9557F7A96526A867acD42A19](https://etherscan.io/address/0x50609798dc4EAb5a9557F7A96526A867acD42A19#code) |
+| [NodeDelegatorETH](./contracts/README.md#nodedelegatoreth) index 1 | [0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087](https://etherscan.io/address/0x18169ee0ced9aa744f3cd01adc6e2eb2e8fb0087#code) | [0x50609798dc4EAb5a9557F7A96526A867acD42A19](https://etherscan.io/address/0x50609798dc4EAb5a9557F7A96526A867acD42A19#code) |
 
 ### Immutable Contracts
 
@@ -313,10 +313,10 @@ Actions are used to run operational jobs are specific times or intervals.
 
 [rollup](https://rollupjs.org/) is used to bundle Actions source code in
 [/script/defender-actions](./script/defender-actions) into a single file that can be uploaded to Defender. The
-implementation was based off
+implementation was based off.
 [Defender Actions example using Rollup](https://github.com/OpenZeppelin/defender-autotask-examples/tree/master/rollup).
 The rollup config is in [/script/defender-actions/rollup.config.cjs](./script/defender-actions/rollup.config.cjs). The
-outputs are written to task specific folders under [/script/defender-actions/dist](./script/defender-actions/dist/).
+outputs are written to folders under [/script/defender-actions/dist](./script/defender-actions/dist/).
 
 The [defender-autotask CLI](https://www.npmjs.com/package/@openzeppelin/defender-autotask-client) is used to upload the
 Action code to Defender. For this to work, a Defender Team API key with `Manage Actions` capabilities is needed. This
@@ -374,43 +374,34 @@ npx defender-autotask update-code 0cfd91ac-1248-4470-ba1f-e58cd8514b3d ./dist/op
 
 ### Mainnet Defender Actions
 
-| Name                                                  | ID                                                                                                                                    | Source Code                                                                                     |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Prime - Deposit LSTs to EigenLayer                    | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/depositAllEL.js](./script/defender-actions/depositAllEL.js)           |
-| Prime - transfer WETH to Native Staking NodeDelegator | [d990c176-897d-4739-8f20-563fbacf11b0](https://defender.openzeppelin.com/v2/#/actions/automatic/d990c176-897d-4739-8f20-563fbacf11b0) | [/script/defender-actions/transferWETH.js](./script/defender-actions/transferWETH.js)           |
-| Prime - primeETH Price Updater                        | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                                 |
-| Prime - Add validator                                 | [0cfd91ac-1248-4470-ba1f-e58cd8514b3d](https://defender.openzeppelin.com/v2/#/actions/automatic/0cfd91ac-1248-4470-ba1f-e58cd8514b3d) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
+| Name                                                     | ID                                                                                                                                    | Source Code                                                                                     |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Prime - Deposit LSTs to EigenLayer                       | [184e6533-9413-48be-ac01-4a63f87c3035](https://defender.openzeppelin.com/v2/#/actions/automatic/184e6533-9413-48be-ac01-4a63f87c3035) | [/script/defender-actions/depositAllEL.js](./script/defender-actions/depositAllEL.js)           |
+| Prime - transfer WETH to Native Staking NodeDelegatorETH | [d990c176-897d-4739-8f20-563fbacf11b0](https://defender.openzeppelin.com/v2/#/actions/automatic/d990c176-897d-4739-8f20-563fbacf11b0) | [/script/defender-actions/transferWETH.js](./script/defender-actions/transferWETH.js)           |
+| Prime - primeETH Price Updater                           | [e5ab3a21-ed4d-4b0a-b07a-c3127a59895c](https://defender.openzeppelin.com/v2/#/actions/automatic/e5ab3a21-ed4d-4b0a-b07a-c3127a59895c) |                                                                                                 |
+| Prime - Add validator                                    | [0cfd91ac-1248-4470-ba1f-e58cd8514b3d](https://defender.openzeppelin.com/v2/#/actions/automatic/0cfd91ac-1248-4470-ba1f-e58cd8514b3d) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
 
-### Goerli Defender Actions
+## Holesky Testing
 
-| Name                           | ID                                                                                                                                    | Source Code                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Prime - Add validator - Goerli | [7dda695d-56b1-48ba-9e9a-3307c4a2f7bb](https://defender.openzeppelin.com/v2/#/actions/automatic/7dda695d-56b1-48ba-9e9a-3307c4a2f7bb) | [/script/defender-actions/operateValidators.js](./script/defender-actions/operateValidators.js) |
+Make sure the `HOLESKY_RPC_URL` environment variable is set in the `.env` file.
 
-## Goerli Testing
-
-After the Goerli contracts have been deployed and addresses updated in `Addresses.sol` and `addresses.js`. This includes
-the EigenPod for the new native staking NodeDelegator.
-
-Make sure the `GOERLI_RPC_URL` environment variable is set in the `.env` file.
-
-Generate an API key for the Goerli Defender Relayer and set the `DEFENDER_RELAYER_KEY` and `DEFENDER_RELAYER_SECRET`
+Generate an API key for the Holesky Defender Relayer and set the `DEFENDER_RELAYER_KEY` and `DEFENDER_RELAYER_SECRET`
 environment variables in the `.env` file.
 
 ```
 export DEBUG=prime*
-npx hardhat depositWETH --amount 32 --network goerli
-npx hardhat depositPrime --symbol WETH --amount 32 --network goerli
-npx hardhat depositEL --symbol WETH --index 1  --network goerli
-npx hardhat operateValidators --network goerli
+npx hardhat depositWETH --amount 32 --network holesky
+npx hardhat depositPrime --symbol WETH --amount 32 --network holesky
+npx hardhat depositEL --symbol WETH --index 1  --network holesky
+npx hardhat operateValidators --network holesky
 ```
 
 # Validators
 
 This section contains the required steps and dependencies to create validator keys and splitting them.
 
-First download the "staking-deposit-cli" tool from the
-[ethereum release page](https://github.com/ethereum/staking-deposit-cli/releases) that is a CLI tool for generating
+First, download the "staking-deposit-cli" tool from the
+[ethereum release page](https://github.com/ethereum/staking-deposit-cli/releases) which is a CLI tool for generating
 keystore files. Extract the file and move it somewhere on the $PATH (e.g. /usr/local/bin)
 
 Create a new mnemonic in offline mode:
@@ -419,9 +410,9 @@ Create a new mnemonic in offline mode:
 deposit new-mnemonic
 ```
 
-Follow the wizard and create a required number of validator keys - the wizard ask what number of keys are required -
+Follow the wizard and create a required number of validator keys - the wizard asks what number of keys are required -
 along with the validator deposit data. Example validator keys for mnemonic "daughter topple square amount rich elder
-regret blade crisp auto burden shoe enrich weasel apart case space zebra require oyster stadium icon truly result" are
+regret blade crisp auto burden shoe enrich weasel apart case space zebra require oyster stadium icon truly result" is
 located in `validator_key_data/validator_keys`
 
 After that create shares data that can be used by the DVT to deploy distributed validators. See example command:
@@ -433,20 +424,20 @@ npx hardhat splitValidatorKey --network goerli --operatorids 60.79.220.349 --ope
 # Claiming SSV token
 
 Thanks to the [incentive program](https://forum.ssv.network/t/incentivized-mainnet-program/1203) from SSV, Openzeppelin
-Defender Relayer can claim SSV token each months. Follow the following step to claim it:
+Defender Relayer can claim SSV tokens each month. Follow these steps to claim them:
 
 - Go on https://ssvscan.io/claim/
-- Using RabbyWallet (or equivalent), impersonnate Relayer address
+- Using RabbyWallet (or equivalent), impersonate Relayer address
 - Click "Claiming Rewards" (green button)
 - Open the RabbyWallet pop-up
 - Click on "View Raw", it should open the transaction data by default.
 - Copy the `data` section, it should be something like 0x1a4e41c2... This is the PAYLOAD.
-- On terminal, on the root of the repo, run:
+- In a terminal, on the root of the repo, run:
   - `npx hardhat --network mainnet claimSSV --payload PAYLOAD` to claim the SSV token and transfer them to the relayer.
   - `npx hardhat --network mainnet balance  --symbol SSV ` to check how many SSV token hold the relayer.
   - `npx hardhat --network mainnet transfer --amount AMOUNT --symbol SSV --to MULTI_SIG` to transfer SSV token to
-    multisig. Note, amount should be in ether, for example if you want to transfer `48927251356344789668` tokens, write
-    `48.927`. This is important to remove some decimals, otherwise transaction may fail.
+    multisig. The amount should be in ether. For example, if you want to transfer `48927251356344789668` tokens, write
+    `48.927`. This is important to remove some decimals otherwise the transaction may fail.
 
 # Credits
 

@@ -2,15 +2,14 @@
 pragma solidity 0.8.21;
 
 import { IDelegationManager } from "../eigen/interfaces/IDelegationManager.sol";
+import { Cluster } from "./ISSVNetwork.sol";
 
-interface INodeDelegator {
+interface INodeDelegatorLST {
     // event
     event AssetDepositIntoStrategy(address indexed asset, address indexed strategy, uint256 depositAmount);
     event ETHDepositFromDepositPool(uint256 depositAmount);
     event EigenPodCreated(address indexed eigenPod, address indexed podOwner);
     event ETHStaked(bytes valPubKey, uint256 amount);
-    event ETHRewardsWithdrawInitiated(uint256 amount);
-    event ETHRewardsClaimed(uint256 amount);
     event RequestWithdrawal(
         address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 strategyShares
     );
@@ -34,6 +33,8 @@ interface INodeDelegator {
     function depositAssetIntoStrategy(address asset) external;
     function depositAssetsIntoStrategy(address[] calldata assets) external;
 
+    function transferBackToLRTDepositPool(address asset, uint256 amount) external;
+
     function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external;
     function requestInternalWithdrawal(address strategyAddress, uint256 strategyShares) external;
     function claimWithdrawal(
@@ -54,4 +55,6 @@ interface INodeDelegator {
 
     function delegateTo(address operator) external;
     function undelegate() external;
+
+    function optIn(address asset) external;
 }

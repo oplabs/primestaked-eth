@@ -34,6 +34,18 @@ const depositAssetEL = async ({ signer, asset, depositPool, nodeDelegator, symbo
   }
 };
 
+const transferToDepositPool = async ({ signer, asset, nodeDelegator, symbol, index }) => {
+  const assetBalance = await asset.balanceOf(nodeDelegator.address);
+  const ethBalance = await signer.provider.getBalance(nodeDelegator.address);
+  const balance = symbol === "WETH" ? assetBalance.add(ethBalance) : assetBalance;
+
+  log(
+    `About to transfer ${formatUnits(balance)} ${symbol} from the Node Delegator with index ${index} to the Deposit Pool`,
+  );
+  const tx1 = await nodeDelegator.connect(signer).transferBackToLRTDepositPool(asset.address, balance);
+  await logTxDetails(tx1, "transferBackToLRTDepositPool");
+};
+
 const depositAllEL = async ({ signer, depositPool, nodeDelegator, assets, minDeposit, index }) => {
   const minDepositBN = parseEther(minDeposit.toString());
 
@@ -66,4 +78,4 @@ const depositAllEL = async ({ signer, depositPool, nodeDelegator, assets, minDep
   }
 };
 
-module.exports = { depositPrime, depositAssetEL, depositAllEL };
+module.exports = { depositPrime, depositAssetEL, depositAllEL, transferToDepositPool };

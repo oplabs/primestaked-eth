@@ -13,8 +13,8 @@
 <g id="node1" class="node">
 <title>1</title>
 <polygon fill="#f2f2f2" stroke="black" points="0,-0.5 0,-440.5 1868.69,-440.5 1868.69,-0.5 0,-0.5"/>
-<text text-anchor="middle" x="934.34" y="-423.9" font-family="Courier New" font-size="14.00">NodeDelegator &lt;&lt;Contract&gt;&gt;</text>
-<text text-anchor="middle" x="934.34" y="-407.1" font-family="Courier New" font-size="14.00">0xaBe7742535f46884009a5477BE0F723612784690</text>
+<text text-anchor="middle" x="934.34" y="-423.9" font-family="Courier New" font-size="14.00">NodeDelegatorLST &lt;&lt;Contract&gt;&gt;</text>
+<text text-anchor="middle" x="934.34" y="-407.1" font-family="Courier New" font-size="14.00">0x699d4efc6584eB6284C6Be3A4c2727dd6C737212</text>
 <polyline fill="none" stroke="black" points="0,-398.9 1868.69,-398.9 "/>
 <text text-anchor="middle" x="41.61" y="-382.3" font-family="Courier New" font-size="14.00">slot</text>
 <text text-anchor="middle" x="41.61" y="-365.5" font-family="Courier New" font-size="14.00"> &#160;</text>
@@ -106,13 +106,13 @@
 <polyline fill="none" stroke="black" points="653.7,-158.1 1868.69,-158.1 "/>
 <text text-anchor="middle" x="898.41" y="-133.1" font-family="Courier New" font-size="14.00">unallocated (12)</text>
 <polyline fill="none" stroke="black" points="1143.12,-116.5 1143.12,-158.1 "/>
-<text text-anchor="middle" x="1505.45" y="-141.5" font-family="Courier New" font-size="14.00">address: eigenPod (20)</text>
+<text text-anchor="middle" x="1505.45" y="-141.5" font-family="Courier New" font-size="14.00">address: deprecated_eigenPod (20)</text>
 <text text-anchor="middle" x="1505.45" y="-124.7" font-family="Courier New" font-size="14.00"> 0x0000000000000000000000000000000000000000 </text>
 <polyline fill="none" stroke="black" points="653.7,-116.5 1868.69,-116.5 "/>
-<text text-anchor="middle" x="1261.13" y="-99.9" font-family="Courier New" font-size="14.00">uint256: stakedButNotVerifiedEth (32)</text>
-<text text-anchor="middle" x="1261.13" y="-83.1" font-family="Courier New" font-size="14.00"> 0 </text>
+<text text-anchor="middle" x="1260.83" y="-99.9" font-family="Courier New" font-size="14.00">uint256: deprecated_stakedButNotVerifiedEth (32)</text>
+<text text-anchor="middle" x="1260.83" y="-83.1" font-family="Courier New" font-size="14.00"> 0 </text>
 <polyline fill="none" stroke="black" points="653.7,-74.9 1868.69,-74.9 "/>
-<text text-anchor="middle" x="1260.73" y="-58.3" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;bool): validatorsStaked (32)</text>
+<text text-anchor="middle" x="1260.94" y="-58.3" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;bool): deprecated_validatorsStaked (32)</text>
 <polyline fill="none" stroke="black" points="653.7,-50.1 1868.69,-50.1 "/>
 <text text-anchor="middle" x="1260.74" y="-33.5" font-family="Courier New" font-size="14.00">mapping(bytes32=&gt;address): withdrawalRequests (32)</text>
 <polyline fill="none" stroke="black" points="653.7,-25.3 1868.69,-25.3 "/>

@@ -44,6 +44,7 @@ library LRTConstants {
     bytes32 public constant SFRXETH_TOKEN = keccak256("SFRXETH_TOKEN");
     // add new vars below
     bytes32 public constant EIGEN_POD_MANAGER = keccak256("EIGEN_POD_MANAGER");
+    bytes32 public constant EIGEN_DELAYED_WITHDRAWAL_ROUTER = keccak256("EIGEN_DELAYED_WITHDRAWAL_ROUTER");
 
     // Operator Role
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");

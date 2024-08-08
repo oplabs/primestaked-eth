@@ -20,22 +20,18 @@ import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
 import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
-contract UpgradeLSTWithdrawals is BaseMainnetScript {
-    address newDepositPoolImpl;
+contract UpgradeEthWithdrawals is BaseMainnetScript {
     address newNodeDelegatorLSTImpl;
     address newNodeDelegatorETHImpl;
 
     constructor() {
         // Will only execute script before this block number
-        deployBlockNum = 20_239_881;
+        // deployBlockNum = ;
     }
 
     function _execute() internal override {
-        console.log("Running deploy script UpgradeLSTWithdrawals");
-        // Deploy new LTRDepositPool implementation
-        newDepositPoolImpl = DepositPoolLib.deployImpl();
-
-        // Deploy a new implementation of NodeDelegator
+        console.log("Running deploy script UpgradeEthWithdrawals");
+        // Deploy a new NodeDelegator implementations
         newNodeDelegatorLSTImpl = NodeDelegatorLSTLib.deployImpl();
         newNodeDelegatorETHImpl = NodeDelegatorETHLib.deployImpl();
     }
@@ -45,19 +41,20 @@ contract UpgradeLSTWithdrawals is BaseMainnetScript {
         vm.startPrank(Addresses.PROXY_OWNER);
         console.log("Impersonating proxy admin owner: %s", Addresses.PROXY_OWNER);
 
-        // Upgrade the DepositPool to new implementation
-        DepositPoolLib.upgrade(newDepositPoolImpl);
-
-        // Upgrade the NodeDelegators to new implementation
+        // Upgrade the NodeDelegators to new implementations
         NodeDelegatorLSTLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorLSTImpl);
         NodeDelegatorETHLib.upgrade(Addresses.NODE_DELEGATOR_NATIVE_STAKING, newNodeDelegatorETHImpl);
         vm.stopPrank();
 
         vm.startPrank(Addresses.ADMIN_ROLE);
         console.log("Impersonating Admin: %s", Addresses.ADMIN_ROLE);
-
-        // add burner role to lrtDepositPool so it can burn primeETH
-        LRTConfig(Addresses.LRT_CONFIG).grantRole(LRTConstants.BURNER_ROLE, address(Addresses.LRT_DEPOSIT_POOL));
+        // set EIGEN_DELAYED_WITHDRAWAL_ROUTER address in LRTConfig
+        LRTConfig(Addresses.LRT_CONFIG).setContract(
+            LRTConstants.EIGEN_DELAYED_WITHDRAWAL_ROUTER, Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER
+        );
+        console.log("keccak256 EIGEN_DELAYED_WITHDRAWAL_ROUTER:");
+        console.logBytes32(LRTConstants.EIGEN_DELAYED_WITHDRAWAL_ROUTER);
+        console.log("Set EIGEN_DELAYED_WITHDRAWAL_ROUTER in LRTConfig to ", Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER);
 
         vm.stopPrank();
     }

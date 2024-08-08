@@ -9,7 +9,7 @@ import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
 import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
 import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
 
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
@@ -22,7 +22,7 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
     LRTConfig public lrtConfigProxy;
     LRTDepositPool public lrtDepositPoolProxy;
     LRTOracle public lrtOracleProxy;
-    NodeDelegator public nodeDelegatorProxy1;
+    NodeDelegatorLST public nodeDelegatorProxy1;
     address[] public nodeDelegatorContracts;
 
     // deposit limit for all assets
@@ -43,7 +43,7 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
 
         address lrtDepositPoolImplementation = address(new LRTDepositPool(Addresses.WETH_TOKEN, Addresses.OETH_TOKEN));
         address lrtOracleImplementation = address(new LRTOracle());
-        address nodeDelegatorImplementation = address(new NodeDelegator(Addresses.WETH_TOKEN));
+        address nodeDelegatorImplementation = address(new NodeDelegatorLST(Addresses.WETH_TOKEN));
         //address chainlinkPriceOracleImplementation = address(new ChainlinkPriceOracle());
         //address ethxPriceOracleImplementation = address(new EthXPriceOracle());
 
@@ -65,8 +65,9 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
         // init LRTOracle
         lrtOracleProxy.initialize(address(lrtConfigProxy));
 
-        nodeDelegatorProxy1 =
-            NodeDelegator(payable(proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), salt)));
+        nodeDelegatorProxy1 = NodeDelegatorLST(
+            payable(proxyFactory.create(address(nodeDelegatorImplementation), address(proxyAdmin), salt))
+        );
 
         // init NodeDelegator
         nodeDelegatorProxy1.initialize(address(lrtConfigProxy));
@@ -87,8 +88,8 @@ contract DeployDelegatorPoolOracle is BaseMainnetScript {
     }
 
     function maxApproveToEigenStrategyManager(address nodeDel) private {
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(Addresses.STETH_TOKEN);
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(Addresses.ETHX_TOKEN);
+        NodeDelegatorLST(payable(nodeDel)).maxApproveToEigenStrategyManager(Addresses.STETH_TOKEN);
+        NodeDelegatorLST(payable(nodeDel)).maxApproveToEigenStrategyManager(Addresses.ETHX_TOKEN);
     }
 
     function getAssetStrategies()

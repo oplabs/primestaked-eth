@@ -10,10 +10,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
+import { NodeDelegatorETHLib, NodeDelegatorETH } from "contracts/libraries/NodeDelegatorETHLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { AddAssetsLib } from "contracts/libraries/AddAssetsLib.sol";
@@ -23,7 +23,7 @@ import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 contract DeployNativeETH is BaseMainnetScript {
     address newDepositPoolImpl;
     address newNodeDelegator1Impl;
-    NodeDelegator newNodeDelegator2;
+    NodeDelegatorETH newNodeDelegator2;
     address wethOracleProxy;
 
     constructor() {
@@ -34,13 +34,13 @@ contract DeployNativeETH is BaseMainnetScript {
     function _execute() internal override {
         // Deploy new NodeDelegator with proxy and initialize it
         // This will be done via the Defender Relayer for mainnet but is left in here for fork testing
-        newNodeDelegator2 = NodeDelegatorLib.deployInit(1);
+        newNodeDelegator2 = NodeDelegatorETHLib.deployInit(1);
 
         // Deploy new LTRDepositPool implementation
         newDepositPoolImpl = DepositPoolLib.deployImpl();
 
         // Deploy a new implementation of NodeDelegator
-        newNodeDelegator1Impl = NodeDelegatorLib.deployImpl();
+        newNodeDelegator1Impl = NodeDelegatorLSTLib.deployImpl();
 
         // Deploy new WETH oracle
         wethOracleProxy =
@@ -57,7 +57,7 @@ contract DeployNativeETH is BaseMainnetScript {
         console.log("Impersonating proxy admin owner: %s", Addresses.PROXY_OWNER);
         DepositPoolLib.upgrade(newDepositPoolImpl);
         // Upgrade the old NodeDelegator to new implementation
-        NodeDelegatorLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegator1Impl);
+        NodeDelegatorLSTLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegator1Impl);
         vm.stopPrank();
 
         vm.startPrank(Addresses.MANAGER_ROLE);
@@ -76,7 +76,7 @@ contract DeployNativeETH is BaseMainnetScript {
         LRTConfig(Addresses.LRT_CONFIG).setContract(LRTConstants.SSV_NETWORK, Addresses.SSV_NETWORK);
 
         // Approve the SSV Network to transfer SSV tokens from the second NodeDelegator
-        NodeDelegator(newNodeDelegator2).approveSSV();
+        NodeDelegatorETH(newNodeDelegator2).approveSSV();
 
         // add new Node Delegator to the deposit pool
         DepositPoolLib.addNodeDelegator(address(newNodeDelegator2));

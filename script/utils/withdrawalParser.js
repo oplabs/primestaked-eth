@@ -1,3 +1,5 @@
+const log = require("./logger")("utils:withdrawalParser");
+
 const WithdrawalQueuedTopic = "0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9";
 
 const getWithdrawal = async (signer, requestTx, delegationManager) => {

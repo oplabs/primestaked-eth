@@ -8,17 +8,17 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import { LRTConfig } from "contracts/LRTConfig.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorETH } from "contracts/NodeDelegatorETH.sol";
 import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
-library NodeDelegatorLib {
+library NodeDelegatorETHLib {
     function deployImpl() internal returns (address implementation) {
         address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
 
         // Deploy the new contract
-        implementation = address(new NodeDelegator(wethAddress));
-        console.log("NodeDelegator implementation deployed at: %s", implementation);
+        implementation = address(new NodeDelegatorETH(wethAddress));
+        console.log("NodeDelegatorETH implementation deployed at: %s", implementation);
     }
 
     function deployProxy(
@@ -28,25 +28,25 @@ library NodeDelegatorLib {
         uint256 saltIndex
     )
         internal
-        returns (NodeDelegator nodeDelegator)
+        returns (NodeDelegatorETH nodeDelegator)
     {
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", saltIndex));
         address proxy = proxyFactory.create(implementation, address(proxyAdmin), salt);
-        console.log("NodeDelegator proxy deployed at: ", proxy);
+        console.log("NodeDelegatorETH proxy deployed at: ", proxy);
 
-        nodeDelegator = NodeDelegator(payable(proxy));
+        nodeDelegator = NodeDelegatorETH(payable(proxy));
     }
 
-    function initialize(NodeDelegator nodeDelegator, LRTConfig config) internal {
+    function initialize(NodeDelegatorETH nodeDelegator, LRTConfig config) internal {
         nodeDelegator.initialize(address(config));
     }
 
-    function deployInit(uint256 saltIndex) internal returns (NodeDelegator nodeDelegator) {
+    function deployInit(uint256 saltIndex) internal returns (NodeDelegatorETH nodeDelegator) {
         address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
 
         // Deploy the new contract
-        address nodeDelegatorImpl = address(new NodeDelegator(wethAddress));
-        console.log("NodeDelegator implementation deployed at: %s", nodeDelegatorImpl);
+        address nodeDelegatorImpl = address(new NodeDelegatorETH(wethAddress));
+        console.log("NodeDelegatorETH implementation deployed at: %s", nodeDelegatorImpl);
 
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
         bytes32 salt = keccak256(abi.encodePacked("Prime-Staked-nodeDelegator", saltIndex));
@@ -54,23 +54,23 @@ library NodeDelegatorLib {
         address proxyFactoryAddress = block.chainid == 1 ? Addresses.PROXY_FACTORY : AddressesHolesky.PROXY_FACTORY;
         address nodeDelegatorProxy =
             ProxyFactory(proxyFactoryAddress).create(nodeDelegatorImpl, proxyAdminAddress, salt);
-        nodeDelegator = NodeDelegator(payable(nodeDelegatorProxy));
+        nodeDelegator = NodeDelegatorETH(payable(nodeDelegatorProxy));
 
-        // init new NodeDelegator
+        // init new NodeDelegatorETH
         address lrtConfigProxy = block.chainid == 1 ? Addresses.LRT_CONFIG : AddressesHolesky.LRT_CONFIG;
         nodeDelegator.initialize(lrtConfigProxy);
 
         console.log("Native staking node delegator (proxy) deployed at: ", nodeDelegatorProxy);
     }
 
-    function upgrade(address proxyAddress, address newImpl) internal returns (NodeDelegator) {
+    function upgrade(address proxyAddress, address newImpl) internal returns (NodeDelegatorETH) {
         address proxyAdminAddress = block.chainid == 1 ? Addresses.PROXY_ADMIN : AddressesHolesky.PROXY_ADMIN;
 
         ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdminAddress);
 
         proxyAdmin.upgrade(ITransparentUpgradeableProxy(proxyAddress), newImpl);
-        console.log("Upgraded NodeDelegator proxy %s to new implementation %s", proxyAddress, newImpl);
+        console.log("Upgraded NodeDelegatorETH proxy %s to new implementation %s", proxyAddress, newImpl);
 
-        return NodeDelegator(payable(proxyAddress));
+        return NodeDelegatorETH(payable(proxyAddress));
     }
 }

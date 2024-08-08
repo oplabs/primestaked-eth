@@ -11,6 +11,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
 import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
+import { IDelayedWithdrawalRouter } from "contracts/eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
@@ -19,7 +20,8 @@ import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST, INodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
+import { NodeDelegatorETH, INodeDelegatorETH, ValidatorStakeData } from "contracts/NodeDelegatorETH.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
@@ -32,7 +34,7 @@ contract ForkTestBase is Test {
     PrimeStakedETH public preth;
     LRTOracle public lrtOracle;
     LRTConfig public lrtConfig;
-    NodeDelegator public nodeDelegator1;
+    NodeDelegatorLST public nodeDelegator1;
 
     address internal constant stWhale = 0xE53FFF67f9f384d20Ebea36F43b93DC49Ed22753;
     address internal constant xWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
@@ -48,7 +50,8 @@ contract ForkTestBase is Test {
     event Zap(address indexed minter, address indexed asset, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event ETHStaked(bytes valPubKey, uint256 amount);
-    event ETHRewardsWithdrawInitiated(uint256 amount);
+    event ConsensusRewards(uint256 amount);
+    event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -57,7 +60,7 @@ contract ForkTestBase is Test {
         lrtDepositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
         lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
         lrtConfig = LRTConfig(Addresses.LRT_CONFIG);
-        nodeDelegator1 = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
+        nodeDelegator1 = NodeDelegatorLST(payable(Addresses.NODE_DELEGATOR));
 
         // Any pending deployments or configuration changes
         DeployAll deployer = new DeployAll();
@@ -163,7 +166,7 @@ contract ForkTestBase is Test {
 // TODO basic primeETH token tests. eg transfer, approve, transferFrom
 
 contract ForkTestNative is ForkTestBase {
-    NodeDelegator public nodeDelegator2;
+    NodeDelegatorETH public nodeDelegator2;
     PrimeZapper public primeZapper;
 
     // WETH whales that are not contracts
@@ -183,7 +186,7 @@ contract ForkTestNative is ForkTestBase {
     function setUp() public override {
         super.setUp();
 
-        nodeDelegator2 = NodeDelegator(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
+        nodeDelegator2 = NodeDelegatorETH(payable(Addresses.NODE_DELEGATOR_NATIVE_STAKING));
         primeZapper = PrimeZapper(payable(Addresses.PRIME_ZAPPER));
 
         validatorStakeData.push(
@@ -220,7 +223,7 @@ contract ForkTestNative is ForkTestBase {
         uint256 amount = 3e18;
         deal(address(Addresses.SSV_TOKEN), Addresses.MANAGER_ROLE, amount);
 
-        vm.prank(Addresses.MANAGER_ROLE);
+        vm.startPrank(Addresses.MANAGER_ROLE);
 
         Cluster memory cluster = Cluster({
             validatorCount: 1,
@@ -241,6 +244,10 @@ contract ForkTestNative is ForkTestBase {
         emit Transfer(address(nodeDelegator2), Addresses.SSV_NETWORK, amount);
 
         nodeDelegator2.depositSSV(operatorIds, amount, cluster);
+
+        cluster.balance += amount;
+        nodeDelegator2.withdrawSSV(operatorIds, amount, cluster);
+        vm.stopPrank();
     }
 
     function test_deposit_WETH() public {
@@ -399,7 +406,7 @@ contract ForkTestNative is ForkTestBase {
 
         // Should fail to register a second time
         vm.expectRevert(
-            abi.encodeWithSelector(INodeDelegator.ValidatorAlreadyStaked.selector, validatorStakeData[0].pubkey)
+            abi.encodeWithSelector(INodeDelegatorETH.ValidatorAlreadyStaked.selector, validatorStakeData[0].pubkey)
         );
         nodeDelegator2.stakeEth(validatorStakeData);
 
@@ -520,21 +527,176 @@ contract ForkTestNative is ForkTestBase {
     }
 
     // undelegate from the P2P EigenLayer Operator on Native Node Delegator
-    function test_undelegateFromNativeNodeDelegator()
-        public
-        assertAssetsInLayers(Addresses.STETH_TOKEN, 0, 0, 0)
-        assertAssetsInLayers(Addresses.RETH_TOKEN, 0, 0, 0)
-        assertAssetsInLayers(Addresses.WETH_TOKEN, 0, 0, 0)
-    {
-        vm.startPrank(Addresses.MANAGER_ROLE);
+    function test_revertDelegateNativeNodeDelegator() public {
+        vm.prank(Addresses.MANAGER_ROLE);
 
+        vm.expectRevert("Unsupported");
         nodeDelegator2.delegateTo(Addresses.EIGEN_OPERATOR_P2P);
+    }
+
+    // undelegate from the P2P EigenLayer Operator on Native Node Delegator
+    function test_revertUndelegateNativeNodeDelegator() public {
+        vm.prank(Addresses.MANAGER_ROLE);
+
+        vm.expectRevert("Unsupported");
         nodeDelegator2.undelegate();
+    }
+
+    // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
+
+    function test_exitSsvValidators() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        uint64[] memory operatorIds = new uint64[](4);
+        operatorIds[0] = 193;
+        operatorIds[1] = 196;
+        operatorIds[2] = 199;
+        operatorIds[3] = 202;
+
+        bytes[] memory publicKeys = new bytes[](2);
+        publicKeys[0] =
+            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
+        publicKeys[1] =
+            hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
+
+        nodeDelegator2.exitSsvValidators(publicKeys, operatorIds);
 
         vm.stopPrank();
     }
 
-    // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
+    function test_removeSsvValidators() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        Cluster memory cluster = Cluster({
+            validatorCount: 28,
+            networkFeeIndex: 63_459_958_614,
+            index: 62_030_899_188,
+            active: true,
+            balance: 45_461_840_401_950_000_000
+        });
+        uint64[] memory operatorIds = new uint64[](4);
+        operatorIds[0] = 193;
+        operatorIds[1] = 196;
+        operatorIds[2] = 199;
+        operatorIds[3] = 202;
+
+        bytes[] memory publicKeys = new bytes[](2);
+        publicKeys[0] =
+            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
+        publicKeys[1] =
+            hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
+
+        nodeDelegator2.removeSsvValidators(publicKeys, operatorIds, cluster);
+
+        vm.stopPrank();
+    }
+
+    function test_requestEthWithdrawalConsensusRewards() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
+        uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
+        assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
+        (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+
+        nodeDelegator2.requestEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
+        assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
+
+        vm.roll(block.number + 50_400);
+
+        // Check the last withdrawal request can be claimed
+        uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
+            .userWithdrawalsLength(address(nodeDelegator2));
+        assertTrue(
+            IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
+                address(nodeDelegator2), withdrawalRequests - 1
+            ),
+            "can claim withdrawal"
+        );
+
+        vm.expectEmit();
+        emit ConsensusRewards(eigenPodBalanceBefore);
+
+        nodeDelegator2.claimEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + eigenPodBalanceBefore, "ND WETH after claim");
+        assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest, "EL WETH after claim");
+
+        assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
+        assertEq(
+            address(nodeDelegator2).balance,
+            nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
+            "NodeDelegator balance after"
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_requestEthWithdrawalValidatorExits() public {
+        vm.startPrank(Addresses.OPERATOR_ROLE);
+
+        nodeDelegator2.requestEthWithdrawal();
+        vm.roll(block.number + 50_400);
+        nodeDelegator2.claimEthWithdrawal();
+
+        // Simulate 3 validators exiting with some consensus rewards
+        uint256 exitAmount = 96.5 ether;
+        vm.deal(Addresses.EIGEN_POD, exitAmount);
+
+        uint256 ethInValidatorsBefore = nodeDelegator2.stakedButNotVerifiedEth();
+        uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
+        uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
+        assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
+        (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+
+        nodeDelegator2.requestEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
+        assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
+
+        vm.roll(block.number + 50_400);
+
+        // Check the last withdrawal request can be claimed
+        uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
+            .userWithdrawalsLength(address(nodeDelegator2));
+        assertTrue(
+            IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
+                address(nodeDelegator2), withdrawalRequests - 1
+            ),
+            "can claim withdrawal"
+        );
+
+        vm.expectEmit();
+        emit WithdrawnValidators(3, ethInValidatorsBefore - 96 ether);
+        vm.expectEmit();
+        emit ConsensusRewards(0.5 ether);
+
+        nodeDelegator2.claimEthWithdrawal();
+
+        (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
+            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+        assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + exitAmount, "ND WETH after claim");
+        assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest - 96 ether, "EL WETH after claim");
+
+        assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
+        assertEq(
+            address(nodeDelegator2).balance,
+            nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
+            "NodeDelegator balance after"
+        );
+
+        vm.stopPrank();
+    }
 }
 
 contract ForkTestLST is ForkTestBase {

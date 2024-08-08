@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import { Addresses } from "contracts/utils/Addresses.sol";
 
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
 
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -20,7 +20,7 @@ contract DepositAssets is Script {
     using stdJson for string;
 
     LRTDepositPool public depositPool;
-    NodeDelegator public nodeDelegator;
+    NodeDelegatorLST public nodeDelegator;
     uint256 public constant NODE_DELEGATOR_INDEX = 0;
 
     uint256 public maxDepositAmount;
@@ -47,7 +47,7 @@ contract DepositAssets is Script {
         vm.startPrank(Addresses.MANAGER_ROLE);
 
         depositPool = LRTDepositPool(payable(Addresses.LRT_DEPOSIT_POOL));
-        nodeDelegator = NodeDelegator(payable(Addresses.NODE_DELEGATOR));
+        nodeDelegator = NodeDelegatorLST(Addresses.NODE_DELEGATOR);
 
         depositAssetToEL(Addresses.OETH_TOKEN);
         depositAssetToEL(Addresses.SFRXETH_TOKEN);

@@ -10,35 +10,31 @@ import { LRTConstants } from "./utils/LRTConstants.sol";
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
 
 import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
-import { IEigenPodManager, IEigenPod } from "./eigen/interfaces/IEigenPodManager.sol";
 import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
 import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
-import { INodeDelegator } from "./interfaces/INodeDelegator.sol";
-import { ISSVNetwork, Cluster } from "./interfaces/ISSVNetwork.sol";
+import { INodeDelegatorLST } from "./interfaces/INodeDelegatorLST.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
-import { IWETH } from "./interfaces/IWETH.sol";
 
-struct ValidatorStakeData {
-    bytes pubkey;
-    bytes signature;
-    bytes32 depositDataRoot;
-}
-
-/// @title NodeDelegator Contract
+/// @title NodeDelegatorLST Contract
 /// @notice The contract that handles the depositing of assets into strategies
-contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract NodeDelegatorLST is
+    INodeDelegatorLST,
+    LRTConfigRoleChecker,
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     /// @dev The Wrapped ETH (WETH) contract address with interface IWETH
     address public immutable WETH;
 
     /// @dev The EigenPod is created and owned by this contract
-    address public eigenPod;
+    address internal deprecated_eigenPod;
     /// @dev Tracks the balance staked to validators and has yet to have the credentials verified with EigenLayer.
     /// call verifyWithdrawalCredentials to verify the validator credentials on EigenLayer
-    uint256 public stakedButNotVerifiedEth;
+    uint256 internal deprecated_stakedButNotVerifiedEth;
 
     uint256 internal constant DUST_AMOUNT = 10;
-    mapping(bytes32 pubkeyHash => bool hasStaked) public validatorsStaked;
+    mapping(bytes32 pubkeyHash => bool hasStaked) internal deprecated_validatorsStaked;
 
     /// @dev Maps the withdrawalRoots from the EigenLayer DelegationManager to the staker requesting the withdrawal.
     /// Is not populated for internal withdrawals
@@ -67,13 +63,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit UpdatedLRTConfig(lrtConfigAddr);
     }
 
-    function createEigenPod() external onlyLRTManager {
-        IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
-        eigenPod = eigenPodManager.createPod();
-
-        emit EigenPodCreated(eigenPod, address(this));
-    }
-
     /// @notice Approves the maximum amount of an asset to the eigen strategy manager
     /// @dev only supported assets can be deposited and only called by the LRT manager
     /// @param asset the asset to deposit
@@ -88,7 +77,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Deposits an asset lying in this NDC into its strategy
-    /// @dev only supported assets can be deposited and only called by the LRT Operator
+    /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
+    /// WETH can not be deposited.
     /// @param asset the asset to deposit
     function depositAssetIntoStrategy(address asset)
         external
@@ -102,7 +92,8 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     }
 
     /// @notice Deposits all specified assets lying in this NDC into its strategy
-    /// @dev only supported assets can be deposited and only called by the LRT Operator
+    /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
+    /// WETH can not be deposited.
     /// @param assets List of assets to deposit
     function depositAssetsIntoStrategy(address[] calldata assets)
         external
@@ -130,6 +121,10 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// The calling function is responsible for ensuring the asset is supported.
     /// @param asset the asset to deposit
     function _depositAssetIntoStrategy(address asset) internal {
+        if (asset == WETH) {
+            // Can not deposit WETH into this NodeDelegatorLST contract
+            revert ILRTConfig.AssetNotSupported();
+        }
         address strategy = lrtConfig.assetStrategy(asset);
         if (strategy == address(0)) {
             revert StrategyIsNotSetForAsset();
@@ -167,15 +162,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     {
         address lrtDepositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
 
-        // Convert any ETH to WETH before transferring
-        if (asset == WETH) {
-            uint256 ethBalance = address(this).balance;
-            if (ethBalance > 0) {
-                // Convert any ETH into WETH
-                IWETH(WETH).deposit{ value: ethBalance }();
-            }
-        }
-
         bool success = IERC20(asset).transfer(lrtDepositPool, amount);
 
         if (!success) {
@@ -206,108 +192,41 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         }
     }
 
-    /// @dev Returns the balance of an asset that the node delegator has deposited into an EigenLayer strategy
-    /// or native ETH staked into an EigenPod.
+    /// @dev Returns the balance of an asset that the node delegator has deposited into an EigenLayer strategy.
     // Also needs to account for any shares pending internal withdrawal by the Prime Operator.
     /// @param asset the token address of the asset.
-    /// WETH will include any native ETH in this contract or staked in EigenLayer.
+    /// Any WETH in the contract will be included but no native ETH in this contract or staked in EigenLayer.
     /// @return ndcAssets assets lying in this NDC contract.
-    /// This includes any native ETH when the asset is WETH.
     /// @return eigenAssets asset amount deposited in underlying EigenLayer strategy
-    /// or native ETH staked into an EigenPod.
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
         ndcAssets += IERC20(asset).balanceOf(address(this));
 
         if (asset == WETH) {
-            // Add any ETH in the NDC that was earned from execution rewards
-            ndcAssets += address(this).balance;
-
-            eigenAssets = stakedButNotVerifiedEth;
-
-            // Not getting ETH restaked into EigenLayer as that is not yet supported
-            // by the NodeDelegator.
-            // The WETH asset will point to the EigenLayer beaconChainETHStrategy
-            // 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
-
-            // Not adding any consensus rewards that have been sent to the EigenPod.
-            // This can include forced validator withdrawals so that needs to be accounted for
-            // in a future implementation.
-        } else {
-            // If an LST asset
-            address strategy = lrtConfig.assetStrategy(asset);
-            if (strategy == address(0)) {
-                return (ndcAssets, eigenAssets);
-            }
-
-            // Get the amount of strategy shares owned by this NodeDelegator contract.
-            // Currently this only include LST assets as EigenLayer restaking is
-            // not yet supported by this NodeDelegator contract. The WETH asset will
-            // point to the EigenLayer beaconChainETHStrategy 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0
-            IStrategyManager strategyManager =
-                IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
-            uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
-
-            // add any shares pending internal withdrawal to the strategy shares owned by this NodeDelegator.
-            // staker withdrawals are not added to pendingInternalShareWithdrawals as the primeETH tokens are burnt on
-            // request.
-            strategyShares += pendingInternalShareWithdrawals[strategy];
-
-            // Convert the strategy shares to LST assets
-            eigenAssets = IStrategy(strategy).sharesToUnderlyingView(strategyShares);
-        }
-    }
-
-    /// @notice Stakes WETH or ETH in the NDC to multiple validators connected to an EigenPod.
-    /// @param validators A list of validator data needed to stake.
-    /// The ValidatorStakeData struct contains the pubkey, signature and depositDataRoot.
-    /// @dev Only accounts with the Operator role can call this function.
-    function stakeEth(ValidatorStakeData[] calldata validators) external whenNotPaused nonReentrant onlyLRTOperator {
-        // Yield from the validators will come as native ETH.
-        uint256 ethBalance = address(this).balance;
-        uint256 requiredETH = validators.length * 32 ether;
-        if (ethBalance < requiredETH) {
-            // If not enough native ETH, convert WETH to native ETH
-            uint256 wethBalance = IWETH(WETH).balanceOf(address(this));
-            if (wethBalance + ethBalance < requiredETH) {
-                revert InsufficientWETH(wethBalance + ethBalance);
-            }
-            // Convert WETH asset to native ETH
-            IWETH(WETH).withdraw(requiredETH - ethBalance);
+            // WETH can't be staked into validators from this NodeDelegatorLST contract
+            // so just return the WETH in this contract if any.
+            return (ndcAssets, eigenAssets);
         }
 
-        // For each validator
-        for (uint256 i = 0; i < validators.length;) {
-            bytes32 pubkeyHash = keccak256(validators[i].pubkey);
-
-            if (validatorsStaked[pubkeyHash]) {
-                revert ValidatorAlreadyStaked(validators[i].pubkey);
-            }
-
-            _stakeEth(validators[i].pubkey, validators[i].signature, validators[i].depositDataRoot);
-            validatorsStaked[pubkeyHash] = true;
-
-            unchecked {
-                ++i;
-            }
+        // If an LST asset
+        address strategy = lrtConfig.assetStrategy(asset);
+        if (strategy == address(0)) {
+            return (ndcAssets, eigenAssets);
         }
+
+        // Get the amount of strategy shares owned by this contract.
+        IStrategyManager strategyManager = IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
+        uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
+
+        // add any shares pending internal withdrawal to the strategy shares owned by this contract.
+        // staker withdrawals are not added to pendingInternalShareWithdrawals as the primeETH tokens are burnt on
+        // request.
+        strategyShares += pendingInternalShareWithdrawals[strategy];
+
+        // Convert the strategy shares to LST assets
+        eigenAssets = IStrategy(strategy).sharesToUnderlyingView(strategyShares);
     }
 
-    /// @dev Stake WETH and ETH in NDC in EigenLayer. It calls the `stake` function on the EigenPodManager
-    /// which calls `stake` on the EigenPod contract which calls `stake` on the Beacon DepositContract.
-    /// @dev The public functions that call this internal function are responsible for access control.
-    function _stakeEth(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot) internal {
-        // Call the stake function in the EigenPodManager
-        IEigenPodManager eigenPodManager = IEigenPodManager(lrtConfig.getContract(LRTConstants.EIGEN_POD_MANAGER));
-        eigenPodManager.stake{ value: 32 ether }(pubkey, signature, depositDataRoot);
-
-        // Increment the staked but not verified ETH
-        stakedButNotVerifiedEth += 32 ether;
-
-        emit ETHStaked(pubkey, 32 ether);
-    }
-
-    /// @notice Delegates all staked assets from this NodeDelegator to an EigenLayer Operator.
-    /// This includes both both LSTs and native ETH.
+    /// @notice Delegates all staked assets from this contract to an EigenLayer Operator.
     /// @param operator the address of the EigenLayer Operator to delegate to.
     function delegateTo(address operator) external onlyLRTManager {
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
@@ -320,7 +239,7 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
         emit Delegate(operator);
     }
 
-    /// @notice Undelegates all staked LST assets from this NodeDelegator from the
+    /// @notice Undelegates all staked LST assets from this contract from the
     /// previously delegated to EigenLayer Operator.
     /// This also forces a withdrawal so the assets will need to be claimed.
     function undelegate() external onlyLRTManager {
@@ -364,38 +283,6 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     /// @dev opts in for rebase so the asset's token balance will increase
     function optIn(address asset) external onlyLRTAdmin onlySupportedAsset(asset) {
         IOETH(asset).rebaseOptIn();
-    }
-
-    /// @dev Approves the SSV Network contract to transfer SSV tokens for deposits
-    function approveSSV() external onlyLRTManager {
-        address SSV_TOKEN_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_TOKEN);
-        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
-
-        IERC20(SSV_TOKEN_ADDRESS).approve(SSV_NETWORK_ADDRESS, type(uint256).max);
-    }
-
-    /// @dev Deposits more SSV Tokens to the SSV Network contract which is used to pay the SSV Operators
-    function depositSSV(uint64[] memory operatorIds, uint256 amount, Cluster memory cluster) external onlyLRTManager {
-        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
-
-        ISSVNetwork(SSV_NETWORK_ADDRESS).deposit(address(this), operatorIds, amount, cluster);
-    }
-
-    /// @dev Registers a new validator in the SSV Cluster
-    function registerSsvValidator(
-        bytes calldata publicKey,
-        uint64[] calldata operatorIds,
-        bytes calldata sharesData,
-        uint256 amount,
-        Cluster calldata cluster
-    )
-        external
-        onlyLRTOperator
-        whenNotPaused
-    {
-        address SSV_NETWORK_ADDRESS = lrtConfig.getContract(LRTConstants.SSV_NETWORK);
-
-        ISSVNetwork(SSV_NETWORK_ADDRESS).registerValidator(publicKey, operatorIds, sharesData, amount, cluster);
     }
 
     /// @notice Requests a withdrawal of liquid staking tokens (LST) from EigenLayer's underlying strategy.
@@ -569,9 +456,4 @@ contract NodeDelegator is INodeDelegator, LRTConfigRoleChecker, PausableUpgradea
     {
         return keccak256(abi.encode(withdrawal));
     }
-
-    /// @dev allow NodeDelegator to receive execution rewards from MEV and
-    /// ETH from WETH withdrawals.
-    /// Is not required to receive consensus rewards from the BeaconChain.
-    receive() external payable { }
 }

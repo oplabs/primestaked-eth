@@ -12,13 +12,15 @@ import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
 import { ChainlinkPriceOracle } from "contracts/oracles/ChainlinkPriceOracle.sol";
-import { NodeDelegator } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
+import { NodeDelegatorETH } from "contracts/NodeDelegatorETH.sol";
 import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { ConfigLib } from "contracts/libraries/ConfigLib.sol";
 import { PrimeStakedETHLib } from "contracts/libraries/PrimeStakedETHLib.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
+import { NodeDelegatorETHLib } from "contracts/libraries/NodeDelegatorETHLib.sol";
 import { PrimeZapperLib } from "contracts/libraries/PrimeZapperLib.sol";
 import { ProxyLib } from "contracts/libraries/ProxyLib.sol";
 
@@ -40,8 +42,8 @@ contract DeployHolesky is Script {
     LRTDepositPool public depositPool;
     LRTOracle public lrtOracle;
     address public chainlinkPriceOracleAddress;
-    NodeDelegator public node1;
-    NodeDelegator public node2;
+    NodeDelegatorLST public node1;
+    NodeDelegatorETH public node2;
     address[] public nodeDelegatorContracts;
 
     MockPriceAggregator stETHPriceFeed;
@@ -51,9 +53,9 @@ contract DeployHolesky is Script {
     uint256 public minAmountToDeposit;
 
     function maxApproveToEigenStrategyManager(address nodeDel) internal {
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.STETH_TOKEN);
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.RETH_TOKEN);
-        NodeDelegator(payable(nodeDel)).maxApproveToEigenStrategyManager(AddressesHolesky.METH_TOKEN);
+        NodeDelegatorLST(nodeDel).maxApproveToEigenStrategyManager(AddressesHolesky.STETH_TOKEN);
+        NodeDelegatorLST(nodeDel).maxApproveToEigenStrategyManager(AddressesHolesky.RETH_TOKEN);
+        NodeDelegatorLST(nodeDel).maxApproveToEigenStrategyManager(AddressesHolesky.METH_TOKEN);
     }
 
     function setUpByAdmin() internal {
@@ -95,7 +97,7 @@ contract DeployHolesky is Script {
         // add min amount to deposit in LRTDepositPool
         depositPool.setMinAmountToDeposit(minAmountToDeposit);
 
-        // Approve 2nd NodeDelegator to transfer SSV tokens
+        // Approve 2nd NodeDelegatorETH to transfer SSV tokens
         node2.approveSSV();
     }
 
@@ -179,12 +181,12 @@ contract DeployHolesky is Script {
         address wethOracleProxy = OraclesLib.deployInitWETHOracle(proxyAdmin, proxyFactory);
 
         // DelegatorNode
-        address nodeImpl = NodeDelegatorLib.deployImpl();
-        node1 = NodeDelegatorLib.deployProxy(nodeImpl, proxyAdmin, proxyFactory, 1);
-        NodeDelegatorLib.initialize(node1, lrtConfig);
+        address nodeImpl = NodeDelegatorLSTLib.deployImpl();
+        node1 = NodeDelegatorLSTLib.deployProxy(nodeImpl, proxyAdmin, proxyFactory, 1);
+        NodeDelegatorLSTLib.initialize(node1, lrtConfig);
 
-        node2 = NodeDelegatorLib.deployProxy(nodeImpl, proxyAdmin, proxyFactory, 2);
-        NodeDelegatorLib.initialize(node2, lrtConfig);
+        node2 = NodeDelegatorETHLib.deployProxy(nodeImpl, proxyAdmin, proxyFactory, 2);
+        NodeDelegatorETHLib.initialize(node2, lrtConfig);
 
         // Transfer SSV tokens to the native staking NodeDelegator
         // SSV Faucet https://faucet.ssv.network/

@@ -12,12 +12,14 @@ import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
-import { NodeDelegatorLib } from "contracts/libraries/NodeDelegatorLib.sol";
+import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
+import { NodeDelegatorETHLib } from "contracts/libraries/NodeDelegatorETHLib.sol";
 import { LRTDepositPool, ILRTDepositPool, LRTConstants } from "contracts/LRTDepositPool.sol";
 import { LRTConfig, ILRTConfig } from "contracts/LRTConfig.sol";
 import { PrimeStakedETH } from "contracts/PrimeStakedETH.sol";
 import { LRTOracle } from "contracts/LRTOracle.sol";
-import { NodeDelegator, INodeDelegator, ValidatorStakeData } from "contracts/NodeDelegator.sol";
+import { NodeDelegatorLST, INodeDelegatorLST } from "contracts/NodeDelegatorLST.sol";
+import { NodeDelegatorETH, INodeDelegatorETH, ValidatorStakeData } from "contracts/NodeDelegatorETH.sol";
 import { UtilLib } from "contracts/utils/UtilLib.sol";
 import { AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
@@ -29,7 +31,7 @@ contract ForkHoleskyTestBase is Test {
     LRTConfig public constant lrtConfig = LRTConfig(AddressesHolesky.LRT_CONFIG);
     PrimeStakedETH public constant primeETH = PrimeStakedETH(AddressesHolesky.PRIME_STAKED_ETH);
     LRTOracle public constant lrtOracle = LRTOracle(AddressesHolesky.LRT_ORACLE);
-    NodeDelegator public constant nodeDelegator1 = NodeDelegator(payable(AddressesHolesky.NODE_DELEGATOR));
+    NodeDelegatorLST public constant nodeDelegator1 = NodeDelegatorLST(AddressesHolesky.NODE_DELEGATOR);
 
     address public constant admin = AddressesHolesky.ADMIN_ROLE;
     address public constant manager = AddressesHolesky.MANAGER_ROLE;
@@ -66,6 +68,17 @@ contract ForkHoleskyTestBase is Test {
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
         fork = vm.createSelectFork(url);
+
+        vm.label(AddressesHolesky.LRT_DEPOSIT_POOL, "depositPool");
+        vm.label(AddressesHolesky.PRIME_STAKED_ETH, "primeETH");
+        vm.label(AddressesHolesky.NODE_DELEGATOR, "nodeDelegator1");
+
+        vm.label(stETHAddress, "stETH");
+        vm.label(stWhale, "stWhale");
+        vm.label(AddressesHolesky.STETH_EIGEN_STRATEGY, "stEthEigenStrategy");
+        vm.label(rEthAddress, "rETH");
+        vm.label(rWhale, "rWhale");
+        vm.label(AddressesHolesky.RETH_EIGEN_STRATEGY, "rEthEigenStrategy");
 
         // upgrade the LRTDepositPool and NodeDelegator implementations
         vm.startPrank(AddressesHolesky.PROXY_OWNER);
@@ -123,11 +136,12 @@ contract ForkHoleskyTestBase is Test {
 
     function upgradeNodeDelegators() internal {
         // Deploy the latest DelegatorNode implementation
-        address nodeImpl = NodeDelegatorLib.deployImpl();
+        address lstImpl = NodeDelegatorLSTLib.deployImpl();
+        address ethImpl = NodeDelegatorETHLib.deployImpl();
 
         // Upgrade the proxy contracts
-        NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR, nodeImpl);
-        NodeDelegatorLib.upgrade(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING, nodeImpl);
+        NodeDelegatorLSTLib.upgrade(AddressesHolesky.NODE_DELEGATOR, lstImpl);
+        NodeDelegatorETHLib.upgrade(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING, ethImpl);
     }
 
     function deposit(address asset, address whale, uint256 depositAmount) internal {
@@ -1358,7 +1372,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
     // another user claims the withdrawal
     function test_revertClaimWithdrawalNotWithdrawer() external {
-        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
+        vm.expectRevert(INodeDelegatorLST.StakersWithdrawalNotFound.selector);
         vm.prank(makeAddr("randomUser"));
         lrtDepositPool.claimWithdrawal(withdrawal);
     }
@@ -1368,7 +1382,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
 
-        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
+        vm.expectRevert(INodeDelegatorLST.StakersWithdrawalNotFound.selector);
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
     }
@@ -1382,7 +1396,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
 
-        vm.expectRevert(INodeDelegator.StakersWithdrawalNotFound.selector);
+        vm.expectRevert(INodeDelegatorLST.StakersWithdrawalNotFound.selector);
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(changedWithdrawal);
     }
@@ -1492,7 +1506,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
         // Add another strategy element
         changedWithdrawal.strategies = new IStrategy[](2);
 
-        vm.expectRevert(INodeDelegator.NotSingleStrategyWithdrawal.selector);
+        vm.expectRevert(INodeDelegatorLST.NotSingleStrategyWithdrawal.selector);
 
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
         nodeDelegator1.claimInternalWithdrawal(changedWithdrawal);
@@ -1500,7 +1514,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
 }
 
 contract ForkHoleskyTestNative is ForkHoleskyTestBase {
-    NodeDelegator public nodeDelegator2;
+    NodeDelegatorETH public nodeDelegator2;
     PrimeZapper public primeZapper;
 
     uint64[] operatorIds;
@@ -1537,7 +1551,7 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
     function setUp() public override {
         super.setUp();
 
-        nodeDelegator2 = NodeDelegator(payable(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING));
+        nodeDelegator2 = NodeDelegatorETH(payable(AddressesHolesky.NODE_DELEGATOR_NATIVE_STAKING));
         primeZapper = PrimeZapper(payable(AddressesHolesky.PRIME_ZAPPER));
 
         validatorStakeData.push(
@@ -1708,7 +1722,7 @@ contract ForkHoleskyTestNative is ForkHoleskyTestBase {
 
         // Should fail to register a second time
         vm.expectRevert(
-            abi.encodeWithSelector(INodeDelegator.ValidatorAlreadyStaked.selector, validatorStakeData[0].pubkey)
+            abi.encodeWithSelector(INodeDelegatorETH.ValidatorAlreadyStaked.selector, validatorStakeData[0].pubkey)
         );
         nodeDelegator2.stakeEth(validatorStakeData);
 
@@ -1878,6 +1892,8 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
     function test_undelegateClaimStETH() public assertAssetsInLayers(rEthAddress, 0, 0, 0) {
         (uint256 stETHDepositPoolBefore, uint256 stETHInNDCsBefore, uint256 stETHInEigenLayerBefore) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
+        uint256 pendingInternalShareWithdrawalsBefore =
+            nodeDelegator1.pendingInternalShareWithdrawals(AddressesHolesky.STETH_EIGEN_STRATEGY);
 
         vm.startPrank(AddressesHolesky.MANAGER_ROLE);
 
@@ -1904,12 +1920,13 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
         (uint256 stETHDepositPoolAfter, uint256 stETHInNDCsAfter, uint256 stETHInEigenLayerAfter) =
             lrtDepositPool.getAssetDistributionData(stETHAddress);
 
-        assertEq(
+        assertApproxEqAbs(
             stETHDepositPoolAfter,
-            stETHDepositPoolBefore + stETHInEigenLayerBefore - 2,
-            "stETH previously in EigenLayer now in DepositPool less 2 wei"
+            stETHDepositPoolBefore + stETHInEigenLayerBefore - pendingInternalShareWithdrawalsBefore,
+            2,
+            "stETH previously in EigenLayer now in DepositPool less any pending internal withdrawals to within 2 wei"
         );
-        assertEq(stETHInNDCsAfter, stETHInNDCsBefore + 1, "1 wei extra stETH in NodeDelegators after");
+        assertApproxEqAbs(stETHInNDCsAfter, stETHInNDCsBefore, 2, "stETH in NodeDelegators after to within 2 wei");
         assertEq(stETHInEigenLayerAfter, 0, "no stETH in EigenLayer after");
     }
 

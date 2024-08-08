@@ -15,13 +15,21 @@ sol2uml 0x700e67F5aD018CdFe9aaF4C9f98Fe011d9c9513a -v -s -d 0 -b LRTDepositPool 
 sol2uml storage 0x700e67F5aD018CdFe9aaF4C9f98Fe011d9c9513a -v -c LRTDepositPool -o LRTDepositPoolStorage.svg --hideExpand  __gap -n holesky
 sol2uml storage 0x700e67F5aD018CdFe9aaF4C9f98Fe011d9c9513a -v -c LRTDepositPool -s 0x7C0c0Df65778709524d7b048D184c45E90DE041d -d -o LRTDepositPoolStorageData.svg -a 7 --hideExpand  __gap -n holesky
 
-# NodeDelegator
-sol2uml 0xaBe7742535f46884009a5477BE0F723612784690 -v -o NodeDelegator.svg -n holesky
-sol2uml 0xaBe7742535f46884009a5477BE0F723612784690 -v -hv -hf -he -hs -hl -hi -o  NodeDelegatorHierarchy.svg -n holesky
-sol2uml 0xaBe7742535f46884009a5477BE0F723612784690 -v -s -hp -hm -ht -d 0 -o  NodeDelegatorPublicSquashed.svg -n holesky
-sol2uml 0xaBe7742535f46884009a5477BE0F723612784690 -v -s -d 0 -o  NodeDelegatorSquashed.svg -n holesky
-sol2uml storage 0xaBe7742535f46884009a5477BE0F723612784690 -v -c  NodeDelegator -o NodeDelegatorStorage.svg --hideExpand  __gap -n holesky
-sol2uml storage 0xaBe7742535f46884009a5477BE0F723612784690 -v -d -s 0x326EdC668E286cc71272154977DB2bCf780d42B4 -c NodeDelegator -o NodeDelegatorStorageData.svg --hideExpand  __gap -n holesky
+# NodeDelegatorLST
+sol2uml 0x699d4efc6584eB6284C6Be3A4c2727dd6C737212 -v -o NodeDelegatorLST.svg -n holesky
+sol2uml 0x699d4efc6584eB6284C6Be3A4c2727dd6C737212 -v -hv -hf -he -hs -hl -hi -o  NodeDelegatorLSTHierarchy.svg -n holesky
+sol2uml 0x699d4efc6584eB6284C6Be3A4c2727dd6C737212 -v -s -hp -hm -ht -d 0 -o  NodeDelegatorLSTPublicSquashed.svg -n holesky
+sol2uml 0x699d4efc6584eB6284C6Be3A4c2727dd6C737212 -v -s -d 0 -o  NodeDelegatorLSTSquashed.svg -n holesky
+sol2uml storage 0x699d4efc6584eB6284C6Be3A4c2727dd6C737212 -v -c  NodeDelegatorLST -o NodeDelegatorLSTStorage.svg --hideExpand  __gap -n holesky
+sol2uml storage 0x699d4efc6584eB6284C6Be3A4c2727dd6C737212 -v -d -s 0x326EdC668E286cc71272154977DB2bCf780d42B4 -c NodeDelegatorLST -o NodeDelegatorLSTStorageData.svg --hideExpand  __gap -n holesky
+
+# NodeDelegatorETH
+sol2uml 0xBCcC37412044956F8416820BB785C4Aa8207580F -v -o NodeDelegatorETH.svg -n holesky
+sol2uml 0xBCcC37412044956F8416820BB785C4Aa8207580F -v -hv -hf -he -hs -hl -hi -o  NodeDelegatorETHHierarchy.svg -n holesky
+sol2uml 0xBCcC37412044956F8416820BB785C4Aa8207580F -v -s -hp -hm -ht -d 0 -o  NodeDelegatorETHPublicSquashed.svg -n holesky
+sol2uml 0xBCcC37412044956F8416820BB785C4Aa8207580F -v -s -d 0 -o  NodeDelegatorETHSquashed.svg -n holesky
+sol2uml storage 0xBCcC37412044956F8416820BB785C4Aa8207580F -v -c  NodeDelegatorETH -o NodeDelegatorETHStorage.svg --hideExpand  __gap -n holesky
+sol2uml storage 0xBCcC37412044956F8416820BB785C4Aa8207580F -v -d -s 0x94B5ac4A1Ae76F150A25537Ec1684B94fe8025CD -c NodeDelegatorETH -o NodeDelegatorETHStorageData.svg --hideExpand  __gap -n holesky
 
 # Config
 sol2uml 0xF5bc3c3F492240CE49B18CbF78443dB527b31A94 -v -o LRTConfig.svg -n holesky
