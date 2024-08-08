@@ -144,7 +144,7 @@ contract NodeDelegatorETH is
     /// @return eigenAssets asset amount deposited in underlying EigenLayer strategy
     /// or native ETH staked into an EigenPod.
     function getAssetBalance(address asset) public view override returns (uint256 ndcAssets, uint256 eigenAssets) {
-        ndcAssets += IERC20(asset).balanceOf(address(this));
+        ndcAssets = IERC20(asset).balanceOf(address(this));
 
         // If an LST asset
         if (asset != WETH) {
