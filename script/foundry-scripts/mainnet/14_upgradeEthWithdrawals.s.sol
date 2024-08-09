@@ -26,7 +26,7 @@ contract UpgradeEthWithdrawals is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = ;
+        deployBlockNum = 20_489_772;
     }
 
     function _execute() internal override {
