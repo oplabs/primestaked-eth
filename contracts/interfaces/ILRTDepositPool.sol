@@ -64,6 +64,10 @@ interface ILRTDepositPool {
         external
         returns (address asset, uint256 assets);
 
+    function claimWithdrawalYn(IDelegationManager.Withdrawal calldata withdrawal)
+        external
+        returns (uint256 ynLSDeAmount);
+
     function getTotalAssetDeposits(address asset) external view returns (uint256);
 
     function getAssetCurrentLimit(address asset) external view returns (uint256);

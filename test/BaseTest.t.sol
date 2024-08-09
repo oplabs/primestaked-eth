@@ -15,6 +15,7 @@ contract BaseTest is Test {
 
     MockToken public rETH;
     MockToken public cbETH;
+    MockToken public oeth;
 
     address public admin = makeAddr("admin");
 
@@ -33,12 +34,14 @@ contract BaseTest is Test {
         weth = new MockWETH("Wrapped WETH", "WETH");
         rETH = new MockToken("Rocket Pool ETH", "rETH");
         cbETH = new MockToken("Coinbase ETH", "cbETH");
+        oeth = new MockToken("Origin Ether", "OETH");
 
         vm.label(address(stETH), "stETH");
         vm.label(address(ethX), "ethX");
         vm.label(address(weth), "weth");
         vm.label(address(rETH), "rETH");
         vm.label(address(cbETH), "cbETH");
+        vm.label(address(oeth), "OETH");
 
         // mint LST tokens to alice, bob and carol
         mintLSTTokensForUsers(stETH);
@@ -46,6 +49,7 @@ contract BaseTest is Test {
         mintLSTTokensForUsers(weth);
         mintLSTTokensForUsers(rETH);
         mintLSTTokensForUsers(cbETH);
+        mintLSTTokensForUsers(oeth);
 
         // give ETH to alice, bob and carol
         vm.deal(alice, oneThousand);

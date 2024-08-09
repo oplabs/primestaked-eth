@@ -7,6 +7,10 @@ import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeStakedETHTest, ILRTConfig, UtilLib, LRTConstants } from "./PrimeStakedETHTest.t.sol";
 import { ILRTDepositPool } from "contracts/interfaces/ILRTDepositPool.sol";
 import { MockStrategy } from "contracts/eigen/mocks/MockStrategy.sol";
+import { MockToken } from "contracts/mocks/MockToken.sol";
+import { MockWOETH } from "contracts/mocks/MockWOETH.sol";
+import { MockYnEigen } from "contracts/mocks/MockYnEigen.sol";
+import { MockNodeDelegator } from "contracts/mocks/MockNodeDelegator.sol";
 import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
 
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -30,43 +34,6 @@ contract LRTOracleMock {
     }
 }
 
-contract MockNodeDelegator {
-    address[] public assets;
-    uint256[] public assetBalances;
-
-    constructor(address[] memory _assets, uint256[] memory _assetBalances) {
-        assets = _assets;
-        assetBalances = _assetBalances;
-    }
-
-    function getAssetBalance(address)
-        external
-        pure
-        returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer)
-    {
-        assetLyingInNDC = 0;
-        assetStakedInEigenLayer = 1e18;
-    }
-
-    function getAssetBalances() external view returns (address[] memory, uint256[] memory) {
-        return (assets, assetBalances);
-    }
-
-    function removeAssetBalance() external {
-        assetBalances[0] = 0;
-        assetBalances[1] = 0;
-    }
-
-    function requestWithdrawal(address strategyAddress, uint256 strategyShares, address staker) external { }
-    function claimWithdrawal(
-        IDelegationManager.Withdrawal calldata withdrawal,
-        address staker
-    )
-        external
-        returns (address asset, uint256 assets)
-    { }
-}
-
 contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     LRTDepositPool public lrtDepositPool;
     LRTOracleMock public lrtOracle;
@@ -74,14 +41,23 @@ contract LRTDepositPoolTest is BaseTest, PrimeStakedETHTest {
     uint256 public minimunAmountOfPRETHToReceive;
     string public referralId;
 
+    MockWOETH public wOETH;
+    MockYnEigen public ynLSDe;
+
     event ETHDeposit(address indexed depositor, uint256 depositAmount, uint256 prethMintAmount, string referralId);
 
     function setUp() public virtual override(PrimeStakedETHTest, BaseTest) {
         super.setUp();
 
+        wOETH = new MockWOETH(oeth);
+        ynLSDe = new MockYnEigen("Yield Nest LSD for Ether", "ynLSDe");
+
+        vm.label(address(wOETH), "wOETH");
+        vm.label(address(ynLSDe), "ynLSDe");
+
         // deploy LRTDepositPool
         ProxyAdmin proxyAdmin = new ProxyAdmin();
-        LRTDepositPool contractImpl = new LRTDepositPool(address(weth), address(ethX));
+        LRTDepositPool contractImpl = new LRTDepositPool(address(weth), address(ethX), address(wOETH), address(ynLSDe));
         TransparentUpgradeableProxy contractProxy =
             new TransparentUpgradeableProxy(address(contractImpl), address(proxyAdmin), "");
 
@@ -1071,6 +1047,19 @@ contract LRTDepositPoolPause is LRTDepositPoolTest {
         vm.prank(alice);
         lrtDepositPool.claimWithdrawal(withdrawal);
     }
+
+    function test_ClaimWithdrawYnWhenPaused() external {
+        vm.prank(manager);
+        lrtDepositPool.pause();
+
+        // Assign an empty withdrawal for unit testing
+        IDelegationManager.Withdrawal memory withdrawal;
+
+        vm.expectRevert("Pausable: paused");
+
+        vm.prank(alice);
+        lrtDepositPool.claimWithdrawalYn(withdrawal);
+    }
 }
 
 contract LRTDepositPoolUnpause is LRTDepositPoolTest {
@@ -1194,5 +1183,13 @@ contract LRTDepositPoolWithdrawAsset is LRTDepositPoolTest {
 
         vm.prank(alice);
         lrtDepositPool.claimWithdrawal(withdrawal);
+    }
+
+    function test_ClaimWithdrawAssetYn() external {
+        // Assign an empty withdrawal for unit testing
+        IDelegationManager.Withdrawal memory withdrawal;
+
+        vm.prank(alice);
+        lrtDepositPool.claimWithdrawalYn(withdrawal);
     }
 }

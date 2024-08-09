@@ -15,7 +15,7 @@ import { EthXPriceOracle } from "contracts/oracles/EthXPriceOracle.sol";
 import { MEthPriceOracle } from "contracts/oracles/MEthPriceOracle.sol";
 import { SfrxETHPriceOracle } from "contracts/oracles/SfrxETHPriceOracle.sol";
 import { WETHPriceOracle } from "contracts/oracles/WETHPriceOracle.sol";
-import { Addresses, AddressesGoerli, AddressesHolesky } from "contracts/utils/Addresses.sol";
+import { Addresses, AddressesHolesky } from "contracts/utils/Addresses.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { ProxyFactory } from "script/foundry-scripts/utils/ProxyFactory.sol";
 
@@ -117,8 +117,7 @@ library OraclesLib {
         console.log("EthXPriceOracleProxy deployed at: %s", proxy);
 
         // Initialize the proxy
-        address staderStakingPoolManager =
-            block.chainid == 1 ? Addresses.STADER_STAKING_POOL_MANAGER : AddressesGoerli.STADER_STAKING_POOL_MANAGER;
+        address staderStakingPoolManager = Addresses.STADER_STAKING_POOL_MANAGER;
         EthXPriceOracle(proxy).initialize(staderStakingPoolManager);
         console.log("Initialized EthXPriceOracleProxy");
     }

@@ -7,7 +7,7 @@ import { ProxyFactory } from "../utils/ProxyFactory.sol";
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
 import { OraclesLib } from "contracts/libraries/OraclesLib.sol";
-import { Addresses, AddressesGoerli } from "contracts/utils/Addresses.sol";
+import { Addresses } from "contracts/utils/Addresses.sol";
 
 contract DeployFirstOracles is BaseMainnetScript {
     constructor() {
