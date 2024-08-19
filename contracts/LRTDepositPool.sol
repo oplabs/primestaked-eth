@@ -300,7 +300,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
         IERC20(wOETH).approve(ynLSDe, woethAmount);
 
         // Deposit the wOETH into Yield Nest's LSD vault and receive ynLSDe tokens
-        uint256 ynLSDeAmount = IynEigen(ynLSDe).deposit(IERC20(wOETH), woethAmount, msg.sender);
+        ynLSDeAmount = IynEigen(ynLSDe).deposit(IERC20(wOETH), woethAmount, msg.sender);
 
         emit WithdrawalClaimed(msg.sender, ynLSDe, ynLSDeAmount);
     }

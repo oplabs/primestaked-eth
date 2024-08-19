@@ -76,8 +76,7 @@ library Addresses {
 
     address public constant WOETH = 0xDcEe70654261AF21C44c093C300eD3Bb97b78192;
 
-    // TODO add when they are deployed
-    address public constant YN_LSD_E = 0x0000000000000000000000000000000000000011;
+    address public constant YN_LSD_E = 0x35Ec69A77B79c255e5d47D5A3BdbEFEfE342630c;
 }
 
 library AddressesHolesky {
@@ -121,6 +120,9 @@ library AddressesHolesky {
     address public constant METH_EIGEN_STRATEGY = 0xaccc5A86732BE85b5012e8614AF237801636F8e5;
     address public constant METH_ORACLE = 0xe823768Eaf10E5E16A50Be3Ad1d7b1b58768c2Ef;
 
+    // Mocked OETH deployed by the Yield Nest team
+    address public constant OETH_TOKEN = 0x10B83FBce870642ee33f0877ffB7EA43530E473D;
+
     address public constant WETH_TOKEN = 0x94373a4919B3240D86eA41593D5eBa789FEF3848;
     address public constant WETH_ORACLE_PROXY = 0xF68D8c8c50637241174f6A10DF4A1f999d80A28d;
 
@@ -135,7 +137,7 @@ library AddressesHolesky {
     address public constant SSV_TOKEN = 0xad45A78180961079BFaeEe349704F411dfF947C6;
     address public constant SSV_NETWORK = 0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA;
 
-    // TODO add when they are deployed
-    address public constant WOETH = 0x1000000000000000000000000000000000000011;
-    address public constant YN_LSD_E = 0x2000000000000000000000000000000000000022;
+    // Deployed by the Yield Nest team
+    address public constant WOETH = 0xbaAcDcC565006b6429F57bC0f436dFAf14A526b1;
+    address public constant YN_LSD_E = 0x071bdC8eDcdD66730f45a3D3A6F794FAA37C75ED;
 }
