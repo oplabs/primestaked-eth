@@ -52,6 +52,15 @@ contract ForkTestBase is Test {
     event ETHStaked(bytes valPubKey, uint256 amount);
     event ConsensusRewards(uint256 amount);
     event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
+    event WithdrawalRequested(
+        address indexed withdrawer,
+        address indexed asset,
+        address indexed strategy,
+        uint256 primeETHAmount,
+        uint256 assetAmount,
+        uint256 sharesAmount
+    );
+    event WithdrawalClaimed(address indexed withdrawer, address indexed asset, uint256 assets);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -976,6 +985,112 @@ contract ForkTestLST is ForkTestBase {
 
         assertApproxEqAbs(
             IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei"
+        );
+
+        vm.stopPrank();
+    }
+
+    // staker withdrawal of LST
+    function test_staker_lst_withdrawal_partial_yield_nest() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 6 ether);
+        transfer_DelegatorNode(asset, 6 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(oWhale);
+
+        uint256 primeAmount = 5 ether;
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount + 1);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Should emit WithdrawalClaimed event
+        vm.expectEmit({
+            emitter: address(lrtDepositPool),
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
+        emit WithdrawalClaimed(oWhale, Addresses.YN_LSD_E, 0);
+
+        // Claim the previously requested withdrawal but receive ynLSDe instead of OETH
+        uint256 ynLSDeAmount = lrtDepositPool.claimWithdrawalYn(withdrawal);
+
+        console.log("%s OETH was converted to %s ynLSDe", withdrawAssetAmount, ynLSDeAmount);
+
+        assertApproxEqRel(
+            IERC20(Addresses.YN_LSD_E).balanceOf(oWhale),
+            whaleYnLSDeBefore + withdrawAssetAmount,
+            1e16,
+            "whale ynLSDe after within 1% of OETH amount"
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_staker_lst_withdrawal_full_yield_nest() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 1 ether);
+        transfer_DelegatorNode(asset, 1 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(oWhale);
+
+        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(oWhale);
+
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Should emit WithdrawalClaimed event
+        vm.expectEmit({
+            emitter: address(lrtDepositPool),
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
+        emit WithdrawalClaimed(oWhale, Addresses.YN_LSD_E, 0);
+
+        // Claim the previously requested withdrawal
+        uint256 ynLSDeAmount = lrtDepositPool.claimWithdrawalYn(withdrawal);
+
+        assertApproxEqRel(
+            IERC20(Addresses.YN_LSD_E).balanceOf(oWhale),
+            whaleYnLSDeBefore + withdrawAssetAmount,
+            1e16,
+            "whale ynLSDe after within 1% of OETH amount"
         );
 
         vm.stopPrank();
