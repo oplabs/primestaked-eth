@@ -66,7 +66,9 @@ contract NodeDelegatorLST is
     /// @notice Approves the maximum amount of an asset to the eigen strategy manager
     /// @dev only supported assets can be deposited and only called by the LRT manager
     /// @param asset the asset to deposit
-    function maxApproveToEigenStrategyManager(address asset)
+    function maxApproveToEigenStrategyManager(
+        address asset
+    )
         external
         override
         onlySupportedAsset(asset)
@@ -80,7 +82,9 @@ contract NodeDelegatorLST is
     /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
     /// WETH can not be deposited.
     /// @param asset the asset to deposit
-    function depositAssetIntoStrategy(address asset)
+    function depositAssetIntoStrategy(
+        address asset
+    )
         external
         override
         whenNotPaused
@@ -95,7 +99,9 @@ contract NodeDelegatorLST is
     /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
     /// WETH can not be deposited.
     /// @param assets List of assets to deposit
-    function depositAssetsIntoStrategy(address[] calldata assets)
+    function depositAssetsIntoStrategy(
+        address[] calldata assets
+    )
         external
         override
         whenNotPaused
@@ -405,7 +411,9 @@ contract NodeDelegatorLST is
     /// on the `NodeDelegator` contract by a Prime Operator.
     /// @return asset address of the liquid staking tokens (LST) that were claimed.
     /// @return assets the amount of LSTs transferred to the `LRTDepositPool` contract.
-    function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
+    function claimInternalWithdrawal(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
         external
         onlyLRTOperator
         returns (address asset, uint256 assets)
@@ -450,7 +458,9 @@ contract NodeDelegatorLST is
     /// @dev Returns the keccak256 hash of `withdrawal`.
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event
     /// from EigenLayer's `DelegationManager` contract.
-    function _calculateWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal)
+    function _calculateWithdrawalRoot(
+        IDelegationManager.Withdrawal memory withdrawal
+    )
         internal
         pure
         returns (bytes32)

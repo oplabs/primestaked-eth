@@ -98,7 +98,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// This includes any native ETH when the asset is WETH.
     /// @return eigenAssets asset amount deposited in EigenLayer through all NDCs.
     /// This is either LSTs in EigenLayer strategies or native ETH managed by EigenLayer pods.
-    function getAssetDistributionData(address asset)
+    function getAssetDistributionData(
+        address asset
+    )
         public
         view
         override
@@ -257,7 +259,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
     /// @return asset the address of the LST that was withdrawn
     /// @return assets the amount of LSTs received from the withdrawal
-    function claimWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
+    function claimWithdrawal(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
         external
         whenNotPaused
         nonReentrant
@@ -279,7 +283,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// This is currently set to 50,400 blocks (7 days) on mainnet. 10 blocks on Holesky.
     /// @dev The asset is validated against the withdrawal strategy in EigenLayer's `StrategyBase`.
     /// @return ynLSDeAmount the amount of ynLSDe tokens received after OETH is deposited into Yield Nest
-    function claimWithdrawalYn(IDelegationManager.Withdrawal calldata withdrawal)
+    function claimWithdrawalYn(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
         external
         whenNotPaused
         nonReentrant
@@ -385,7 +391,9 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @notice remove many node delegator contracts from queue
     /// @dev calls internally removeNodeDelegatorContractFromQueue which is only callable by LRT admin
     /// @param nodeDelegatorContracts Array of NodeDelegator contract addresses
-    function removeManyNodeDelegatorContractsFromQueue(address[] calldata nodeDelegatorContracts)
+    function removeManyNodeDelegatorContractsFromQueue(
+        address[] calldata nodeDelegatorContracts
+    )
         external
         onlyLRTAdmin
     {

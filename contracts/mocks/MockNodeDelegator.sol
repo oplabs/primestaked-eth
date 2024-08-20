@@ -13,7 +13,9 @@ contract MockNodeDelegator {
         assetBalances = _assetBalances;
     }
 
-    function getAssetBalance(address)
+    function getAssetBalance(
+        address
+    )
         external
         pure
         returns (uint256 assetLyingInNDC, uint256 assetStakedInEigenLayer)

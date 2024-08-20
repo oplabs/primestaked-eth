@@ -44,7 +44,9 @@ interface INodeDelegatorLST {
     )
         external
         returns (address asset, uint256 assets);
-    function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
+    function claimInternalWithdrawal(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
         external
         returns (address asset, uint256 assets);
 

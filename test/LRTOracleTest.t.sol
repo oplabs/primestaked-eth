@@ -16,7 +16,9 @@ contract MockPriceOracle {
 }
 
 contract MockLRTDepositPool {
-    function getAssetDistributionData(address)
+    function getAssetDistributionData(
+        address
+    )
         external
         pure
         returns (uint256 assetLyingInDepositPool, uint256 assetLyingInNDCs, uint256 assetStakedInEigenLayer)
