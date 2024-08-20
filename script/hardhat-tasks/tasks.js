@@ -67,8 +67,9 @@ task("requestWithdrawal").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
 
-subtask("claimWithdrawal", "Request withdrawal of OETH from Prime Staked ETH")
+subtask("claimWithdrawal", "Claim withdrawal from Prime Staked ETH")
   .addParam("requestTx", "Transaction hash of the requestWithdrawal", undefined, types.string)
+  .addOptionalParam("symbol", "Symbol of the token to receive which can be OETH or ynLSDe", "OETH", types.string)
   .setAction(async (taskArgs) => {
     const signer = await getSigner();
     const depositPoolAddress = await parseAddress("LRT_DEPOSIT_POOL");
@@ -702,5 +703,39 @@ subtask("revokeRole", "Revoke an account or contract a role")
     await revokeRole({ ...taskArgs, config, signer });
   });
 task("revokeRole").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("increaseTime", "Move time forward")
+  .addParam("days", "The number of days to move time forward", 7, types.int)
+  .setAction(async ({ days }) => {
+    const signer = await getSigner();
+
+    const params = [
+      ethers.utils.hexValue(days * 24 * 60 * 60), // hex encoded number of seconds
+    ];
+
+    await signer.provider.send("evm_increaseTime", params);
+
+    console.log(`Time increased by ${days} days`);
+  });
+task("increaseTime").setAction(async (_, __, runSuper) => {
+  return runSuper();
+});
+
+subtask("increaseBlocks", "Move blocks forward")
+  .addParam("blocks", "The number of blocks to move time forward", 50400, types.int)
+  .setAction(async ({ blocks }) => {
+    const signer = await getSigner();
+
+    const params = [
+      ethers.utils.hexValue(blocks), // hex encoded number of seconds
+    ];
+
+    await signer.provider.send("evm_increaseBlocks", params);
+
+    console.log(`Blocks increased by ${blocks} blocks`);
+  });
+task("increaseBlocks").setAction(async (_, __, runSuper) => {
   return runSuper();
 });
