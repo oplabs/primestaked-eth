@@ -200,7 +200,7 @@ contract LRTDepositPool is ILRTDepositPool, LRTConfigRoleChecker, PausableUpgrad
     /// @notice PrimeETH staker requests the withdrawal of OETH from its underlying EigenLayer strategy.
     /// @dev Will emit the `Withdrawal` event from EigenLayer's `DelegationManager` contract
     /// which is needed for the `claimWithdrawal` call.
-    /// @param asset address of the liquid staking token (LST) being requested. Only OETH us supported. Can not be WETH.
+    /// @param asset address of the liquid staking token (LST) being requested. Only OETH is supported. Can not be WETH.
     /// @param assetAmount the amount of LSTs to withdraw.
     /// @param maxPrimeETH the maximum amount of primeETH tokens that can be burned.
     /// @return primeETHAmount the amount of primeETH tokens that were burned.
