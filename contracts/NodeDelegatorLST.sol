@@ -400,7 +400,7 @@ contract NodeDelegatorLST is
             IERC20(asset).transfer(receiver, assets);
         }
 
-        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, assets);
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, receiver, assets);
     }
 
     /// @notice Claims the previously requested internal withdrawal from the underlying EigenLayer strategy.
@@ -446,13 +446,14 @@ contract NodeDelegatorLST is
         pendingInternalShareWithdrawals[address(withdrawal.strategies[0])] -= withdrawal.shares[0];
 
         // Calculate the amount of assets returned from the withdrawal
+        address depositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
         assets = IERC20(asset).balanceOf(address(this)) - assetsBefore;
         if (assets > 0) {
             // transfer withdrawn assets to the Deposit Pool
-            IERC20(asset).transfer(lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL), assets);
+            IERC20(asset).transfer(depositPool, assets);
         }
 
-        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, address(0), assets);
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, address(0), depositPool, assets);
     }
 
     /// @dev Returns the keccak256 hash of `withdrawal`.

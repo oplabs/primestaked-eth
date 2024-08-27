@@ -14,7 +14,11 @@ interface INodeDelegatorLST {
         address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 strategyShares
     );
     event ClaimWithdrawal(
-        address indexed strategy, bytes32 indexed withdrawalRoot, address indexed staker, uint256 assets
+        address indexed strategy,
+        bytes32 indexed withdrawalRoot,
+        address indexed staker,
+        address receiver,
+        uint256 assets
     );
     event Delegate(address indexed operator);
     event Undelegate(address indexed strategy, uint256 strategyShares);
