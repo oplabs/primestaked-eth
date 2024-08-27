@@ -26,7 +26,7 @@ contract YieldNestIntegration is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = ;
+        deployBlockNum = 20_620_105;
     }
 
     function _execute() internal override {
