@@ -66,7 +66,9 @@ contract NodeDelegatorLST is
     /// @notice Approves the maximum amount of an asset to the eigen strategy manager
     /// @dev only supported assets can be deposited and only called by the LRT manager
     /// @param asset the asset to deposit
-    function maxApproveToEigenStrategyManager(address asset)
+    function maxApproveToEigenStrategyManager(
+        address asset
+    )
         external
         override
         onlySupportedAsset(asset)
@@ -80,7 +82,9 @@ contract NodeDelegatorLST is
     /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
     /// WETH can not be deposited.
     /// @param asset the asset to deposit
-    function depositAssetIntoStrategy(address asset)
+    function depositAssetIntoStrategy(
+        address asset
+    )
         external
         override
         whenNotPaused
@@ -95,7 +99,9 @@ contract NodeDelegatorLST is
     /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
     /// WETH can not be deposited.
     /// @param assets List of assets to deposit
-    function depositAssetsIntoStrategy(address[] calldata assets)
+    function depositAssetsIntoStrategy(
+        address[] calldata assets
+    )
         external
         override
         whenNotPaused
@@ -359,7 +365,8 @@ contract NodeDelegatorLST is
     /// @return assets the amount of LSTs received from the withdrawal
     function claimWithdrawal(
         IDelegationManager.Withdrawal calldata withdrawal,
-        address staker
+        address staker,
+        address receiver
     )
         external
         onlyDepositPool
@@ -389,11 +396,11 @@ contract NodeDelegatorLST is
         // Calculate the amount of assets returned from the withdrawal
         assets = IERC20(asset).balanceOf(address(this)) - assetsBefore;
         if (assets > 0) {
-            // transfer withdrawn assets to the staker
-            IERC20(asset).transfer(staker, assets);
+            // transfer withdrawn assets to the receiver, which is either the staker or the LRTDepositPool contract
+            IERC20(asset).transfer(receiver, assets);
         }
 
-        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, assets);
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, staker, receiver, assets);
     }
 
     /// @notice Claims the previously requested internal withdrawal from the underlying EigenLayer strategy.
@@ -404,7 +411,9 @@ contract NodeDelegatorLST is
     /// on the `NodeDelegator` contract by a Prime Operator.
     /// @return asset address of the liquid staking tokens (LST) that were claimed.
     /// @return assets the amount of LSTs transferred to the `LRTDepositPool` contract.
-    function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
+    function claimInternalWithdrawal(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
         external
         onlyLRTOperator
         returns (address asset, uint256 assets)
@@ -437,19 +446,22 @@ contract NodeDelegatorLST is
         pendingInternalShareWithdrawals[address(withdrawal.strategies[0])] -= withdrawal.shares[0];
 
         // Calculate the amount of assets returned from the withdrawal
+        address depositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
         assets = IERC20(asset).balanceOf(address(this)) - assetsBefore;
         if (assets > 0) {
             // transfer withdrawn assets to the Deposit Pool
-            IERC20(asset).transfer(lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL), assets);
+            IERC20(asset).transfer(depositPool, assets);
         }
 
-        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, address(0), assets);
+        emit ClaimWithdrawal(address(withdrawal.strategies[0]), withdrawalRoot, address(0), depositPool, assets);
     }
 
     /// @dev Returns the keccak256 hash of `withdrawal`.
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event
     /// from EigenLayer's `DelegationManager` contract.
-    function _calculateWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal)
+    function _calculateWithdrawalRoot(
+        IDelegationManager.Withdrawal memory withdrawal
+    )
         internal
         pure
         returns (bytes32)

@@ -60,9 +60,17 @@ interface ILRTDepositPool {
         external
         returns (uint256 primeETHAmount);
 
-    function claimWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
+    function claimWithdrawal(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
         external
         returns (address asset, uint256 assets);
+
+    function claimWithdrawalYn(
+        IDelegationManager.Withdrawal calldata withdrawal
+    )
+        external
+        returns (uint256 ynLSDeAmount);
 
     function getTotalAssetDeposits(address asset) external view returns (uint256);
 
@@ -79,7 +87,9 @@ interface ILRTDepositPool {
 
     function getNodeDelegatorQueue() external view returns (address[] memory);
 
-    function getAssetDistributionData(address asset)
+    function getAssetDistributionData(
+        address asset
+    )
         external
         view
         returns (uint256 depositPoolAssets, uint256 ndcAssets, uint256 eigenAssets);

@@ -20,12 +20,20 @@ const requestWithdrawal = async ({ signer, depositPool, amount, symbol }) => {
   await logTxDetails(tx, "requestWithdrawal");
 };
 
-const claimWithdrawal = async ({ signer, depositPool, requestTx, delegationManager }) => {
+const claimWithdrawal = async ({ signer, depositPool, requestTx, delegationManager, symbol }) => {
   const withdrawal = await getWithdrawal(signer, requestTx, delegationManager);
 
-  log(`About to claim withdrawal from Prime Staked ETH`);
-  const tx = await depositPool.connect(signer).claimWithdrawal(withdrawal);
-  await logTxDetails(tx, "claimWithdrawal");
+  if (symbol == "OETH") {
+    log(`About to claim OETH withdrawal from Prime Staked ETH`);
+    const tx = await depositPool.connect(signer).claimWithdrawal(withdrawal);
+    await logTxDetails(tx, "claimWithdrawal");
+  } else if (symbol === "ynLSDe") {
+    log(`About to claim ynLSDe withdrawal from Prime Staked ETH`);
+    const tx = await depositPool.connect(signer).claimWithdrawalYn(withdrawal);
+    await logTxDetails(tx, "claimWithdrawalYn");
+  } else {
+    throw new Error(`Can only claim withdrawals to OETH or ynLSDe, not "${symbol}"`);
+  }
 };
 
 const requestInternalWithdrawal = async ({ signer, nodeDelegator, shares, symbol }) => {

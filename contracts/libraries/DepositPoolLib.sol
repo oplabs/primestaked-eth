@@ -17,9 +17,11 @@ library DepositPoolLib {
     function deployImpl() internal returns (address implementation) {
         address wethAddress = block.chainid == 1 ? Addresses.WETH_TOKEN : AddressesHolesky.WETH_TOKEN;
         address withdrawAddress = block.chainid == 1 ? Addresses.OETH_TOKEN : AddressesHolesky.STETH_TOKEN;
+        address ynLSDe = block.chainid == 1 ? Addresses.YN_LSD_E : AddressesHolesky.YN_LSD_E;
+        address wOETH = block.chainid == 1 ? Addresses.WOETH : AddressesHolesky.WOETH;
 
         // Deploy the new contract
-        implementation = address(new LRTDepositPool(wethAddress, withdrawAddress));
+        implementation = address(new LRTDepositPool(wethAddress, withdrawAddress, wOETH, ynLSDe));
         console.log("LRTDepositPool implementation deployed at: %s", implementation);
     }
 

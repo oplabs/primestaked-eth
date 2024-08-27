@@ -31,14 +31,15 @@ module.exports = {
     mainnet: {
       url: `${process.env.MAINNET_RPC_URL}`,
     },
-    goerli: {
-      url: `${process.env.GOERLI_RPC_URL}`,
-    },
     holesky: {
       url: `${process.env.HOLESKY_RPC_URL}`,
     },
     local: {
       url: "http://localhost:8545",
+    },
+    testnet: {
+      chainId: 1,
+      url: `${process.env.TESTNET_RPC_URL}`,
     },
   },
   etherscan: {

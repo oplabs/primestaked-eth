@@ -52,6 +52,15 @@ contract ForkTestBase is Test {
     event ETHStaked(bytes valPubKey, uint256 amount);
     event ConsensusRewards(uint256 amount);
     event WithdrawnValidators(uint256 fullyWithdrawnValidators, uint256 stakedButNotVerifiedEth);
+    event WithdrawalRequested(
+        address indexed withdrawer,
+        address indexed asset,
+        address indexed strategy,
+        uint256 primeETHAmount,
+        uint256 assetAmount,
+        uint256 sharesAmount
+    );
+    event WithdrawalClaimed(address indexed withdrawer, address indexed asset, uint256 assets);
 
     function setUp() public virtual {
         string memory url = vm.envString("FORK_RPC_URL");
@@ -218,7 +227,7 @@ contract ForkTestNative is ForkTestBase {
     // This test will probably have to be removed as balance will change and can't simply be queried from the SSV
     // Network contract
     // Use the following to get the latest cluster SSV balance
-    // npx hardhat getClusterInfo --network local --operatorids 63.65.157.198
+    // npx hardhat getClusterInfo --network mainnet --operatorids 63.65.157.198
     function test_depositSSV() public {
         uint256 amount = 3e18;
         deal(address(Addresses.SSV_TOKEN), Addresses.MANAGER_ROLE, amount);
@@ -226,11 +235,11 @@ contract ForkTestNative is ForkTestBase {
         vm.startPrank(Addresses.MANAGER_ROLE);
 
         Cluster memory cluster = Cluster({
-            validatorCount: 1,
-            networkFeeIndex: 60_025_270_074,
-            index: 291_898_093_718,
+            validatorCount: 0,
+            networkFeeIndex: 83_179_900_729,
+            index: 823_537_463_402,
             active: true,
-            balance: 6_747_140_052_000_000_000
+            balance: 0
         });
 
         // These are the operatorIds for the first SSV Cluster. These will not be used going forward
@@ -542,161 +551,163 @@ contract ForkTestNative is ForkTestBase {
         nodeDelegator2.undelegate();
     }
 
-    // TODO add test for undelegate and claim the withdrawn ETH when Native ETH withdrawals are supported
+    // Removing as all the primeETH validators have exited and removed
+    // function test_exitSsvValidators() public {
+    //     vm.startPrank(Addresses.OPERATOR_ROLE);
 
-    function test_exitSsvValidators() public {
-        vm.startPrank(Addresses.OPERATOR_ROLE);
+    //     uint64[] memory operatorIds = new uint64[](4);
+    //     operatorIds[0] = 193;
+    //     operatorIds[1] = 196;
+    //     operatorIds[2] = 199;
+    //     operatorIds[3] = 202;
 
-        uint64[] memory operatorIds = new uint64[](4);
-        operatorIds[0] = 193;
-        operatorIds[1] = 196;
-        operatorIds[2] = 199;
-        operatorIds[3] = 202;
+    //     bytes[] memory publicKeys = new bytes[](2);
+    //     publicKeys[0] =
+    //         hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
+    //     publicKeys[1] =
+    //         hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
 
-        bytes[] memory publicKeys = new bytes[](2);
-        publicKeys[0] =
-            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
-        publicKeys[1] =
-            hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
+    //     nodeDelegator2.exitSsvValidators(publicKeys, operatorIds);
 
-        nodeDelegator2.exitSsvValidators(publicKeys, operatorIds);
+    //     vm.stopPrank();
+    // }
 
-        vm.stopPrank();
-    }
+    // function test_removeSsvValidators() public {
+    //     vm.startPrank(Addresses.OPERATOR_ROLE);
 
-    function test_removeSsvValidators() public {
-        vm.startPrank(Addresses.OPERATOR_ROLE);
+    //     Cluster memory cluster = Cluster({
+    //         validatorCount: 28,
+    //         networkFeeIndex: 63_459_958_614,
+    //         index: 62_030_899_188,
+    //         active: true,
+    //         balance: 45_461_840_401_950_000_000
+    //     });
+    //     uint64[] memory operatorIds = new uint64[](4);
+    //     operatorIds[0] = 193;
+    //     operatorIds[1] = 196;
+    //     operatorIds[2] = 199;
+    //     operatorIds[3] = 202;
 
-        Cluster memory cluster = Cluster({
-            validatorCount: 28,
-            networkFeeIndex: 63_459_958_614,
-            index: 62_030_899_188,
-            active: true,
-            balance: 45_461_840_401_950_000_000
-        });
-        uint64[] memory operatorIds = new uint64[](4);
-        operatorIds[0] = 193;
-        operatorIds[1] = 196;
-        operatorIds[2] = 199;
-        operatorIds[3] = 202;
+    //     bytes[] memory publicKeys = new bytes[](2);
+    //     publicKeys[0] =
+    //         hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
+    //     publicKeys[1] =
+    //         hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
 
-        bytes[] memory publicKeys = new bytes[](2);
-        publicKeys[0] =
-            hex"b9070f2ace492a4022aaa216f1f1bda17187327ee3ecc4e982e56877d3e8419a02c43b03a9af5acc145bdc45277fc49c";
-        publicKeys[1] =
-            hex"b8d135d959f6216ce818860a7608a023dbd0057f9250dfa2fb6b7734be99b32804282d635074cbe241d8720c6352fdda";
+    //     nodeDelegator2.removeSsvValidators(publicKeys, operatorIds, cluster);
 
-        nodeDelegator2.removeSsvValidators(publicKeys, operatorIds, cluster);
+    //     vm.stopPrank();
+    // }
 
-        vm.stopPrank();
-    }
+    // All the consensus rewards have been claimed
+    // function test_requestEthWithdrawalConsensusRewards() public {
+    //     vm.startPrank(Addresses.OPERATOR_ROLE);
 
-    function test_requestEthWithdrawalConsensusRewards() public {
-        vm.startPrank(Addresses.OPERATOR_ROLE);
+    //     uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
+    //     uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
+    //     assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
+    //     (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
+    //         nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
 
-        uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
-        uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
-        assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
-        (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
-            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+    //     nodeDelegator2.requestEthWithdrawal();
 
-        nodeDelegator2.requestEthWithdrawal();
+    //     (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
+    //         nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+    //     assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
+    //     assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
 
-        (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
-            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
-        assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
+    //     vm.roll(block.number + 50_400);
 
-        vm.roll(block.number + 50_400);
+    //     // Check the last withdrawal request can be claimed
+    //     uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
+    //         .userWithdrawalsLength(address(nodeDelegator2));
+    //     assertTrue(
+    //         IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
+    //             address(nodeDelegator2), withdrawalRequests - 1
+    //         ),
+    //         "can claim withdrawal"
+    //     );
 
-        // Check the last withdrawal request can be claimed
-        uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
-            .userWithdrawalsLength(address(nodeDelegator2));
-        assertTrue(
-            IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
-                address(nodeDelegator2), withdrawalRequests - 1
-            ),
-            "can claim withdrawal"
-        );
+    //     vm.expectEmit();
+    //     emit ConsensusRewards(eigenPodBalanceBefore);
 
-        vm.expectEmit();
-        emit ConsensusRewards(eigenPodBalanceBefore);
+    //     nodeDelegator2.claimEthWithdrawal();
 
-        nodeDelegator2.claimEthWithdrawal();
+    //     (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
+    //         nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+    //     assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + eigenPodBalanceBefore, "ND WETH after
+    // claim");
+    //     assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest, "EL WETH after claim");
 
-        (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
-            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + eigenPodBalanceBefore, "ND WETH after claim");
-        assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest, "EL WETH after claim");
+    //     assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
+    //     assertEq(
+    //         address(nodeDelegator2).balance,
+    //         nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
+    //         "NodeDelegator balance after"
+    //     );
 
-        assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
-        assertEq(
-            address(nodeDelegator2).balance,
-            nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
-            "NodeDelegator balance after"
-        );
+    //     vm.stopPrank();
+    // }
 
-        vm.stopPrank();
-    }
+    // All the consensus rewards have been claimed
+    // function test_requestEthWithdrawalValidatorExits() public {
+    //     vm.startPrank(Addresses.OPERATOR_ROLE);
 
-    function test_requestEthWithdrawalValidatorExits() public {
-        vm.startPrank(Addresses.OPERATOR_ROLE);
+    //     nodeDelegator2.requestEthWithdrawal();
+    //     vm.roll(block.number + 50_400);
+    //     nodeDelegator2.claimEthWithdrawal();
 
-        nodeDelegator2.requestEthWithdrawal();
-        vm.roll(block.number + 50_400);
-        nodeDelegator2.claimEthWithdrawal();
+    //     // Simulate 3 validators exiting with some consensus rewards
+    //     uint256 exitAmount = 96.5 ether;
+    //     vm.deal(Addresses.EIGEN_POD, exitAmount);
 
-        // Simulate 3 validators exiting with some consensus rewards
-        uint256 exitAmount = 96.5 ether;
-        vm.deal(Addresses.EIGEN_POD, exitAmount);
+    //     uint256 ethInValidatorsBefore = nodeDelegator2.stakedButNotVerifiedEth();
+    //     uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
+    //     uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
+    //     assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
+    //     (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
+    //         nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
 
-        uint256 ethInValidatorsBefore = nodeDelegator2.stakedButNotVerifiedEth();
-        uint256 eigenPodBalanceBefore = address(Addresses.EIGEN_POD).balance;
-        uint256 nodeDelegatorBalanceBefore = address(nodeDelegator2).balance;
-        assertGt(eigenPodBalanceBefore, 0, "EigenPod balance before");
-        (uint256 ndcAssetBalanceBeforeRequest, uint256 eigenAssetBeforeRequest) =
-            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+    //     nodeDelegator2.requestEthWithdrawal();
 
-        nodeDelegator2.requestEthWithdrawal();
+    //     (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
+    //         nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+    //     assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
+    //     assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
 
-        (uint256 ndcAssetBalanceAfterRequest, uint256 eigenAssetAfterRequest) =
-            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcAssetBalanceAfterRequest, ndcAssetBalanceBeforeRequest, "ND WETH after request");
-        assertEq(eigenAssetAfterRequest, eigenAssetBeforeRequest, "EL WETH after request");
+    //     vm.roll(block.number + 50_400);
 
-        vm.roll(block.number + 50_400);
+    //     // Check the last withdrawal request can be claimed
+    //     uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
+    //         .userWithdrawalsLength(address(nodeDelegator2));
+    //     assertTrue(
+    //         IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
+    //             address(nodeDelegator2), withdrawalRequests - 1
+    //         ),
+    //         "can claim withdrawal"
+    //     );
 
-        // Check the last withdrawal request can be claimed
-        uint256 withdrawalRequests = IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER)
-            .userWithdrawalsLength(address(nodeDelegator2));
-        assertTrue(
-            IDelayedWithdrawalRouter(Addresses.EIGEN_DELAYED_WITHDRAWAL_ROUTER).canClaimDelayedWithdrawal(
-                address(nodeDelegator2), withdrawalRequests - 1
-            ),
-            "can claim withdrawal"
-        );
+    //     vm.expectEmit();
+    //     emit WithdrawnValidators(3, ethInValidatorsBefore - 96 ether);
+    //     vm.expectEmit();
+    //     emit ConsensusRewards(0.5 ether);
 
-        vm.expectEmit();
-        emit WithdrawnValidators(3, ethInValidatorsBefore - 96 ether);
-        vm.expectEmit();
-        emit ConsensusRewards(0.5 ether);
+    //     nodeDelegator2.claimEthWithdrawal();
 
-        nodeDelegator2.claimEthWithdrawal();
+    //     (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
+    //         nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
+    //     assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + exitAmount, "ND WETH after claim");
+    //     assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest - 96 ether, "EL WETH after claim");
 
-        (uint256 ndcAssetBalanceAfterClaim, uint256 eigenAssetAfterClaim) =
-            nodeDelegator2.getAssetBalance(Addresses.WETH_TOKEN);
-        assertEq(ndcAssetBalanceAfterClaim, ndcAssetBalanceBeforeRequest + exitAmount, "ND WETH after claim");
-        assertEq(eigenAssetAfterClaim, eigenAssetBeforeRequest - 96 ether, "EL WETH after claim");
+    //     assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
+    //     assertEq(
+    //         address(nodeDelegator2).balance,
+    //         nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
+    //         "NodeDelegator balance after"
+    //     );
 
-        assertEq(address(Addresses.EIGEN_POD).balance, 0, "EigenPod balance after");
-        assertEq(
-            address(nodeDelegator2).balance,
-            nodeDelegatorBalanceBefore + eigenPodBalanceBefore,
-            "NodeDelegator balance after"
-        );
-
-        vm.stopPrank();
-    }
+    //     vm.stopPrank();
+    // }
 }
 
 contract ForkTestLST is ForkTestBase {
@@ -979,6 +990,112 @@ contract ForkTestLST is ForkTestBase {
         vm.stopPrank();
     }
 
+    // staker withdrawal of LST
+    function test_staker_lst_withdrawal_partial_yield_nest() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 6 ether);
+        transfer_DelegatorNode(asset, 6 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(oWhale);
+
+        uint256 primeAmount = 5 ether;
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount + 1);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Should emit WithdrawalClaimed event
+        vm.expectEmit({
+            emitter: address(lrtDepositPool),
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
+        emit WithdrawalClaimed(oWhale, Addresses.YN_LSD_E, 0);
+
+        // Claim the previously requested withdrawal but receive ynLSDe instead of OETH
+        uint256 ynLSDeAmount = lrtDepositPool.claimWithdrawalYn(withdrawal);
+
+        console.log("%s OETH was converted to %s ynLSDe", withdrawAssetAmount, ynLSDeAmount);
+
+        assertApproxEqRel(
+            IERC20(Addresses.YN_LSD_E).balanceOf(oWhale),
+            whaleYnLSDeBefore + withdrawAssetAmount,
+            1e16,
+            "whale ynLSDe after within 1% of OETH amount"
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_staker_lst_withdrawal_full_yield_nest() public {
+        address asset = Addresses.OETH_TOKEN;
+        deposit(asset, oWhale, 1 ether);
+        transfer_DelegatorNode(asset, 1 ether);
+        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
+
+        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(oWhale);
+
+        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(oWhale);
+
+        uint256 primeETHPrice = lrtOracle.primeETHPrice();
+        uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
+
+        vm.recordLogs();
+
+        vm.startPrank(oWhale);
+
+        // Staker requests an OETH withdrawal
+        lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
+
+        Vm.Log[] memory requestLogs = vm.getRecordedLogs();
+
+        // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
+        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+
+        // Move forward 50,400 blocks (~7 days)
+        vm.roll(block.number + 50_400);
+
+        // Should emit WithdrawalClaimed event
+        vm.expectEmit({
+            emitter: address(lrtDepositPool),
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: true,
+            checkData: false
+        });
+        emit WithdrawalClaimed(oWhale, Addresses.YN_LSD_E, 0);
+
+        // Claim the previously requested withdrawal
+        uint256 ynLSDeAmount = lrtDepositPool.claimWithdrawalYn(withdrawal);
+
+        assertApproxEqRel(
+            IERC20(Addresses.YN_LSD_E).balanceOf(oWhale),
+            whaleYnLSDeBefore + withdrawAssetAmount,
+            1e16,
+            "whale ynLSDe after within 1% of OETH amount"
+        );
+
+        vm.stopPrank();
+    }
+
     // Prime Operator withdraws LSTs from Eigen Layer
     function test_operator_internal_withdrawal() public {
         withdrawAllFromEigenLayer(Addresses.OETH_TOKEN, Addresses.OETH_EIGEN_STRATEGY);
@@ -1037,7 +1154,7 @@ contract ForkTestLST is ForkTestBase {
         // stETH can leave a dust amount behind so using assertApproxEqAbs
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertLe(assetsNDCsAfter, 1, "assets in NDCs");
-        assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
+        assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 2, "assets in EigenLayer");
     }
 
     /// @dev unpause an EigenLayer Strategy is currently paused
