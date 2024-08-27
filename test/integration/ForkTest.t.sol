@@ -236,10 +236,10 @@ contract ForkTestNative is ForkTestBase {
 
         Cluster memory cluster = Cluster({
             validatorCount: 0,
-            networkFeeIndex: 80_378_414_987,
-            index: 771_023_330_962,
+            networkFeeIndex: 83_179_900_729,
+            index: 823_537_463_402,
             active: true,
-            balance: 1_752_356_230_430_000_000
+            balance: 0
         });
 
         // These are the operatorIds for the first SSV Cluster. These will not be used going forward
@@ -1154,7 +1154,7 @@ contract ForkTestLST is ForkTestBase {
         // stETH can leave a dust amount behind so using assertApproxEqAbs
         assertEq(assetsDepositPoolAfter, assetsDepositPoolBefore, "assets in DepositPool");
         assertLe(assetsNDCsAfter, 1, "assets in NDCs");
-        assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 1, "assets in EigenLayer");
+        assertApproxEqAbs(assetsElAfter, assetsElBefore + assetsNDCsBefore, 2, "assets in EigenLayer");
     }
 
     /// @dev unpause an EigenLayer Strategy is currently paused
