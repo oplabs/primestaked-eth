@@ -10,7 +10,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
-import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
+import { IDelegationManager, IDelegationManagerTypes } from "contracts/eigen/interfaces/IDelegationManager.sol";
 import { IDelayedWithdrawalRouter } from "contracts/eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
@@ -935,8 +935,8 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 50,400 blocks (~7 days)
         vm.roll(block.number + 50_400);
@@ -974,8 +974,8 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 50,400 blocks (~7 days)
         vm.roll(block.number + 50_400);
@@ -1013,8 +1013,8 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 50,400 blocks (~7 days)
         vm.roll(block.number + 50_400);
@@ -1067,8 +1067,8 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 50,400 blocks (~7 days)
         vm.roll(block.number + 50_400);
@@ -1120,8 +1120,8 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[1].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 50,400 blocks (~7 days)
         vm.roll(block.number + 50_400);
