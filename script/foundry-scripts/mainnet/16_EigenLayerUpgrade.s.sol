@@ -10,6 +10,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { BaseMainnetScript } from "./BaseMainnetScript.sol";
 import { LRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { LRTConfig } from "contracts/LRTConfig.sol";
+import { LRTOracle } from "contracts/LRTOracle.sol";
 import { LRTConstants } from "contracts/utils/LRTConstants.sol";
 import { DepositPoolLib } from "contracts/libraries/DepositPoolLib.sol";
 import { NodeDelegatorLSTLib } from "contracts/libraries/NodeDelegatorLSTLib.sol";
@@ -50,5 +51,9 @@ contract EigenLayerUpgrade is BaseMainnetScript {
         // Upgrade the NodeDelegator to new implementations
         NodeDelegatorLSTLib.upgrade(Addresses.NODE_DELEGATOR, newNodeDelegatorLSTImpl);
         vm.stopPrank();
+
+        // Update the price after it not working
+        LRTOracle lrtOracle = LRTOracle(Addresses.LRT_ORACLE);
+        lrtOracle.updatePrimeETHPrice();
     }
 }

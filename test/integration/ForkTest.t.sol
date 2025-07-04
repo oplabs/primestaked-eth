@@ -789,7 +789,9 @@ contract ForkTestLST is ForkTestBase {
     function test_update_primeETH_price() public {
         // anyone can call
         vm.prank(address(1));
+        uint256 priceBefore = lrtOracle.primeETHPrice();
         lrtOracle.updatePrimeETHPrice();
+        uint256 priceAfter = lrtOracle.primeETHPrice();
     }
 
     function test_bulk_transfer_all_eigen() public {
@@ -1088,6 +1090,43 @@ contract ForkTestLST is ForkTestBase {
             5e16,
             "whale ynLSDe after within 5% of OETH amount"
         );
+
+        vm.stopPrank();
+    }
+
+    // staker with withdrawal request before upgrade
+    // from requestWithdrawal tx
+    // https://etherscan.io/tx/0x75ab10b9f7287e9ff6661c4e7dbe0bdb1df6aed0e1b85064a5d34a8bdd65e86c#eventlog
+    function test_staker_claim_after_upgrade() public {
+        address asset = Addresses.OETH_TOKEN;
+
+        address staker = 0xc9D4Ac5B09A7B9f9258089d09563B7AFb67bCe16;
+
+        vm.startPrank(staker);
+
+        IStrategy[] memory strategies = new IStrategy[](1);
+        strategies[0] = IStrategy(Addresses.OETH_EIGEN_STRATEGY);
+        uint256[] memory scaledShares = new uint256[](1);
+        scaledShares[0] = 11_540_344_205_946_929_570; // 11.540344205946929570 OETH shares
+
+        IDelegationManagerTypes.Withdrawal memory withdrawal = IDelegationManagerTypes.Withdrawal({
+            staker: Addresses.NODE_DELEGATOR,
+            delegatedTo: 0xDbEd88D83176316fc46797B43aDeE927Dc2ff2F5,
+            withdrawer: Addresses.NODE_DELEGATOR,
+            nonce: 299,
+            startBlock: 22_634_706,
+            strategies: strategies,
+            scaledShares: scaledShares
+        });
+
+        assertEq(
+            keccak256(abi.encode(withdrawal)),
+            0xf59b7bd2dbd6b7c747bb4bfc194e09df7c40440b8c7568f78b39ce24f630e66a,
+            "withdrawal root mismatch"
+        );
+
+        // Claim the previously requested withdrawal
+        lrtDepositPool.claimWithdrawal(withdrawal);
 
         vm.stopPrank();
     }
