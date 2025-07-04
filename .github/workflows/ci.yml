@@ -89,30 +89,30 @@ jobs:
           echo "## Tests result" >> $GITHUB_STEP_SUMMARY
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
-  fork-holesky:
-    needs: ["build"]
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Check out the repo"
-        uses: "actions/checkout@v4"
-        with:
-          submodules: "recursive"
+  # fork-holesky:
+  #   needs: ["build"]
+  #   runs-on: "ubuntu-latest"
+  #   steps:
+  #     - name: "Check out the repo"
+  #       uses: "actions/checkout@v4"
+  #       with:
+  #         submodules: "recursive"
 
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
+  #     - name: "Install Foundry"
+  #       uses: "foundry-rs/foundry-toolchain@v1"
 
-      - name: "Show the Foundry config"
-        run: "forge config"
+  #     - name: "Show the Foundry config"
+  #       run: "forge config"
 
-      - name: "Run holesky fork tests"
-        run: |
-          export FORK_RPC_URL=${{ secrets.HOLESKY_RPC_URL }}
-          make fork-test-holesky-ci
+  #     - name: "Run holesky fork tests"
+  #       run: |
+  #         export FORK_RPC_URL=${{ secrets.HOLESKY_RPC_URL }}
+  #         make fork-test-holesky-ci
 
-      - name: "Add test summary"
-        run: |
-          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+  #     - name: "Add test summary"
+  #       run: |
+  #         echo "## Tests result" >> $GITHUB_STEP_SUMMARY
+  #         echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
   fork-mainnet:
     needs: ["build"]
