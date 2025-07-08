@@ -36,7 +36,7 @@ contract MockStrategyManager {
         return (strategies_, shares);
     }
 
-    function stakerStrategyShares(address user, IStrategy strategy) external view returns (uint256 shares) {
+    function stakerDepositShares(address user, IStrategy strategy) external view returns (uint256 shares) {
         shares = depositorStrategyShareBalances[user][address(strategy)];
     }
 }

@@ -9,8 +9,9 @@ import { UtilLib } from "./utils/UtilLib.sol";
 import { LRTConstants } from "./utils/LRTConstants.sol";
 import { LRTConfigRoleChecker, ILRTConfig } from "./utils/LRTConfigRoleChecker.sol";
 
-import { IDelegationManager } from "./eigen/interfaces/IDelegationManager.sol";
+import { IDelegationManager, IDelegationManagerTypes } from "./eigen/interfaces/IDelegationManager.sol";
 import { ISignatureUtils } from "./eigen/interfaces/ISignatureUtils.sol";
+import { ISignatureUtilsMixinTypes } from "./eigen/interfaces/ISignatureUtilsMixin.sol";
 import { IStrategyManager, IStrategy } from "./eigen/interfaces/IStrategyManager.sol";
 import { INodeDelegatorLST } from "./interfaces/INodeDelegatorLST.sol";
 import { IOETH } from "./interfaces/IOETH.sol";
@@ -66,9 +67,7 @@ contract NodeDelegatorLST is
     /// @notice Approves the maximum amount of an asset to the eigen strategy manager
     /// @dev only supported assets can be deposited and only called by the LRT manager
     /// @param asset the asset to deposit
-    function maxApproveToEigenStrategyManager(
-        address asset
-    )
+    function maxApproveToEigenStrategyManager(address asset)
         external
         override
         onlySupportedAsset(asset)
@@ -82,9 +81,7 @@ contract NodeDelegatorLST is
     /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
     /// WETH can not be deposited.
     /// @param asset the asset to deposit
-    function depositAssetIntoStrategy(
-        address asset
-    )
+    function depositAssetIntoStrategy(address asset)
         external
         override
         whenNotPaused
@@ -99,9 +96,7 @@ contract NodeDelegatorLST is
     /// @dev only supported LST assets can be deposited and only called by the LRT Operator.
     /// WETH can not be deposited.
     /// @param assets List of assets to deposit
-    function depositAssetsIntoStrategy(
-        address[] calldata assets
-    )
+    function depositAssetsIntoStrategy(address[] calldata assets)
         external
         override
         whenNotPaused
@@ -221,7 +216,7 @@ contract NodeDelegatorLST is
 
         // Get the amount of strategy shares owned by this contract.
         IStrategyManager strategyManager = IStrategyManager(lrtConfig.getContract(LRTConstants.EIGEN_STRATEGY_MANAGER));
-        uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
+        uint256 strategyShares = strategyManager.stakerDepositShares(address(this), IStrategy(strategy));
 
         // add any shares pending internal withdrawal to the strategy shares owned by this contract.
         // staker withdrawals are not added to pendingInternalShareWithdrawals as the primeETH tokens are burnt on
@@ -239,7 +234,7 @@ contract NodeDelegatorLST is
         IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
 
         delegationManager.delegateTo(
-            operator, ISignatureUtils.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
+            operator, ISignatureUtilsMixinTypes.SignatureWithExpiry({ signature: new bytes(0), expiry: 0 }), 0x0
         );
 
         emit Delegate(operator);
@@ -266,7 +261,7 @@ contract NodeDelegatorLST is
             // Get the EigenLayer strategy for the LST asset
             address strategy = lrtConfig.assetStrategy(assets[i]);
 
-            uint256 strategyShares = strategyManager.stakerStrategyShares(address(this), IStrategy(strategy));
+            uint256 strategyShares = strategyManager.stakerDepositShares(address(this), IStrategy(strategy));
             // account for the strategy shares pending internal withdrawal
             pendingInternalShareWithdrawals[strategy] += strategyShares;
 
@@ -345,8 +340,9 @@ contract NodeDelegatorLST is
         shares[0] = strategyShares;
 
         // request the withdrawal of the LSTs from EigenLayer
-        IDelegationManager.QueuedWithdrawalParams[] memory requests = new IDelegationManager.QueuedWithdrawalParams[](1);
-        requests[0] = IDelegationManager.QueuedWithdrawalParams(strategies, shares, address(this));
+        IDelegationManagerTypes.QueuedWithdrawalParams[] memory requests =
+            new IDelegationManagerTypes.QueuedWithdrawalParams[](1);
+        requests[0] = IDelegationManagerTypes.QueuedWithdrawalParams(strategies, shares, address(this));
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
         IDelegationManager delegationManager = IDelegationManager(delegationManagerAddress);
 
@@ -390,8 +386,7 @@ contract NodeDelegatorLST is
 
         // Claim the previously requested withdrawal from EigenLayer
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
-        // the 3rd middlewareTimesIndexes param is not used in the EigenLayer M2 contracts
-        IDelegationManager(delegationManagerAddress).completeQueuedWithdrawal(withdrawal, tokens, 0, true);
+        IDelegationManager(delegationManagerAddress).completeQueuedWithdrawal(withdrawal, tokens, true);
 
         // Calculate the amount of assets returned from the withdrawal
         assets = IERC20(asset).balanceOf(address(this)) - assetsBefore;
@@ -411,9 +406,7 @@ contract NodeDelegatorLST is
     /// on the `NodeDelegator` contract by a Prime Operator.
     /// @return asset address of the liquid staking tokens (LST) that were claimed.
     /// @return assets the amount of LSTs transferred to the `LRTDepositPool` contract.
-    function claimInternalWithdrawal(
-        IDelegationManager.Withdrawal calldata withdrawal
-    )
+    function claimInternalWithdrawal(IDelegationManager.Withdrawal calldata withdrawal)
         external
         onlyLRTOperator
         returns (address asset, uint256 assets)
@@ -439,11 +432,10 @@ contract NodeDelegatorLST is
 
         // Claim the previously requested withdrawal from EigenLayer
         address delegationManagerAddress = lrtConfig.getContract(LRTConstants.EIGEN_DELEGATION_MANAGER);
-        // the 3rd middlewareTimesIndexes param is not used in the EigenLayer M2 contracts
-        IDelegationManager(delegationManagerAddress).completeQueuedWithdrawal(withdrawal, tokens, 0, true);
+        IDelegationManager(delegationManagerAddress).completeQueuedWithdrawal(withdrawal, tokens, true);
 
         // Remove the pending internal withdrawal shares now that they have been claimed
-        pendingInternalShareWithdrawals[address(withdrawal.strategies[0])] -= withdrawal.shares[0];
+        pendingInternalShareWithdrawals[address(withdrawal.strategies[0])] -= withdrawal.scaledShares[0];
 
         // Calculate the amount of assets returned from the withdrawal
         address depositPool = lrtConfig.getContract(LRTConstants.LRT_DEPOSIT_POOL);
@@ -459,9 +451,7 @@ contract NodeDelegatorLST is
     /// @dev Returns the keccak256 hash of `withdrawal`.
     /// @param withdrawal the `withdrawal` data emitted in the `WithdrawalQueued` event
     /// from EigenLayer's `DelegationManager` contract.
-    function _calculateWithdrawalRoot(
-        IDelegationManager.Withdrawal memory withdrawal
-    )
+    function _calculateWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal)
         internal
         pure
         returns (bytes32)

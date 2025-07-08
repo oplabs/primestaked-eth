@@ -158,14 +158,6 @@ mainnet or a local forked node.
 make fork-test
 ```
 
-### Integration Tests
-
-Run the integration tests against Goerli
-
-```bash
-make int-test
-```
-
 ### Test Coverage
 
 Generate test coverage and output result to the terminal:

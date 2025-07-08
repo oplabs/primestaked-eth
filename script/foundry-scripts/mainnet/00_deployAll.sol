@@ -16,6 +16,7 @@ import { UpgradeNodeDelegatorDelegateTo } from "./12_upgradeNodeDelegatorDelegat
 import { UpgradeLSTWithdrawals } from "./13_upgradeLSTWithdrawals.s.sol";
 import { UpgradeEthWithdrawals } from "./14_upgradeEthWithdrawals.s.sol";
 import { YieldNestIntegration } from "./15_yieldNestIntegration.s.sol";
+import { EigenLayerUpgrade } from "./16_EigenLayerUpgrade.s.sol";
 
 contract DeployAll {
     // Ignores this contract when checking contract sized with
@@ -38,5 +39,6 @@ contract DeployAll {
         (new UpgradeLSTWithdrawals()).run();
         (new UpgradeEthWithdrawals()).run();
         (new YieldNestIntegration()).run();
+        (new EigenLayerUpgrade()).run();
     }
 }

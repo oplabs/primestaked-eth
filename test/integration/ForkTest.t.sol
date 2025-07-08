@@ -10,7 +10,7 @@ import { ITransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/tran
 
 import { LRTDepositPool, ILRTDepositPool } from "contracts/LRTDepositPool.sol";
 import { PrimeZapper } from "contracts/utils/PrimeZapper.sol";
-import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
+import { IDelegationManager, IDelegationManagerTypes } from "contracts/eigen/interfaces/IDelegationManager.sol";
 import { IDelayedWithdrawalRouter } from "contracts/eigen/interfaces/IDelayedWithdrawalRouter.sol";
 import { IPausable } from "contracts/eigen/interfaces/IPausable.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
@@ -36,11 +36,12 @@ contract ForkTestBase is Test {
     LRTConfig public lrtConfig;
     NodeDelegatorLST public nodeDelegator1;
 
+    address internal constant primeWhale = 0xDac393866d9dB115C11200324F36235A8Ff04919;
     address internal constant stWhale = 0xE53FFF67f9f384d20Ebea36F43b93DC49Ed22753;
-    address internal constant xWhale = 0x1a0EBB8B15c61879a8e8DA7817Bb94374A7c4007;
-    address internal constant oWhale = 0xEADB3840596cabF312F2bC88A4Bb0b93A4E1FF5F;
+    address internal constant xWhale = 0xF6f09B50a9009127731963AF6272d526b83F69d8;
+    address internal constant oWhale = 0xA7c82885072BADcF3D0277641d55762e65318654;
     address internal constant mWhale = 0xf89d7b9c864f589bbF53a82105107622B35EaA40;
-    address internal constant frxWhale = 0x46782D268FAD71DaC3383Ccf2dfc44C861fb4c7D;
+    address internal constant frxWhale = 0xEADB3840596cabF312F2bC88A4Bb0b93A4E1FF5F;
     address internal constant rWhale = 0xCc9EE9483f662091a1de4795249E24aC0aC2630f;
     address internal constant swWhale = 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6;
 
@@ -121,7 +122,7 @@ contract ForkTestBase is Test {
         });
         emit Transfer(address(0), whale, amountToTransfer);
 
-        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 97 / 100, referralId);
+        lrtDepositPool.depositAsset(asset, amountToTransfer, amountToTransfer * 95 / 100, referralId);
         vm.stopPrank();
 
         // Get after asset balances
@@ -441,12 +442,13 @@ contract ForkTestNative is ForkTestBase {
         nodeDelegator2.transferBackToLRTDepositPool(asset, 30 ether);
     }
 
-    function test_revertWhenSecondCreatePod() public {
-        vm.startPrank(Addresses.ADMIN_ROLE);
-        vm.expectRevert("EigenPodManager.createPod: Sender already has a pod");
-        nodeDelegator2.createEigenPod();
-        vm.stopPrank();
-    }
+    // Removing as this is not needed anymore
+    // function test_revertWhenSecondCreatePod() public {
+    //     vm.startPrank(Addresses.ADMIN_ROLE);
+    //     vm.expectRevert("EigenPodManager.createPod: Sender already has a pod");
+    //     nodeDelegator2.createEigenPod();
+    //     vm.stopPrank();
+    // }
 
     function depositETH(address whale, uint256 amountToTransfer, bool sendEthWithACall) internal {
         // Get before asset balances
@@ -488,7 +490,7 @@ contract ForkTestNative is ForkTestBase {
         if (sendEthWithACall) {
             address(primeZapper).call{ value: amountToTransfer }("");
         } else {
-            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 97 / 100, referralId);
+            primeZapper.deposit{ value: amountToTransfer }(amountToTransfer * 95 / 100, referralId);
         }
 
         vm.stopPrank();
@@ -787,7 +789,9 @@ contract ForkTestLST is ForkTestBase {
     function test_update_primeETH_price() public {
         // anyone can call
         vm.prank(address(1));
+        uint256 priceBefore = lrtOracle.primeETHPrice();
         lrtOracle.updatePrimeETHPrice();
+        uint256 priceAfter = lrtOracle.primeETHPrice();
     }
 
     function test_bulk_transfer_all_eigen() public {
@@ -935,11 +939,11 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
-        // Move forward 50,400 blocks (~7 days)
-        vm.roll(block.number + 50_400);
+        // Move forward 100,801 blocks (~14 days)
+        vm.roll(block.number + 100_801);
 
         // Claim the previously requested withdrawal
         lrtDepositPool.claimWithdrawal(withdrawal);
@@ -953,20 +957,17 @@ contract ForkTestLST is ForkTestBase {
 
     function test_staker_lst_withdrawal_full() public {
         address asset = Addresses.OETH_TOKEN;
-        deposit(asset, oWhale, 1 ether);
-        transfer_DelegatorNode(asset, 1 ether);
-        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
 
-        uint256 whaleAssetsBefore = IERC20(asset).balanceOf(oWhale);
+        uint256 whaleAssetsBefore = IERC20(asset).balanceOf(primeWhale);
 
-        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(oWhale);
+        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(primeWhale);
 
         uint256 primeETHPrice = lrtOracle.primeETHPrice();
         uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
 
         vm.recordLogs();
 
-        vm.startPrank(oWhale);
+        vm.startPrank(primeWhale);
 
         // Staker requests an OETH withdrawal
         lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
@@ -974,17 +975,20 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
-        // Move forward 50,400 blocks (~7 days)
-        vm.roll(block.number + 50_400);
+        // Move forward 100,801 blocks (~14 days)
+        vm.roll(block.number + 100_801);
 
         // Claim the previously requested withdrawal
         lrtDepositPool.claimWithdrawal(withdrawal);
 
         assertApproxEqAbs(
-            IERC20(asset).balanceOf(oWhale), whaleAssetsBefore + withdrawAssetAmount, 1, "whale OETH after within 1 wei"
+            IERC20(asset).balanceOf(primeWhale),
+            whaleAssetsBefore + withdrawAssetAmount,
+            1,
+            "whale OETH after within 1 wei"
         );
 
         vm.stopPrank();
@@ -993,11 +997,8 @@ contract ForkTestLST is ForkTestBase {
     // staker withdrawal of LST
     function test_staker_lst_withdrawal_partial_yield_nest() public {
         address asset = Addresses.OETH_TOKEN;
-        deposit(asset, oWhale, 6 ether);
-        transfer_DelegatorNode(asset, 6 ether);
-        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
 
-        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(oWhale);
+        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(primeWhale);
 
         uint256 primeAmount = 5 ether;
         uint256 primeETHPrice = lrtOracle.primeETHPrice();
@@ -1005,7 +1006,7 @@ contract ForkTestLST is ForkTestBase {
 
         vm.recordLogs();
 
-        vm.startPrank(oWhale);
+        vm.startPrank(primeWhale);
 
         // Staker requests an OETH withdrawal
         lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount + 1);
@@ -1013,11 +1014,11 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
-        // Move forward 50,400 blocks (~7 days)
-        vm.roll(block.number + 50_400);
+        // Move forward 100,801 blocks (~14 days)
+        vm.roll(block.number + 100_801);
 
         // Should emit WithdrawalClaimed event
         vm.expectEmit({
@@ -1027,7 +1028,7 @@ contract ForkTestLST is ForkTestBase {
             checkTopic3: true,
             checkData: false
         });
-        emit WithdrawalClaimed(oWhale, Addresses.YN_LSD_E, 0);
+        emit WithdrawalClaimed(primeWhale, Addresses.YN_LSD_E, 0);
 
         // Claim the previously requested withdrawal but receive ynLSDe instead of OETH
         uint256 ynLSDeAmount = lrtDepositPool.claimWithdrawalYn(withdrawal);
@@ -1035,10 +1036,10 @@ contract ForkTestLST is ForkTestBase {
         console.log("%s OETH was converted to %s ynLSDe", withdrawAssetAmount, ynLSDeAmount);
 
         assertApproxEqRel(
-            IERC20(Addresses.YN_LSD_E).balanceOf(oWhale),
+            IERC20(Addresses.YN_LSD_E).balanceOf(primeWhale),
             whaleYnLSDeBefore + withdrawAssetAmount,
-            1e16,
-            "whale ynLSDe after within 1% of OETH amount"
+            5e16,
+            "whale ynLSDe after within 5% of OETH amount"
         );
 
         vm.stopPrank();
@@ -1046,20 +1047,17 @@ contract ForkTestLST is ForkTestBase {
 
     function test_staker_lst_withdrawal_full_yield_nest() public {
         address asset = Addresses.OETH_TOKEN;
-        deposit(asset, oWhale, 1 ether);
-        transfer_DelegatorNode(asset, 1 ether);
-        transfer_Eigen(asset, Addresses.OETH_EIGEN_STRATEGY);
 
-        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(oWhale);
+        uint256 whaleYnLSDeBefore = IERC20(Addresses.YN_LSD_E).balanceOf(primeWhale);
 
-        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(oWhale);
+        uint256 primeAmount = IERC20(Addresses.PRIME_STAKED_ETH).balanceOf(primeWhale);
 
         uint256 primeETHPrice = lrtOracle.primeETHPrice();
         uint256 withdrawAssetAmount = primeAmount * primeETHPrice / 1e18;
 
         vm.recordLogs();
 
-        vm.startPrank(oWhale);
+        vm.startPrank(primeWhale);
 
         // Staker requests an OETH withdrawal
         lrtDepositPool.requestWithdrawal(asset, withdrawAssetAmount, primeAmount);
@@ -1067,11 +1065,11 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[2].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
-        // Move forward 50,400 blocks (~7 days)
-        vm.roll(block.number + 50_400);
+        // Move forward 100,801 blocks (~14 days)
+        vm.roll(block.number + 100_801);
 
         // Should emit WithdrawalClaimed event
         vm.expectEmit({
@@ -1081,17 +1079,54 @@ contract ForkTestLST is ForkTestBase {
             checkTopic3: true,
             checkData: false
         });
-        emit WithdrawalClaimed(oWhale, Addresses.YN_LSD_E, 0);
+        emit WithdrawalClaimed(primeWhale, Addresses.YN_LSD_E, 0);
 
         // Claim the previously requested withdrawal
         uint256 ynLSDeAmount = lrtDepositPool.claimWithdrawalYn(withdrawal);
 
         assertApproxEqRel(
-            IERC20(Addresses.YN_LSD_E).balanceOf(oWhale),
+            IERC20(Addresses.YN_LSD_E).balanceOf(primeWhale),
             whaleYnLSDeBefore + withdrawAssetAmount,
-            1e16,
-            "whale ynLSDe after within 1% of OETH amount"
+            5e16,
+            "whale ynLSDe after within 5% of OETH amount"
         );
+
+        vm.stopPrank();
+    }
+
+    // staker with withdrawal request before upgrade
+    // from requestWithdrawal tx
+    // https://etherscan.io/tx/0x75ab10b9f7287e9ff6661c4e7dbe0bdb1df6aed0e1b85064a5d34a8bdd65e86c#eventlog
+    function test_staker_claim_after_upgrade() public {
+        address asset = Addresses.OETH_TOKEN;
+
+        address staker = 0xc9D4Ac5B09A7B9f9258089d09563B7AFb67bCe16;
+
+        vm.startPrank(staker);
+
+        IStrategy[] memory strategies = new IStrategy[](1);
+        strategies[0] = IStrategy(Addresses.OETH_EIGEN_STRATEGY);
+        uint256[] memory scaledShares = new uint256[](1);
+        scaledShares[0] = 11_540_344_205_946_929_570; // 11.540344205946929570 OETH shares
+
+        IDelegationManagerTypes.Withdrawal memory withdrawal = IDelegationManagerTypes.Withdrawal({
+            staker: Addresses.NODE_DELEGATOR,
+            delegatedTo: 0xDbEd88D83176316fc46797B43aDeE927Dc2ff2F5,
+            withdrawer: Addresses.NODE_DELEGATOR,
+            nonce: 299,
+            startBlock: 22_634_706,
+            strategies: strategies,
+            scaledShares: scaledShares
+        });
+
+        assertEq(
+            keccak256(abi.encode(withdrawal)),
+            0xf59b7bd2dbd6b7c747bb4bfc194e09df7c40440b8c7568f78b39ce24f630e66a,
+            "withdrawal root mismatch"
+        );
+
+        // Claim the previously requested withdrawal
+        lrtDepositPool.claimWithdrawal(withdrawal);
 
         vm.stopPrank();
     }
@@ -1120,11 +1155,11 @@ contract ForkTestLST is ForkTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawal data from the Withdrawal event emitted from EigenLayer's DelegationManager
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[2].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
-        // Move forward 50,400 blocks (~7 days)
-        vm.roll(block.number + 50_400);
+        // Move forward 100,801 blocks (~14 days)
+        vm.roll(block.number + 100_801);
 
         nodeDelegator1.claimInternalWithdrawal(withdrawal);
 

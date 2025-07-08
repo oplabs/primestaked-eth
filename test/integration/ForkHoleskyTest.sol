@@ -7,7 +7,7 @@ import "forge-std/Test.sol";
 import { ERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { IDelegationManager } from "contracts/eigen/interfaces/IDelegationManager.sol";
+import { IDelegationManager, IDelegationManagerTypes } from "contracts/eigen/interfaces/IDelegationManager.sol";
 import { IStrategy } from "contracts/eigen/interfaces/IStrategy.sol";
 import { Cluster } from "contracts/interfaces/ISSVNetwork.sol";
 import { IWETH } from "contracts/interfaces/IWETH.sol";
@@ -955,8 +955,8 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         );
         assertEq(requestLogs[1].topics[0], 0x9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9);
         // Decode the withdrawal data
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[1].data, (bytes32, IDelegationManagerTypes.Withdrawal));
         assertEq(withdrawal.staker, address(nodeDelegator1));
         assertEq(withdrawal.delegatedTo, address(0));
         assertEq(withdrawal.withdrawer, address(nodeDelegator1));
@@ -1223,8 +1223,8 @@ contract ForkHoleskyTestLSTWithdrawals is ForkHoleskyTestBase {
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
 
         // decode the withdrawalRoot and withdrawal event data
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[0].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[0].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 10 blocks
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
@@ -1268,7 +1268,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
     uint256 public constant stEthWithdrawalAmount = 0.6 ether;
     uint256 public constant maxPrimeEthAmount = 0.7 ether;
 
-    IDelegationManager.Withdrawal withdrawal;
+    IDelegationManagerTypes.Withdrawal withdrawal;
 
     function setUp() public override {
         super.setUp();
@@ -1287,7 +1287,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         // decode the withdrawalRoot and withdrawal event data
         bytes32 withdrawalRoot;
-        (withdrawalRoot, withdrawal) = abi.decode(requestLogs[1].data, (bytes32, IDelegationManager.Withdrawal));
+        (withdrawalRoot, withdrawal) = abi.decode(requestLogs[1].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 10 blocks
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
@@ -1389,9 +1389,9 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
     // withdrawer adds extra shares to the withdrawal
     function test_revertClaimWithdrawalChangedShares() external {
-        IDelegationManager.Withdrawal memory changedWithdrawal = withdrawal;
+        IDelegationManagerTypes.Withdrawal memory changedWithdrawal = withdrawal;
         // Add 1 wei to the shares
-        changedWithdrawal.shares[0] += 1;
+        changedWithdrawal.scaledShares[0] += 1;
 
         vm.prank(stWhale);
         lrtDepositPool.claimWithdrawal(withdrawal);
@@ -1414,7 +1414,7 @@ contract ForkHoleskyTestLSTWithdrawalsClaim is ForkHoleskyTestBase {
 contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
     uint256 shares;
     uint256 assetExpected;
-    IDelegationManager.Withdrawal withdrawal;
+    IDelegationManagerTypes.Withdrawal withdrawal;
 
     function setUp() public override {
         super.setUp();
@@ -1437,7 +1437,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
         // decode the withdrawalRoot and withdrawal event data
         bytes32 withdrawalRoot;
-        (withdrawalRoot, withdrawal) = abi.decode(requestLogs[0].data, (bytes32, IDelegationManager.Withdrawal));
+        (withdrawalRoot, withdrawal) = abi.decode(requestLogs[0].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Move forward 10 blocks
         // DelegationManager.minWithdrawalDelayBlocks on Holesky is 10
@@ -1502,7 +1502,7 @@ contract ForkHoleskyTestInternalLSTWithdrawalsClaim is ForkHoleskyTestBase {
 
     // Added an extra strategy element to the claimInternalWithdrawal
     function test_revertClaimInternalWithdrawalNotSingleStrategy() external {
-        IDelegationManager.Withdrawal memory changedWithdrawal = withdrawal;
+        IDelegationManagerTypes.Withdrawal memory changedWithdrawal = withdrawal;
         // Add another strategy element
         changedWithdrawal.strategies = new IStrategy[](2);
 
@@ -1910,8 +1910,8 @@ contract ForkHoleskyTestDelegation is ForkHoleskyTestBase {
 
         // decode the withdrawalRoot and withdrawal event data emitted in the undelegate tx
         Vm.Log[] memory requestLogs = vm.getRecordedLogs();
-        (bytes32 withdrawalRoot, IDelegationManager.Withdrawal memory withdrawal) =
-            abi.decode(requestLogs[5].data, (bytes32, IDelegationManager.Withdrawal));
+        (bytes32 withdrawalRoot, IDelegationManagerTypes.Withdrawal memory withdrawal) =
+            abi.decode(requestLogs[5].data, (bytes32, IDelegationManagerTypes.Withdrawal));
 
         // Claim the withdrawn stETH
         vm.prank(AddressesHolesky.OPERATOR_ROLE);
