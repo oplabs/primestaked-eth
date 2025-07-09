@@ -27,7 +27,7 @@ contract EigenLayerUpgrade is BaseMainnetScript {
 
     constructor() {
         // Will only execute script before this block number
-        // deployBlockNum = ;
+        deployBlockNum = 22_878_287;
     }
 
     function _execute() internal override {
